@@ -1,2 +1,7 @@
 .bkp
 .svg
+*.sln
+*/.vs
+*/bin
+*/obj
+*.csproj
