@@ -47,9 +47,10 @@ public class Habit
     public List<PrefFixedTime> PrefFixedTimings { get; }
     public TimeOption Option { get; }
     public Guid UserID { get; }
+    public int NDays { get; } //сколько дней в неделю нужно выполнять
 
     public Habit(Guid id, string name, int mins_to_complete,
-        TimeOption option, Guid user_id, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings)
+        TimeOption option, Guid user_id, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int nDays)
     {
         Id = id;
         Name = name;
@@ -58,6 +59,7 @@ public class Habit
         PrefFixedTimings = pref_fixed_timings;
         Option = option;
         UserID = user_id;
+        NDays = nDays;
     }
 }
 

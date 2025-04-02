@@ -84,6 +84,50 @@ public class TaskTracker : ITaskTracker
         return freeIntervals;
     }
 
+    private void SpreadHabits(List<Habit> habits, List<Event> events)
+    {
+        //Получаем списки интервалов занятости из расписания для каждого дня
+        Dictionary<WeekDay, List<TimeInterval>> eventsIntervals = [];
+        foreach (var ev in events)
+        {
+            var interval = new TimeInterval(ev.Start, ev.End);
+            eventsIntervals[ev.Day].Add(interval);
+        }
+        //Получаем списки интервалов свободного времени в расписании для каждого дня
+        Dictionary<string, List<TimeInterval>> freeIntervals = [];
+        foreach (var ev in eventsIntervals)
+            freeIntervals[ev.Key.StringDay] = GetFreeIntervals(ev.Value);
+        //Получаем списки привычек по приоритетам
+        /*Dictionary<string, Habit> option_habits = [];
+        foreach (var h in habits)
+            option_habits[h.Option.StringTimeOption] = h;*/
+        /*TODO Различное распределение привычек с разными приоритетами*/
+        //Распределяем каждую привычку
+        foreach (var h in habits)
+        {
+            //Цикл по дням, пробуем распределить в каждый
+            foreach (var day in freeIntervals)
+            {
+                bool flag = false;
+                //Цикл по интервалам одного дня
+                foreach (var interval in day.Value)
+                {
+                    //Если в данный интервал можно добавить привычку, добавляем
+                    if (interval.Start.AddMinutes(h.MinsToComplete) < interval.End)
+                    {
+                        //устанавливаем занятость времени
+                        interval.Start = interval.Start.AddMinutes(h.MinsToComplete);
+
+                        flag = true;
+                        break;
+                    }
+                }
+                if (flag)
+                    break;
+            }
+        }
+    }
+
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo, IMessageRepo messageRepo,
         ISettingsRepo settingsRepo, IUserRepo userRepo, IShedLoad shedLoader)
     {
@@ -117,14 +161,6 @@ public class TaskTracker : ITaskTracker
         if (u == null) return null;
         var events = _shedLoader.LoadShedule(u.Id);
         var habits = _habitRepo.Get(user_id);
-        //Получаем интервалы занятости из расписания
-        List<TimeInterval> eventsIntervals = [];
-        foreach (var ev in events)
-        {
-            var interval = new TimeInterval(ev.Start, ev.End);
-            eventsIntervals.Add(interval);
-        }
-        List<TimeInterval> freeIntervals = GetFreeIntervals(eventsIntervals);
 
     }
 }

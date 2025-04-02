@@ -37,7 +37,7 @@ public class HabitRepo : IHabitRepo
                 }
             }
             habits.Add(new Habit(dbh.Id, dbh.Name, dbh.MinsToComplete, new TimeOption(dbh.Option), dbh.DBUserID,
-                actualTimes, prefFixedTimes));
+                actualTimes, prefFixedTimes, dbh.NDays));
         }
         return habits;
     }
@@ -54,7 +54,7 @@ public class HabitRepo : IHabitRepo
                 Start = at.Start,
                 End = at.End,
                 Day = at.Day.StringDay,
-                DBHabitID = at.HabitID
+                DBHabitID = at.HabitID,
             };
             actualTimes.Add(dbat);
         }
@@ -75,7 +75,8 @@ public class HabitRepo : IHabitRepo
             Name = h.Name,
             MinsToComplete = h.MinsToComplete,
             Option = h.Option.StringTimeOption,
-            DBUserID = h.UserID
+            DBUserID = h.UserID,
+            NDays = h.NDays
         };
         if (!UserHabits.ContainsKey(dbh.DBUserID))
             UserHabits[dbh.DBUserID] = [];
