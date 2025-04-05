@@ -84,12 +84,14 @@ public class TaskTracker : ITaskTracker
         return freeIntervals;
     }
 
-    private void SpreadHabits(List<Habit> habits, List<Event> events)
+    private Dictionary<string, int> DistributeHabits(List<Habit> habits, List<Event> events)
     {
         //Получаем списки интервалов занятости из расписания для каждого дня
         Dictionary<WeekDay, List<TimeInterval>> eventsIntervals = [];
         foreach (var ev in events)
         {
+            if (!eventsIntervals.ContainsKey(ev.Day))
+                eventsIntervals[ev.Day] = [];
             var interval = new TimeInterval(ev.Start, ev.End);
             eventsIntervals[ev.Day].Add(interval);
         }
@@ -97,35 +99,51 @@ public class TaskTracker : ITaskTracker
         Dictionary<string, List<TimeInterval>> freeIntervals = [];
         foreach (var ev in eventsIntervals)
             freeIntervals[ev.Key.StringDay] = GetFreeIntervals(ev.Value);
-        //Получаем списки привычек по приоритетам
-        /*Dictionary<string, Habit> option_habits = [];
+
+
+        /*Получаем списки привычек по приоритетам
+        Dictionary<string, Habit> option_habits = [];
         foreach (var h in habits)
             option_habits[h.Option.StringTimeOption] = h;*/
+
+        //Словарь нераспределенных привычек, его возвращаем в интерфейс для уведомления пользователя
+        Dictionary<string, int> not_distributed = [];
         /*TODO Различное распределение привычек с разными приоритетами*/
         //Распределяем каждую привычку
         foreach (var h in habits)
         {
+            h.ActualTimings.Clear();
+            //Сколько дней в неделю нужно выполнять привычку
+            int ndays = h.NDays;
             //Цикл по дням, пробуем распределить в каждый
             foreach (var day in freeIntervals)
             {
-                bool flag = false;
                 //Цикл по интервалам одного дня
                 foreach (var interval in day.Value)
                 {
+                    int w_days;
                     //Если в данный интервал можно добавить привычку, добавляем
-                    if (interval.Start.AddMinutes(h.MinsToComplete) < interval.End)
+                    if (interval.Start.AddMinutes(h.MinsToComplete, out w_days) <= interval.End && w_days == 0)
                     {
                         //устанавливаем занятость времени
+                        h.ActualTimings.Add(new ActualTime(Guid.NewGuid(), interval.Start, interval.Start.AddMinutes(h.MinsToComplete),
+                            new WeekDay(day.Key), h.Id));
                         interval.Start = interval.Start.AddMinutes(h.MinsToComplete);
-
-                        flag = true;
+                        ndays--;
+                        //выходим из цикла по интервалам дня так как в один день привычка выполняется только один раз
                         break;
                     }
                 }
-                if (flag)
+                //Если уже получилось распределить привычку на всю неделю (на указанное количество дней)
+                if (ndays == 0)
                     break;
             }
+            //Если привычку распределили не полностью, заносим в словарь для отправки в интерфейс
+            if (ndays > 0)
+                not_distributed[h.Name] = ndays;
+            
         }
+        return not_distributed;
     }
 
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo, IMessageRepo messageRepo,
@@ -152,15 +170,85 @@ public class TaskTracker : ITaskTracker
     {
         var u = _userRepo.Get(username);
         if (u == null) return null;
+        if (u.PasswordHash != password) return null;
         return GetUser(u.Id);
     }
 
-    public User? ImportNewShedule(Guid user_id)
+    public Tuple<User, Dictionary<string, int>>? ImportNewShedule(Guid user_id)
     {
         User? u = _userRepo.Get(user_id);
         if (u == null) return null;
-        var events = _shedLoader.LoadShedule(u.Id);
-        var habits = _habitRepo.Get(user_id);
+        //ВАЖНО обновить привычки и события в базе данных
+        //В текущей реализации удаляем все привычки, перераспределем и добавляем заново, хорошо бы переделать под Update
 
+        //Загрузка нового расписания (удаляем все старые события, загружаем новые в базу)
+        _eventRepo.DeleteEvents(user_id);
+        var events = _shedLoader.LoadShedule(user_id);
+        foreach (var e in events)
+            _eventRepo.Create(e);
+
+        //Получаем текущие привычки
+        var habits = _habitRepo.Get(user_id);
+        //Удаляем из БД все привычки, но в идеале вместо удаления будет update
+        _habitRepo.DeleteHabits(user_id);
+        //var settings = _settingsRepo.Get(user_id);
+
+        Dictionary<string, int> no_distributed = DistributeHabits(habits, events);
+
+        /*u.Events = events;
+        u.Habits = habits;
+        u.Settings = settings;*/
+
+        foreach (var h in habits)
+            _habitRepo.Create(h);
+
+        //Пока что возвращаем новый экземпляр user взятый из БД напрямую после всех изменений
+        //проверяем точно ли все правильно занеслось в БД
+        u = GetUser(user_id);
+
+        return new Tuple<User, Dictionary<string, int>>(u, no_distributed);
+    }
+
+    //Для создания привычки от пользователя требуется:
+    //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
+    public Tuple<User, Dictionary<string, int>>? AddHabit(Guid user_id, string name, int mins_complete, int ndays, TimeOption op,
+        List<Tuple<TimeOnly, TimeOnly>> preffixedtimes)
+    { 
+        User? u = _userRepo.Get(user_id);
+        if (u == null) return null;
+
+        //Получаем текущее расписание
+        var events = _eventRepo.Get(user_id);
+        //Получаем текущие привычки
+        var habits = _habitRepo.Get(user_id);
+        Guid hid = Guid.NewGuid();
+        List<PrefFixedTime> times = [];
+        foreach (var t in preffixedtimes)
+            times.Add(new PrefFixedTime(Guid.NewGuid(), t.Item1, t.Item2, hid));
+        Habit habit = new Habit(hid, name, mins_complete, op, u.Id, [], times, ndays);
+        habits.Add(habit);
+
+        //Удаляем из БД все привычки, но в идеале вместо удаления будет update
+        _habitRepo.DeleteHabits(user_id);
+
+        Dictionary<string, int> no_distributed = DistributeHabits(habits, events);
+
+        foreach (var h in habits)
+            _habitRepo.Create(h);
+
+        //Пока что возвращаем новый экземпляр user взятый из БД напрямую после всех изменений
+        //проверяем точно ли все правильно занеслось в БД
+        u = GetUser(user_id);
+
+        return new Tuple<User, Dictionary<string, int>>(u, no_distributed);
+    }
+
+    public User? ChangeNotify(Guid user_id)
+    {
+        var settings = _settingsRepo.Get(user_id);
+        if (settings == null) return null;
+        settings.NotifyOn = !settings.NotifyOn;
+        _settingsRepo.Update(settings);
+        return GetUser(user_id);
     }
 }

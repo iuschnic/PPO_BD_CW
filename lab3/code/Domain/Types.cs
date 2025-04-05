@@ -36,6 +36,10 @@ public record PhoneNumber
 
         return normalized;
     }
+    public void Print()
+    {
+        Console.WriteLine(StringNumber);
+    }
 }
 
 public record WeekDay
@@ -54,6 +58,10 @@ public record WeekDay
             return true;
         return false;
     }
+    public void Print()
+    {
+        Console.WriteLine(StringDay);
+    }
 }
 
 
@@ -71,5 +79,9 @@ public record TimeOption
         if (opt == "Preffered" || opt == "Fixed" || opt == "NoMatter")
             return true;
         return false;
+    }
+    public void Print()
+    {
+        System.Console.WriteLine(StringTimeOption);
     }
 }

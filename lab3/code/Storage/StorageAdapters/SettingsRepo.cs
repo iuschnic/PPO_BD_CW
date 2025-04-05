@@ -6,7 +6,9 @@ namespace Storage.StorageAdapters;
 
 public class SettingsRepo : ISettingsRepo
 {
+    //Словарь Id пользователя и настройки
     private Dictionary<Guid, DBUserSettings> Settings = new();
+    //Словарь Id настроек и время
     private Dictionary<Guid, List<DBSTime>> STimes = new();
     public UserSettings? Get(Guid user_id)
     {
@@ -14,18 +16,19 @@ public class SettingsRepo : ISettingsRepo
         if (dbs == null)
             return null;
         List<SettingsTime> settingsTimes = new();
-        foreach (DBSTime time in STimes[dbs.Id])
-        {
-            SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBSettingsID);
-            settingsTimes.Add(st);
-        }
+        if (STimes.ContainsKey(dbs.Id))
+            foreach (DBSTime time in STimes[dbs.Id])
+            {
+                SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBSettingsID);
+                settingsTimes.Add(st);
+            }
         UserSettings s = new UserSettings(dbs.Id, dbs.NotifyOn, dbs.DBUserID, settingsTimes);
         return s;
     }
 
     public int Create (UserSettings us)
     {
-        if (Settings.ContainsKey(us.Id))
+        if (Settings.ContainsKey(us.UserID))
         {
             return -1;
         }
@@ -46,12 +49,34 @@ public class SettingsRepo : ISettingsRepo
             };
             STimes[us.Id].Add(st);
         }
-        Settings[dbus.Id] = dbus;
+        Settings[dbus.DBUserID] = dbus;
         return 0;
     }
 
     public void Update(UserSettings us)
     {
+        DBUserSettings dbus = new()
+        {
+            Id = us.Id,
+            NotifyOn = us.NotifyOn,
+            DBUserID = us.UserID
+        };
+        if (STimes.ContainsKey(us.Id))
+        {
+            STimes[us.Id].Clear();
+            foreach (var time in us.SettingsTimes)
+            {
+                DBSTime st = new()
+                {
+                    Id = time.Id,
+                    Start = time.Start,
+                    End = time.End,
+                    DBSettingsID = time.SettingsID
+                };
+                STimes[us.Id].Add(st);
+            }
+        }
+        Settings[dbus.DBUserID] = dbus;
         return;
     }
 

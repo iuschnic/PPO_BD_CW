@@ -20,6 +20,11 @@ public class ActualTime
         Day = week_day;
         HabitID = habitID;
     }
+
+    public void Print()
+    {
+        Console.WriteLine("ACTUAL TIME: Weekday: {0}, Start: {1}, End: {2}", Day.StringDay, Start, End);
+    }
 }
 
 public class PrefFixedTime
@@ -35,6 +40,12 @@ public class PrefFixedTime
         Start = start; 
         End = end;
         HabitID = habit_id;
+    }
+
+    public void Print()
+    {
+        Console.WriteLine("PREFFERED OR FIXED TIME:\n" +
+            "Start: {1}, End: {2}",  Start, End);
     }
 }
 
@@ -61,6 +72,17 @@ public class Habit
         UserID = user_id;
         NDays = nDays;
     }
+    
+    public void Print()
+    {
+        Console.WriteLine("\nHABIT: Name = {0}, Mins to complete = {1}, NDays = {2}, TimeOpt = {3}",
+            Name, MinsToComplete, NDays, Option.StringTimeOption);
+        foreach (var t in PrefFixedTimings) { t.Print(); }
+        if (ActualTimings.Count == 0)
+            Console.WriteLine("NOT DISTRIBUTED");
+        else
+            foreach (var t in ActualTimings) { t.Print(); }
+    }
 }
 
 public class SettingsTime
@@ -77,6 +99,10 @@ public class SettingsTime
         End = end; 
         SettingsID = settings_id;
     }
+    public void Print()
+    {
+        Console.WriteLine("\nBANNED SETTINGS TIME: Start = {0}, End = {1}", Start, End);
+    }
 }
 
 public class UserSettings
@@ -92,6 +118,14 @@ public class UserSettings
         SettingsTimes = settings_times;
         NotifyOn = notify_on;
         UserID = user_id;
+    }
+    public void Print()
+    {
+        Console.WriteLine("\nSETTINGS: notifyon = {0}", NotifyOn);
+        foreach (var time in SettingsTimes)
+        {
+            time.Print();
+        }
     }
 }
 
@@ -112,6 +146,10 @@ public class Event
         End = end;
         Day = day;
         UserID = user_id;
+    }
+    public void Print()
+    {
+        Console.WriteLine("\nEVENT: Name = {0}, Day = {1}, Start = {2}, End = {3}", Name, Day.StringDay, Start, End);
     }
 }
 
@@ -149,5 +187,22 @@ public class User
         Events = events;
         Settings = settings;
         Number = number;
+    }
+
+    public void Print()
+    {
+        Console.WriteLine("\nUSER: Name = {0}, Password = {1}, Number = {2}", Name, PasswordHash, Number.StringNumber);
+        if (Habits == null)
+            Console.WriteLine("No habits");
+        else
+            foreach (var h in Habits) { h.Print(); }
+        if (Events == null)
+            Console.WriteLine("No events");
+        else
+            foreach (var e in Events) { e.Print(); }
+        if (Settings == null)
+            Console.WriteLine("No settings");
+        else
+            Settings.Print();
     }
 }

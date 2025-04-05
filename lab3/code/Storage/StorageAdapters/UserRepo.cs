@@ -6,7 +6,7 @@ namespace Storage.StorageAdapters;
 
 public class UserRepo : IUserRepo
 {
-    private Dictionary<Guid, DBUser> Users;
+    private Dictionary<Guid, DBUser> Users = new();
     public User? Get(Guid id)
     {
         var dbuser = Users.GetValueOrDefault(id);
@@ -30,6 +30,11 @@ public class UserRepo : IUserRepo
     {
         if (Users.ContainsKey(u.Id))
             return -1;
+        foreach (var dbu in Users.Values)
+        {
+            if (dbu.Name == u.Name)
+                return -1;
+        }
         DBUser dbuser = new()
         {
             Id = u.Id,
