@@ -20,5 +20,5 @@ public interface ITaskTracker
     Tuple<User, Dictionary<string, int>>? AddHabit(Guid user_id, string name, int mins_complete, int ndays, TimeOption op,
         List<Tuple<TimeOnly, TimeOnly>> preffixedtimes);
     //Tuple<User, Dictionary<string, int>>? DeleteHabit(User u, Habit h);
-    User? ChangeNotify(Guid user_id);
+    User? ChangeNotify(Guid user_id, bool flag);
 }

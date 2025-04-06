@@ -93,7 +93,7 @@ if (ans != null)
 }
 else
 {
-    Console.WriteLine("Что то пошло не так 3");
+    Console.WriteLine("Что то пошло не так 4");
     return;
 }
 
@@ -111,7 +111,7 @@ if (ans != null)
 }
 else
 {
-    Console.WriteLine("Что то пошло не так 3");
+    Console.WriteLine("Что то пошло не так 5");
     return;
 }
 
@@ -123,6 +123,6 @@ if (valid_user != null)
     valid_user.Print();
 else
 {
-    Console.WriteLine("Что то пошло не так 4");
+    Console.WriteLine("Что то пошло не так 6");
     return;
 }

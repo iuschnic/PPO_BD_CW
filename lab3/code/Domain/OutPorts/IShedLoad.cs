@@ -2,5 +2,6 @@
 
 public interface IShedLoad
 {
-    public List<Event> LoadShedule(Guid user_id);
+    //TODO
+    public List<Event> LoadShedule(Guid user_id, string path);
 }

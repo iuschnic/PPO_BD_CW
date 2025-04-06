@@ -46,9 +46,7 @@ public class TaskTracker : ITaskTracker
     {
         // Если нет событий, весь день свободен
         if (events.Count == 0)
-        {
             return new List<TimeInterval> { new TimeInterval(new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59)) };
-        }
 
         // Сортируем события по времени начала
         var sortedEvents = events.OrderBy(e => e.Start).ToList();
@@ -58,29 +56,21 @@ public class TaskTracker : ITaskTracker
         // Первый свободный интервал: от начала дня до первого события
         TimeOnly previousEnd = new TimeOnly(0, 0, 0);
         if (sortedEvents[0].Start > previousEnd)
-        {
             freeIntervals.Add(new TimeInterval(previousEnd, sortedEvents[0].Start));
-        }
 
         // Проверяем промежутки между событиями
         for (int i = 1; i < sortedEvents.Count; i++)
         {
             TimeOnly currentStart = sortedEvents[i].Start;
             TimeOnly lastEnd = sortedEvents[i - 1].End;
-
             if (currentStart > lastEnd)
-            {
                 freeIntervals.Add(new TimeInterval(lastEnd, currentStart));
-            }
         }
 
         // Последний свободный интервал: от конца последнего события до конца дня
         TimeOnly endOfDay = new TimeOnly(23, 59, 59);
         if (sortedEvents.Last().End < endOfDay)
-        {
             freeIntervals.Add(new TimeInterval(sortedEvents.Last().End, endOfDay));
-        }
-
         return freeIntervals;
     }
 
@@ -160,9 +150,9 @@ public class TaskTracker : ITaskTracker
     public User? CreateUser(string username, PhoneNumber phone_number, string password)
     {
         var u = new User(Guid.NewGuid(), username, password, phone_number);
-        if (_userRepo.Create(u) != 0) return null;
+        if (_userRepo.Create(u) != 0) return null;  //bool trycreate
         var s = new UserSettings(Guid.NewGuid(), true, u.Id, []);
-        if (_settingsRepo.Create(s) != 0) return null;
+        if (_settingsRepo.Create(s) != 0) return null; //объединить с usererpo
         return GetUser(u.Id);
     }
 
@@ -178,6 +168,7 @@ public class TaskTracker : ITaskTracker
     {
         User? u = _userRepo.Get(user_id);
         if (u == null) return null;
+        /*сначала получить данные, потом попробовать распределить, потом удаление, потом вставка*/
         //ВАЖНО обновить привычки и события в базе данных
         //В текущей реализации удаляем все привычки, перераспределем и добавляем заново, хорошо бы переделать под Update
 
@@ -185,7 +176,7 @@ public class TaskTracker : ITaskTracker
         _eventRepo.DeleteEvents(user_id);
         var events = _shedLoader.LoadShedule(user_id);
         foreach (var e in events)
-            _eventRepo.Create(e);
+            _eventRepo.Create(e);   //create many
 
         //Получаем текущие привычки
         var habits = _habitRepo.Get(user_id);
