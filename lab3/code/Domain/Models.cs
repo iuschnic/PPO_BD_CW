@@ -1,6 +1,7 @@
 ﻿namespace Domain;
 
 using System;
+using System.Runtime.InteropServices.Marshalling;
 using System.Text.RegularExpressions;
 using Types;
 
@@ -21,9 +22,9 @@ public class ActualTime
         HabitID = habitID;
     }
 
-    public void Print()
+    public override string ToString()
     {
-        Console.WriteLine("ACTUAL TIME: Weekday: {0}, Start: {1}, End: {2}", Day.StringDay, Start, End);
+        return $"ACTUAL TIME: Weekday: {Day}, Start: {Start}, End: {End}\n";
     }
 }
 
@@ -41,11 +42,9 @@ public class PrefFixedTime
         End = end;
         HabitID = habit_id;
     }
-
-    public void Print()
+    public override string ToString()
     {
-        Console.WriteLine("PREFFERED OR FIXED TIME:\n" +
-            "Start: {1}, End: {2}",  Start, End);
+        return $"PREFFERED OR FIXED TIME: Start: {Start}, End: {End}\n";
     }
 }
 
@@ -58,7 +57,7 @@ public class Habit
     public List<PrefFixedTime> PrefFixedTimings { get; }
     public TimeOption Option { get; }
     public Guid UserID { get; }
-    public int NDays { get; } //сколько дней в неделю нужно выполнять
+    public int NDays { get; set; } //сколько дней в неделю нужно выполнять
 
     public Habit(Guid id, string name, int mins_to_complete,
         TimeOption option, Guid user_id, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int nDays)
@@ -72,16 +71,15 @@ public class Habit
         UserID = user_id;
         NDays = nDays;
     }
-    
-    public void Print()
+    public override string ToString()
     {
-        Console.WriteLine("\nHABIT: Name = {0}, Mins to complete = {1}, NDays = {2}, TimeOpt = {3}",
-            Name, MinsToComplete, NDays, Option.StringTimeOption);
-        foreach (var t in PrefFixedTimings) { t.Print(); }
+        string ans = $"HABIT: Name = {Name}, Mins to complete = {MinsToComplete}, NDays = {NDays}, TimeOpt = {Option}\n";
+        foreach (var t in PrefFixedTimings) { ans += "    " + t; }
         if (ActualTimings.Count == 0)
-            Console.WriteLine("NOT DISTRIBUTED");
+            ans += "    NOT DISTRIBUTED\n";
         else
-            foreach (var t in ActualTimings) { t.Print(); }
+            foreach (var t in ActualTimings) { ans += "    " + t; }
+        return ans;
     }
 }
 
@@ -99,9 +97,9 @@ public class SettingsTime
         End = end; 
         SettingsID = settings_id;
     }
-    public void Print()
+    public override string ToString()
     {
-        Console.WriteLine("\nBANNED SETTINGS TIME: Start = {0}, End = {1}", Start, End);
+        return $"BANNED SETTINGS TIME: Start = {Start}, End = {End}\n";
     }
 }
 
@@ -119,13 +117,12 @@ public class UserSettings
         NotifyOn = notify_on;
         UserID = user_id;
     }
-    public void Print()
+    public override string ToString()
     {
-        Console.WriteLine("\nSETTINGS: notifyon = {0}", NotifyOn);
+        string ans = $"SETTINGS: notifyon = {NotifyOn}\n";
         foreach (var time in SettingsTimes)
-        {
-            time.Print();
-        }
+            ans += time;
+        return ans;
     }
 }
 
@@ -147,9 +144,9 @@ public class Event
         Day = day;
         UserID = user_id;
     }
-    public void Print()
+    public override string ToString()
     {
-        Console.WriteLine("\nEVENT: Name = {0}, Day = {1}, Start = {2}, End = {3}", Name, Day.StringDay, Start, End);
+        return $"EVENT: Name = {Name}, Day = {Day}, Start = {Start}, End = {End}\n";
     }
 }
 
@@ -189,20 +186,30 @@ public class User
         Number = number;
     }
 
-    public void Print()
+    public override string ToString()
     {
-        Console.WriteLine("\nUSER: Name = {0}, Password = {1}, Number = {2}", Name, PasswordHash, Number.StringNumber);
-        if (Habits == null)
-            Console.WriteLine("No habits");
+        string ans = $"\nUSER: Name = {Name}, Password = {PasswordHash}, Number = {Number}\n";
+        if (Habits == null || Habits.Count == 0)
+            ans += "\nNO HABITS\n";
         else
-            foreach (var h in Habits) { h.Print(); }
-        if (Events == null)
-            Console.WriteLine("No events");
+        {
+            ans += "\n";
+            foreach (var h in Habits) { ans += h; }
+        }
+        if (Events == null || Events.Count == 0)
+            ans += "\nNO EVENTS\n";
         else
-            foreach (var e in Events) { e.Print(); }
+        {
+            ans += "\n";
+            foreach (var e in Events) { ans += e; }
+        }
         if (Settings == null)
-            Console.WriteLine("No settings");
+            ans += "\nNo settings\n";
         else
-            Settings.Print();
+        {
+            ans += "\n";
+            ans += Settings;
+        }
+        return ans + "\n";
     }
 }

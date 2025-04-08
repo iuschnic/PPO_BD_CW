@@ -3,9 +3,9 @@
 //Здесь будет наследование от IDisposable
 public interface IUserRepo
 {
-    User? Get(Guid id);
-    User? Get(string username);
-    int Create(User user);
+    User? TryGet(Guid id);
+    User? TryGet(string username);
+    bool TryCreate(User user);
     void Update(User user);
     void Delete(Guid id);
     void Save();

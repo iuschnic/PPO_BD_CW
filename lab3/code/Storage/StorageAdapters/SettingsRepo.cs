@@ -10,7 +10,7 @@ public class SettingsRepo : ISettingsRepo
     private Dictionary<Guid, DBUserSettings> Settings = new();
     //Словарь Id настроек и время
     private Dictionary<Guid, List<DBSTime>> STimes = new();
-    public UserSettings? Get(Guid user_id)
+    public UserSettings? TryGet(Guid user_id)
     {
         var dbs = Settings.GetValueOrDefault(user_id);
         if (dbs == null)
@@ -26,11 +26,11 @@ public class SettingsRepo : ISettingsRepo
         return s;
     }
 
-    public int Create (UserSettings us)
+    public bool TryCreate (UserSettings us)
     {
         if (Settings.ContainsKey(us.UserID))
         {
-            return -1;
+            return false;
         }
         DBUserSettings dbus = new()
         {
@@ -50,7 +50,7 @@ public class SettingsRepo : ISettingsRepo
             STimes[us.Id].Add(st);
         }
         Settings[dbus.DBUserID] = dbus;
-        return 0;
+        return true;
     }
 
     public void Update(UserSettings us)

@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System.Reflection.Metadata.Ecma335;
+using System.Text.RegularExpressions;
 
 namespace Types;
 
@@ -40,6 +41,7 @@ public record PhoneNumber
     {
         Console.WriteLine(StringNumber);
     }
+    public override string ToString() { return StringNumber; }
 }
 
 public record WeekDay
@@ -62,6 +64,7 @@ public record WeekDay
     {
         Console.WriteLine(StringDay);
     }
+    public override string ToString() { return StringDay; }
 }
 
 
@@ -82,6 +85,7 @@ public record TimeOption
     }
     public void Print()
     {
-        System.Console.WriteLine(StringTimeOption);
+        Console.WriteLine(StringTimeOption);
     }
+    public override string ToString() { return StringTimeOption; }
 }

@@ -6,7 +6,7 @@ namespace LoadAdapters;
 
 public class DummyShedAdapter: IShedLoad
 {
-    public List<Event> LoadShedule(Guid user_id)
+    public List<Event> LoadShedule(Guid user_id, string path)
     {
         List<Event> events = new();
         events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0), new WeekDay("Monday"), user_id));

@@ -85,6 +85,12 @@ public class HabitRepo : IHabitRepo
         PfTimes[h.Id] = prefFixedTimes;
     }
 
+    public void CreateMany(List<Habit> habits)
+    {
+        foreach (var h in habits) 
+            Create(h);
+    }
+
     public void Update(Habit h)
     {
         return;

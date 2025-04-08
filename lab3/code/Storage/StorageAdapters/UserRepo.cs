@@ -7,7 +7,7 @@ namespace Storage.StorageAdapters;
 public class UserRepo : IUserRepo
 {
     private Dictionary<Guid, DBUser> Users = new();
-    public User? Get(Guid id)
+    public User? TryGet(Guid id)
     {
         var dbuser = Users.GetValueOrDefault(id);
         if (dbuser == null)
@@ -16,7 +16,7 @@ public class UserRepo : IUserRepo
         return u;
     }
 
-    public User? Get(string username)
+    public User? TryGet(string username)
     {
         foreach (var dbuser in Users.Values)
         {
@@ -26,14 +26,14 @@ public class UserRepo : IUserRepo
         return null;
     }
 
-    public int Create(User u)
+    public bool TryCreate(User u)
     {
         if (Users.ContainsKey(u.Id))
-            return -1;
+            return false;
         foreach (var dbu in Users.Values)
         {
             if (dbu.Name == u.Name)
-                return -1;
+                return false;
         }
         DBUser dbuser = new()
         {
@@ -43,7 +43,7 @@ public class UserRepo : IUserRepo
             Number = u.Number.StringNumber
         };
         Users[u.Id] = dbuser;
-        return 0;
+        return true;
     }
 
     public void Update(User u)

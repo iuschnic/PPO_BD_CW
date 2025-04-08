@@ -38,6 +38,12 @@ public class EventRepo : IEventRepo
         UserEvents[dbe.DBUserID].Add(dbe);
     }
 
+    public void CreateMany(List<Event> events)
+    {
+        foreach(var e in events)
+            Create(e);
+    }
+
     public void Update(Event e)
     {
         return;
