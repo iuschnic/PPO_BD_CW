@@ -151,6 +151,9 @@ public class TaskTracker : ITaskTracker
             List<TimeInterval> fixedTimings = HabitToTimeIntervals(h);
             foreach (var day in freeIntervals)
             {
+                //привычка выполняется не более 1 раза в день
+                if (h.ActualTimings.Exists(el => el.Day == day.Key))
+                    continue;
                 /*Привычку можно распределить только на фиксированное время заданное пользователем
                 поэтому ищем пересечение свободных интервалов дня и фиксированных интервалов (их задавал пользователь)
                 и распределять привычку можем только в эти разрешенные интервалы*/
@@ -193,6 +196,9 @@ public class TaskTracker : ITaskTracker
             int ndays = h.NDays - h.ActualTimings.Count;
             foreach (var day in freeIntervals)
             {
+                //привычка выполняется не более 1 раза в день
+                if (h.ActualTimings.Exists(el => el.Day == day.Key))
+                    continue;
                 foreach (var interval in day.Value)
                 {
                     int w_days;
@@ -248,7 +254,6 @@ public class TaskTracker : ITaskTracker
             freeIntervals[ev.Key] = GetFreeIntervals(ev.Value);
 
         List<Habit> undistributed = [];
-        /*TODO Различное распределение привычек с разными приоритетами*/
         //Формирование словаря привычек по приоритету - фиксированное время, предпочитаемое время, безразличное время
         Dictionary<string, List<Habit>> habitsByPrio = [];
         foreach (var h in habits)
