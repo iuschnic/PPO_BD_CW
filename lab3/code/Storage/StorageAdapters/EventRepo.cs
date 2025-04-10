@@ -1,5 +1,7 @@
 ﻿using Domain;
 using Domain.OutPorts;
+using Domain.Models;
+using Storage.Models;
 using Types;
 
 namespace Storage.StorageAdapters;
@@ -15,24 +17,31 @@ public class EventRepo : IEventRepo
         if (dbevents == null)
             return [];
         List<Event> events = [];
+        DayOfWeek day;
         foreach(var dbe in dbevents)
         {
-            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, new WeekDay(dbe.Day), dbe.DBUserID));
+            if (dbe.Day == "Monday")
+                day = DayOfWeek.Monday;
+            else if (dbe.Day == "Tuesday")
+                day = DayOfWeek.Tuesday;
+            else if (dbe.Day == "Wednesday")
+                day = DayOfWeek.Wednesday;
+            else if (dbe.Day == "Thursday")
+                day = DayOfWeek.Thursday;
+            else if (dbe.Day == "Friday")
+                day = DayOfWeek.Friday;
+            else if (dbe.Day == "Saturday")
+                day = DayOfWeek.Saturday;
+            else
+                day = DayOfWeek.Sunday;
+            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, day, dbe.DBUserID));
         }
         return events;
     }
 
     public void Create(Event e)
     {
-        DBEvent dbe = new()
-        {
-            Id = e.Id,
-            Name = e.Name,
-            Start = e.Start,
-            End = e.End,
-            Day = e.Day.StringDay,
-            DBUserID = e.UserID
-        };
+        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day, e.UserID);
         if (!UserEvents.ContainsKey(dbe.DBUserID))
             UserEvents[dbe.DBUserID] = [];
         UserEvents[dbe.DBUserID].Add(dbe);

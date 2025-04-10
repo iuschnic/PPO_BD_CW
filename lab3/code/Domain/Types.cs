@@ -44,48 +44,9 @@ public record PhoneNumber
     public override string ToString() { return StringNumber; }
 }
 
-public record WeekDay
+public enum TimeOption
 {
-    public string StringDay { get; }
-    public WeekDay(string day)
-    {
-        if (!IsValid(day))
-            throw new ArgumentException("Incorrect day format");
-        StringDay = day;
-    }
-    private bool IsValid(string day)
-    {
-        if (day == "Monday" ||  day == "Tuesday" || day == "Wednesday" || day == "Thursday" 
-            || day == "Friday" || day == "Saturday" || day == "Sunday")
-            return true;
-        return false;
-    }
-    public void Print()
-    {
-        Console.WriteLine(StringDay);
-    }
-    public override string ToString() { return StringDay; }
-}
-
-
-public record TimeOption
-{
-    public string StringTimeOption { get; }
-    public TimeOption(string opt)
-    {
-        if (!IsValid(opt))
-            throw new ArgumentException("Incorrect time option format");
-        StringTimeOption = opt;
-    }
-    private bool IsValid(string opt)
-    {
-        if (opt == "Preffered" || opt == "Fixed" || opt == "NoMatter")
-            return true;
-        return false;
-    }
-    public void Print()
-    {
-        Console.WriteLine(StringTimeOption);
-    }
-    public override string ToString() { return StringTimeOption; }
+    Preffered,
+    Fixed,
+    NoMatter
 }

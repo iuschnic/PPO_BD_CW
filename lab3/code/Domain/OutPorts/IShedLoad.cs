@@ -1,4 +1,5 @@
-﻿namespace Domain.OutPorts;
+﻿using Domain.Models;
+namespace Domain.OutPorts;
 
 public interface IShedLoad
 {

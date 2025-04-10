@@ -1,5 +1,7 @@
 ﻿using Domain;
 using Domain.OutPorts;
+using Domain.Models;
+using Storage.Models;
 
 namespace Storage.StorageAdapters;
 

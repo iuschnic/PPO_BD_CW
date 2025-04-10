@@ -1,4 +1,5 @@
-﻿namespace Domain.OutPorts;
+﻿using Domain.Models;
+namespace Domain.OutPorts;
 
 //Здесь будет наследование от IDisposable
 public interface IHabitRepo

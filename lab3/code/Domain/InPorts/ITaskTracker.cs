@@ -1,4 +1,5 @@
 ﻿using Types;
+using Domain.Models;
 namespace Domain.InPorts;
 
 public interface ITaskTracker
