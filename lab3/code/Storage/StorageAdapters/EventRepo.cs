@@ -9,11 +9,11 @@ namespace Storage.StorageAdapters;
 public class EventRepo : IEventRepo
 {
     //Моделирует таблицу DBEvent
-    private Dictionary<Guid, List<DBEvent>> UserEvents = new();
+    private Dictionary<string, List<DBEvent>> UserEvents = new();
 
-    public List<Event> Get(Guid user_id)
+    public List<Event> Get(string user_name)
     {
-        var dbevents =  UserEvents.GetValueOrDefault(user_id);
+        var dbevents =  UserEvents.GetValueOrDefault(user_name);
         if (dbevents == null)
             return [];
         List<Event> events = [];
@@ -34,17 +34,17 @@ public class EventRepo : IEventRepo
                 day = DayOfWeek.Saturday;
             else
                 day = DayOfWeek.Sunday;
-            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, day, dbe.DBUserID));
+            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, day, dbe.DBUserNameID));
         }
         return events;
     }
 
     public void Create(Event e)
     {
-        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day, e.UserID);
-        if (!UserEvents.ContainsKey(dbe.DBUserID))
-            UserEvents[dbe.DBUserID] = [];
-        UserEvents[dbe.DBUserID].Add(dbe);
+        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day, e.UserNameID);
+        if (!UserEvents.ContainsKey(dbe.DBUserNameID))
+            UserEvents[dbe.DBUserNameID] = [];
+        UserEvents[dbe.DBUserNameID].Add(dbe);
     }
 
     public void CreateMany(List<Event> events)
@@ -58,9 +58,9 @@ public class EventRepo : IEventRepo
         return;
     }
 
-    public void DeleteEvents(Guid user_id)
+    public void DeleteEvents(string user_name)
     {
-        UserEvents.Remove(user_id);
+        UserEvents.Remove(user_name);
     }
 
     public void Save()

@@ -31,14 +31,14 @@ public class UserSettings
     public Guid Id { get; }
     public bool NotifyOn { get; set; }
     public List<SettingsTime> SettingsTimes { get; }
-    public Guid UserID { get; }
+    public string UserNameID { get; }
 
-    public UserSettings(Guid id, bool notify_on, Guid user_id, List<SettingsTime> settings_times)
+    public UserSettings(Guid id, bool notify_on, string user_name, List<SettingsTime> settings_times)
     {
         Id = id;
         SettingsTimes = settings_times;
         NotifyOn = notify_on;
-        UserID = user_id;
+        UserNameID = user_name;
     }
     public override string ToString()
     {

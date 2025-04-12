@@ -53,11 +53,11 @@ public class Habit
     public List<ActualTime> ActualTimings { get; }
     public List<PrefFixedTime> PrefFixedTimings { get; }
     public TimeOption Option { get; }
-    public Guid UserID { get; }
+    public string UserNameID { get; }
     public int NDays { get; set; } //сколько дней в неделю нужно выполнять
 
     public Habit(Guid id, string name, int mins_to_complete,
-        TimeOption option, Guid user_id, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int nDays)
+        TimeOption option, string user_name, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int nDays)
     {
         Id = id;
         Name = name;
@@ -65,7 +65,7 @@ public class Habit
         ActualTimings = actual_timings;
         PrefFixedTimings = pref_fixed_timings;
         Option = option;
-        UserID = user_id;
+        UserNameID = user_name;
         NDays = nDays;
     }
     public override string ToString()

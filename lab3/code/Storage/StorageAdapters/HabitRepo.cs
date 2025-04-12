@@ -9,15 +9,15 @@ namespace Storage.StorageAdapters;
 public class HabitRepo : IHabitRepo
 {
     //Моделирует таблицу DBHabits
-    private Dictionary<Guid, List<DBHabit>> UserHabits = new();
+    private Dictionary<string, List<DBHabit>> UserHabits = new();
     //Моделирует таблицу DBActualTime
     private Dictionary<Guid, List<DBActualTime>> ATimes = new();
     //Моделирует таблицу DBPrefFixedTime
     private Dictionary<Guid, List<DBPrefFixedTime>> PfTimes = new();
-    public List<Habit>? Get(Guid user_id)
+    public List<Habit>? Get(string user_name)
     {
         DayOfWeek day;
-        var dbhabits = UserHabits.GetValueOrDefault(user_id);
+        var dbhabits = UserHabits.GetValueOrDefault(user_name);
         if (dbhabits == null)
             return [];
         List<Habit> habits = new();
@@ -60,7 +60,7 @@ public class HabitRepo : IHabitRepo
                 op = TimeOption.Preffered;
             else
                 op = TimeOption.NoMatter;
-            habits.Add(new Habit(dbh.Id, dbh.Name, dbh.MinsToComplete, op, dbh.DBUserID,
+            habits.Add(new Habit(dbh.Id, dbh.Name, dbh.MinsToComplete, op, dbh.DBUserNameID,
                 actualTimes, prefFixedTimes, dbh.NDays));
         }
         return habits;
@@ -106,12 +106,12 @@ public class HabitRepo : IHabitRepo
             Name = h.Name,
             MinsToComplete = h.MinsToComplete,
             Option = op,
-            DBUserID = h.UserID,
+            DBUserNameID = h.UserNameID,
             NDays = h.NDays
         };
-        if (!UserHabits.ContainsKey(dbh.DBUserID))
-            UserHabits[dbh.DBUserID] = [];
-        UserHabits[dbh.DBUserID].Add(dbh);
+        if (!UserHabits.ContainsKey(dbh.DBUserNameID))
+            UserHabits[dbh.DBUserNameID] = [];
+        UserHabits[dbh.DBUserNameID].Add(dbh);
         ATimes[h.Id] = actualTimes;
         PfTimes[h.Id] = prefFixedTimes;
     }
@@ -147,15 +147,15 @@ public class HabitRepo : IHabitRepo
         }
     }
 
-    public void DeleteHabits(Guid user_id)
+    public void DeleteHabits(string user_name)
     {
-        if (UserHabits.ContainsKey(user_id))
-            foreach(var habit in UserHabits[user_id])
+        if (UserHabits.ContainsKey(user_name))
+            foreach(var habit in UserHabits[user_name])
             {
                 ATimes.Remove(habit.Id);
                 PfTimes.Remove(habit.Id);
             }
-        UserHabits.Remove(user_id);
+        UserHabits.Remove(user_name);
     }
 
     public void Save()

@@ -14,10 +14,10 @@ public interface ITaskTracker
     и словарь с нераспределенными привычками (которые распределились не на все указанное количество дней)
     Возвращает null в случае не существующего идентификатора пользователя
     */
-    Tuple<User, List<Habit>>? ImportNewShedule(Guid user_id, string path);
+    Tuple<User, List<Habit>>? ImportNewShedule(string user_name, string path);
     //Добавляет привычку для указанного пользователя, возвращает null при некорректном идентификаторе пользователя
-    Tuple<User, List<Habit>>? AddHabit(Guid user_id, string name, int mins_complete, int ndays, TimeOption op,
+    Tuple<User, List<Habit>>? AddHabit(string user_name, string name, int mins_complete, int ndays, TimeOption op,
         List<Tuple<TimeOnly, TimeOnly>> preffixedtimes);
-    Tuple<User, List<Habit>>? DeleteHabit(Guid user_id, string name);
-    User? ChangeNotify(Guid user_id, bool flag);
+    Tuple<User, List<Habit>>? DeleteHabit(string user_name, string name);
+    User? ChangeNotify(string user_name, bool flag);
 }

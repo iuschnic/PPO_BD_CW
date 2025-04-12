@@ -9,16 +9,16 @@ public class Event
     public TimeOnly Start { get; }
     public TimeOnly End { get; }
     public DayOfWeek Day { get; }
-    public Guid UserID { get; }
+    public string UserNameID { get; }
 
-    public Event(Guid id, string name, TimeOnly start, TimeOnly end, DayOfWeek day, Guid user_id)
+    public Event(Guid id, string name, TimeOnly start, TimeOnly end, DayOfWeek day, string user_id)
     {
         Id = id;
         Name = name;
         Start = start;
         End = end;
         Day = day;
-        UserID = user_id;
+        UserNameID = user_id;
     }
     public override string ToString()
     {

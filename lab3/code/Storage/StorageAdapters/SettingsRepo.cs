@@ -8,13 +8,13 @@ namespace Storage.StorageAdapters;
 
 public class SettingsRepo : ISettingsRepo
 {
-    //Словарь Id пользователя и настройки
-    private Dictionary<Guid, DBUserSettings> Settings = new();
+    //Словарь NameId пользователя и настройки
+    private Dictionary<string, DBUserSettings> Settings = new();
     //Словарь Id настроек и время
     private Dictionary<Guid, List<DBSTime>> STimes = new();
-    public UserSettings? TryGet(Guid user_id)
+    public UserSettings? TryGet(string user_name)
     {
-        var dbs = Settings.GetValueOrDefault(user_id);
+        var dbs = Settings.GetValueOrDefault(user_name);
         if (dbs == null)
             return null;
         List<SettingsTime> settingsTimes = new();
@@ -24,13 +24,13 @@ public class SettingsRepo : ISettingsRepo
                 SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBSettingsID);
                 settingsTimes.Add(st);
             }
-        UserSettings s = new UserSettings(dbs.Id, dbs.NotifyOn, dbs.DBUserID, settingsTimes);
+        UserSettings s = new UserSettings(dbs.Id, dbs.NotifyOn, dbs.DBUserNameID, settingsTimes);
         return s;
     }
 
     public bool TryCreate (UserSettings us)
     {
-        if (Settings.ContainsKey(us.UserID))
+        if (Settings.ContainsKey(us.UserNameID))
         {
             return false;
         }
@@ -38,7 +38,7 @@ public class SettingsRepo : ISettingsRepo
         {
             Id = us.Id,
             NotifyOn = us.NotifyOn,
-            DBUserID = us.UserID
+            DBUserNameID = us.UserNameID
         };
         foreach (var time in us.SettingsTimes)
         {
@@ -51,7 +51,7 @@ public class SettingsRepo : ISettingsRepo
             };
             STimes[us.Id].Add(st);
         }
-        Settings[dbus.DBUserID] = dbus;
+        Settings[dbus.DBUserNameID] = dbus;
         return true;
     }
 
@@ -61,7 +61,7 @@ public class SettingsRepo : ISettingsRepo
         {
             Id = us.Id,
             NotifyOn = us.NotifyOn,
-            DBUserID = us.UserID
+            DBUserNameID = us.UserNameID
         };
         if (STimes.ContainsKey(us.Id))
         {
@@ -78,17 +78,17 @@ public class SettingsRepo : ISettingsRepo
                 STimes[us.Id].Add(st);
             }
         }
-        Settings[dbus.DBUserID] = dbus;
+        Settings[dbus.DBUserNameID] = dbus;
         return;
     }
 
-    public void Delete(Guid user_id)
+    public void Delete(string user_name)
     {
-        if (Settings.ContainsKey(user_id))
+        if (Settings.ContainsKey(user_name))
         {
-            STimes.Remove(Settings[user_id].Id);
+            STimes.Remove(Settings[user_name].Id);
         }
-        Settings.Remove(user_id);
+        Settings.Remove(user_name);
     }
 
     public void Save()

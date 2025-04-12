@@ -8,43 +8,30 @@ namespace Storage.StorageAdapters;
 
 public class UserRepo : IUserRepo
 {
-    private Dictionary<Guid, DBUser> Users = new();
-    public User? TryGet(Guid id)
-    {
-        var dbuser = Users.GetValueOrDefault(id);
-        if (dbuser == null)
-            return null;
-        User u = new User(dbuser.Id, dbuser.Name, dbuser.PasswordHash, new PhoneNumber(dbuser.Number));
-        return u;
-    }
+    //Nameid - User
+    private Dictionary<string, DBUser> Users = new();
 
     public User? TryGet(string username)
     {
         foreach (var dbuser in Users.Values)
         {
-            if (dbuser.Name == username)
-                return new User(dbuser.Id, dbuser.Name, dbuser.PasswordHash, new PhoneNumber(dbuser.Number));
+            if (dbuser.NameID == username)
+                return new User(dbuser.NameID, dbuser.PasswordHash, new PhoneNumber(dbuser.Number));
         }
         return null;
     }
 
     public bool TryCreate(User u)
     {
-        if (Users.ContainsKey(u.Id))
+        if (Users.ContainsKey(u.NameID))
             return false;
-        foreach (var dbu in Users.Values)
-        {
-            if (dbu.Name == u.Name)
-                return false;
-        }
         DBUser dbuser = new()
         {
-            Id = u.Id,
-            Name = u.Name,
+            NameID = u.NameID,
             PasswordHash = u.PasswordHash,
             Number = u.Number.StringNumber
         };
-        Users[u.Id] = dbuser;
+        Users[u.NameID] = dbuser;
         return true;
     }
 
@@ -53,9 +40,9 @@ public class UserRepo : IUserRepo
         return;
     }
 
-    public void Delete(Guid id)
+    public void Delete(string user_name)
     {
-        Users.Remove(id);
+        Users.Remove(user_name);
     }
 
     public void Save()

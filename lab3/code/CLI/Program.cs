@@ -59,7 +59,7 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("Тест добавления привычки без расписания");
 //Для создания привычки от пользователя требуется:
 //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
-var ans = TaskService.AddHabit(valid_user.Id, "Тестовая привычка0", 90, 1, TimeOption.NoMatter, []);
+var ans = TaskService.AddHabit(valid_user.NameID, "Тестовая привычка0", 90, 1, TimeOption.NoMatter, []);
 if (ans != null)
 {
     valid_user = ans.Item1 as User;
@@ -77,7 +77,7 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("Тест добавления привычки с фиксированным временем");
 List<Tuple<TimeOnly, TimeOnly>> times = [];
 times.Add(new Tuple<TimeOnly, TimeOnly>(new TimeOnly(18, 0, 0), new TimeOnly(20, 0, 0)));
-ans = TaskService.AddHabit(valid_user.Id, "Тестовая привычка11", 60, 4, TimeOption.Fixed, times);
+ans = TaskService.AddHabit(valid_user.NameID, "Тестовая привычка11", 60, 4, TimeOption.Fixed, times);
 if (ans != null)
 {
     valid_user = ans.Item1;
@@ -96,7 +96,7 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("Тест добавления привычки с предпочтительным временем");
 times = [];
 times.Add(new Tuple<TimeOnly, TimeOnly>(new TimeOnly(0, 0, 0), new TimeOnly(20, 0, 0)));
-ans = TaskService.AddHabit(valid_user.Id, "Тестовая привычка5", 20, 7, TimeOption.Preffered, times);
+ans = TaskService.AddHabit(valid_user.NameID, "Тестовая привычка5", 20, 7, TimeOption.Preffered, times);
 if (ans != null)
 {
     valid_user = ans.Item1;
@@ -113,7 +113,7 @@ else
 
 Console.WriteLine("_______________________________________________________________________________");
 Console.WriteLine("Тест загрузки расписания");
-ans = TaskService.ImportNewShedule(valid_user.Id, "dummmy");
+ans = TaskService.ImportNewShedule(valid_user.NameID, "dummmy");
 if (ans != null)
 {
     valid_user = ans.Item1 as User;
@@ -129,7 +129,7 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("Тест добавления привычки которую можно добавить");
 //Для создания привычки от пользователя требуется:
 //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
-ans = TaskService.AddHabit(valid_user.Id, "Тестовая привычка", 90, 1, TimeOption.NoMatter, []);
+ans = TaskService.AddHabit(valid_user.NameID, "Тестовая привычка", 90, 1, TimeOption.NoMatter, []);
 if (ans != null)
 {
     valid_user = ans.Item1 as User;
@@ -145,7 +145,7 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("Тест добавления привычки которую нельзя добавить");
 //Для создания привычки от пользователя требуется:
 //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
-ans = TaskService.AddHabit(valid_user.Id, "Тестовая привычка2", 900, 1, TimeOption.NoMatter, []);
+ans = TaskService.AddHabit(valid_user.NameID, "Тестовая привычка2", 900, 1, TimeOption.NoMatter, []);
 if (ans != null)
 {
     valid_user = ans.Item1;
@@ -164,7 +164,7 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("Тест добавления привычки которую можно добавить лишь частично");
 //Для создания привычки от пользователя требуется:
 //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
-ans = TaskService.AddHabit(valid_user.Id, "Тестовая привычка1", 10, 4, TimeOption.NoMatter, []);
+ans = TaskService.AddHabit(valid_user.NameID, "Тестовая привычка1", 10, 4, TimeOption.NoMatter, []);
 if (ans != null)
 {
     valid_user = ans.Item1;
@@ -183,7 +183,7 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("\nТест изменения настроек уведомлений");
 //Для создания привычки от пользователя требуется:
 //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
-valid_user = TaskService.ChangeNotify(valid_user.Id, false);
+valid_user = TaskService.ChangeNotify(valid_user.NameID, false);
 if (valid_user != null)
     Console.Write(valid_user);
 else
@@ -194,7 +194,7 @@ else
 
 Console.WriteLine("_______________________________________________________________________________");
 Console.WriteLine("\nТест удаления привычки с именем Тестовая привычка3");
-ans = TaskService.DeleteHabit(valid_user.Id, "Тестовая привычка3");
+ans = TaskService.DeleteHabit(valid_user.NameID, "Тестовая привычка3");
 if (ans != null)
 {
     valid_user = ans.Item1;

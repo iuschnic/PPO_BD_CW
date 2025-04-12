@@ -9,19 +9,17 @@ namespace Domain.Models;
 
 public class User
 {
-    public Guid Id { get; }
-    public string Name { get; }
+    public string NameID { get; }
     public string PasswordHash { get; }
     public PhoneNumber Number { get; }
     public List<Habit>? Habits { get; set; }
     public List<Event>? Events { get; set; }
     public UserSettings? Settings { get; set; }
 
-    public User(Guid id, string name, string passwordHash, PhoneNumber number,
+    public User(string name, string passwordHash, PhoneNumber number,
         UserSettings? settings = null, List<Habit>? habits = null, List<Event>? events = null)
     {
-        Id = id;
-        Name = name;
+        NameID = name;
         PasswordHash = passwordHash;
         Habits = habits;
         Events = events;
@@ -31,7 +29,7 @@ public class User
 
     public override string ToString()
     {
-        string ans = $"\nUSER: Name = {Name}, Password = {PasswordHash}, Number = {Number}\n";
+        string ans = $"\nUSER: Name = {NameID}, Password = {PasswordHash}, Number = {Number}\n";
         if (Habits == null || Habits.Count == 0)
             ans += "\nNO HABITS\n";
         else

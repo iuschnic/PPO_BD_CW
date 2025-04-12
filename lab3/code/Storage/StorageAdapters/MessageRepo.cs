@@ -10,8 +10,8 @@ public class MessageRepo : IMessageRepo
     //Моделирует таблицу DBMessage
     private List<DBMessage> Messages = new();
     //Моделирует таблицу связку между сообщениями и пользователями
-    private List<Tuple<Guid, Guid>> UserMessage = new();
-    public void Create(Message message, List<Guid> users)
+    private List<Tuple<string, Guid>> UserMessage = new();
+    public void Create(Message message, List<string> users)
     {
         DBMessage dbm = new()
         {
@@ -22,7 +22,7 @@ public class MessageRepo : IMessageRepo
         Messages.Add(dbm);
         foreach (var user in users)
         {
-            UserMessage.Add(new Tuple<Guid, Guid>(user, message.Id));
+            UserMessage.Add(new Tuple<string, Guid>(user, message.Id));
         }
         return;
     }

@@ -40,6 +40,6 @@ public class DBHabit
     //public List<DBActualTime> ActualTimings { get; set; }
     //public List<DBPrefFixedTime> PrefFixedTimings { get; set; }
     public string Option { get; set; }
-    public Guid DBUserID { get; set; }
+    public string DBUserNameID { get; set; }
     public int NDays { get; set; }
 }

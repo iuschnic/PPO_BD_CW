@@ -15,14 +15,14 @@ public class DBEvent
     public TimeOnly Start { get; }
     public TimeOnly End { get; }
     public string Day { get; }
-    public Guid DBUserID { get; }
-    public DBEvent(Guid id, string name, TimeOnly start, TimeOnly end, DayOfWeek day, Guid user_id)
+    public string DBUserNameID { get; }
+    public DBEvent(Guid id, string name, TimeOnly start, TimeOnly end, DayOfWeek day, string user_name)
     {
         Id = id;
         Name = name;
         Start = start;
         End = end;
         Day = day.ToString();
-        DBUserID = user_id;
+        DBUserNameID = user_name;
     }
 }

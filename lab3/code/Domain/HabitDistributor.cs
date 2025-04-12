@@ -157,7 +157,7 @@ public class HabitDistributor : IHabitDistributor
                     break;
             }
             if (ndays > 0)
-                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserID, [], [], ndays));
+                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, [], [], ndays));
         }
         return undistributed;
     }
@@ -197,7 +197,7 @@ public class HabitDistributor : IHabitDistributor
                     break;
             }
             if (ndays > 0)
-                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserID, [], [], ndays));
+                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, [], [], ndays));
         }
         return undistributed;
     }

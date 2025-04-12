@@ -20,6 +20,6 @@ public class DBUserSettings
 {
     public Guid Id { get; set; }
     public bool NotifyOn { get; set; }
-    public Guid DBUserID { get; set; }
+    public string DBUserNameID { get; set; }
     //public List<DBSTime> ForbiddenTimings { get; set; }
 }
