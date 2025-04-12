@@ -1,9 +1,4 @@
 ﻿using Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Types;
 
 namespace Domain;
@@ -233,7 +228,11 @@ public class HabitDistributor : IHabitDistributor
         {
             if (!habitsByPrio.ContainsKey(h.Option))
                 habitsByPrio[h.Option] = [];
-            habitsByPrio[h.Option].Add(h);
+            //Если пользователь не задал конкретные промежутки времени - распределяем как привычку с безразличным временем
+            if (h.PrefFixedTimings.Count == 0)
+                habitsByPrio[TimeOption.NoMatter].Add(h);
+            else
+                habitsByPrio[h.Option].Add(h);
         }
         //Распределение привычек с фиксированным временем
         if (habitsByPrio.ContainsKey(TimeOption.Fixed))

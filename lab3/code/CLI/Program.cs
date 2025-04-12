@@ -34,8 +34,19 @@ else
 }
 
 Console.WriteLine("_______________________________________________________________________________");
+Console.WriteLine("Тест создания такого же пользователя");
+User? invalid_user = TaskService.CreateUser("kulikov_egor", new PhoneNumber("+79161648345"), "12345");
+if (invalid_user == null)
+    Console.WriteLine("OK");
+else
+{
+    Console.WriteLine("Что то пошло не так 1");
+    return;
+}
+
+Console.WriteLine("_______________________________________________________________________________");
 Console.WriteLine("Тест входа в аккаунт с несуществующим именем пользователя");
-User? invalid_user = TaskService.LogIn("kuli_egor", "12345");
+invalid_user = TaskService.LogIn("kuli_egor", "12345");
 if (invalid_user != null)
 {
     Console.WriteLine("Что то пошло не так 2");
