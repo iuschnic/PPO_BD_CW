@@ -10,5 +10,4 @@ public interface IEventRepo
     void CreateMany(List<Event> events);
     void Update(Event e);
     void DeleteEvents(string user_name);
-    void Save();
 }

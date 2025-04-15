@@ -6,7 +6,7 @@ using Types;
 
 namespace Storage.StorageAdapters;
 
-public class UserRepo : IUserRepo
+public class DummyUserRepo : IUserRepo
 {
     //Nameid - User
     private Dictionary<string, DBUser> Users = new();
@@ -25,12 +25,7 @@ public class UserRepo : IUserRepo
     {
         if (Users.ContainsKey(u.NameID))
             return false;
-        DBUser dbuser = new()
-        {
-            NameID = u.NameID,
-            PasswordHash = u.PasswordHash,
-            Number = u.Number.StringNumber
-        };
+        DBUser dbuser = new DBUser(u.NameID, u.Number.StringNumber, u.PasswordHash);
         Users[u.NameID] = dbuser;
         return true;
     }
@@ -43,10 +38,5 @@ public class UserRepo : IUserRepo
     public void Delete(string user_name)
     {
         Users.Remove(user_name);
-    }
-
-    public void Save()
-    {
-        return;
     }
 }

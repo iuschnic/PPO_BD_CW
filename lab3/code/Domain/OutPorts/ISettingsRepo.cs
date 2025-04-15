@@ -8,5 +8,4 @@ public interface ISettingsRepo
     bool TryCreate(UserSettings user_settings);
     void Update(UserSettings user_settings); 
     void Delete(string user_name);
-    void Save();
 }

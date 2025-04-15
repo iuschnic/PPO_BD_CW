@@ -5,18 +5,36 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Storage.Models;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
 
-//[Table("Message")]
+[Table("Messages")]
 public class DBMessage
 {
+    [Column("id")]
     public Guid Id { get; set; }
+    [Column("data")]
     public string Text { get; set; }
+    [Column("date_sent")]
     public DateOnly DateSent { get; set; }
+    public DBMessage(Guid id, string text, DateOnly dateSent)
+    {
+        Id = id;
+        Text = text;
+        DateSent = dateSent;
+    }
 }
 
-//[Table("UserMessage")]
+[Table("User_Message")]
 public class DBUserMessage
 {
-    public Guid DBUserID { get; set; }
+    [Column("user_name")]
+    public string DBUserNameID { get; set; }
+    [Column("message_id")]
     public Guid DBMessageID { get; set; }
+    public DBUserMessage(string dbusernameid, Guid dbmessageid) 
+    {
+        DBMessageID = dbmessageid;
+        DBUserNameID = dbusernameid;
+    }
 }

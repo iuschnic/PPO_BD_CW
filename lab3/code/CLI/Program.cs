@@ -9,11 +9,11 @@ using Storage.StorageAdapters;
 using Types;
 
 var serviceProvider = new ServiceCollection()
-    .AddSingleton<IEventRepo, EventRepo>()
-    .AddSingleton<IHabitRepo, HabitRepo>()
-    .AddSingleton<IMessageRepo, MessageRepo>()
-    .AddSingleton<ISettingsRepo, SettingsRepo>()
-    .AddSingleton<IUserRepo, UserRepo>()
+    .AddSingleton<IEventRepo, DummyEventRepo>()
+    .AddSingleton<IHabitRepo, DummyHabitRepo>()
+    .AddSingleton<IMessageRepo, DummyMessageRepo>()
+    .AddSingleton<ISettingsRepo, DummySettingsRepo>()
+    .AddSingleton<IUserRepo, DummyUserRepo>()
     .AddTransient<IShedLoad, DummyShedAdapter>()
     .AddTransient<ITaskTracker, TaskTracker>()
     .AddTransient<IHabitDistributor, HabitDistributor>()

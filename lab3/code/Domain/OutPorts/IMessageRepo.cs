@@ -5,5 +5,4 @@ namespace Domain.OutPorts;
 public interface IMessageRepo
 {
     void Create(Message m, List<string> users);
-    void Save();
 }

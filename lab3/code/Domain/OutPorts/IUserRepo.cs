@@ -8,5 +8,4 @@ public interface IUserRepo
     bool TryCreate(User user);
     void Update(User user);
     void Delete(string username);
-    void Save();
 }

@@ -6,7 +6,7 @@ using Types;
 
 namespace Storage.StorageAdapters;
 
-public class EventRepo : IEventRepo
+public class DummyEventRepo : IEventRepo
 {
     //Моделирует таблицу DBEvent
     private Dictionary<string, List<DBEvent>> UserEvents = new();
@@ -61,10 +61,5 @@ public class EventRepo : IEventRepo
     public void DeleteEvents(string user_name)
     {
         UserEvents.Remove(user_name);
-    }
-
-    public void Save()
-    {
-        return;
     }
 }

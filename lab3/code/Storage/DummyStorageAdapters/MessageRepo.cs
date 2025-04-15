@@ -5,7 +5,7 @@ using Storage.Models;
 
 namespace Storage.StorageAdapters;
 
-public class MessageRepo : IMessageRepo
+public class DummyMessageRepo : IMessageRepo
 {
     //Моделирует таблицу DBMessage
     private List<DBMessage> Messages = new();
@@ -13,22 +13,12 @@ public class MessageRepo : IMessageRepo
     private List<Tuple<string, Guid>> UserMessage = new();
     public void Create(Message message, List<string> users)
     {
-        DBMessage dbm = new()
-        {
-            Id = message.Id,
-            Text = message.Text,
-            DateSent = message.DateSent
-        };
+        DBMessage dbm = new DBMessage(message.Id, message.Text, message.DateSent);
         Messages.Add(dbm);
         foreach (var user in users)
         {
             UserMessage.Add(new Tuple<string, Guid>(user, message.Id));
         }
-        return;
-    }
-
-    public void Save()
-    {
         return;
     }
 }

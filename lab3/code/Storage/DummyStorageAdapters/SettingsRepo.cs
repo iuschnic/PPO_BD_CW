@@ -6,7 +6,7 @@ using System.Net;
 
 namespace Storage.StorageAdapters;
 
-public class SettingsRepo : ISettingsRepo
+public class DummySettingsRepo : ISettingsRepo
 {
     //Словарь NameId пользователя и настройки
     private Dictionary<string, DBUserSettings> Settings = new();
@@ -34,21 +34,10 @@ public class SettingsRepo : ISettingsRepo
         {
             return false;
         }
-        DBUserSettings dbus = new()
-        {
-            Id = us.Id,
-            NotifyOn = us.NotifyOn,
-            DBUserNameID = us.UserNameID
-        };
+        DBUserSettings dbus = new DBUserSettings(us.Id, us.NotifyOn, us.UserNameID);
         foreach (var time in us.SettingsTimes)
         {
-            DBSTime st = new()
-            {
-                Id = time.Id,
-                Start = time.Start,
-                End = time.End,
-                DBSettingsID = time.SettingsID
-            };
+            DBSTime st = new DBSTime(time.Id, time.Start, time.End, time.SettingsID);
             STimes[us.Id].Add(st);
         }
         Settings[dbus.DBUserNameID] = dbus;
@@ -57,24 +46,13 @@ public class SettingsRepo : ISettingsRepo
 
     public void Update(UserSettings us)
     {
-        DBUserSettings dbus = new()
-        {
-            Id = us.Id,
-            NotifyOn = us.NotifyOn,
-            DBUserNameID = us.UserNameID
-        };
+        DBUserSettings dbus = new DBUserSettings(us.Id, us.NotifyOn, us.UserNameID);
         if (STimes.ContainsKey(us.Id))
         {
             STimes[us.Id].Clear();
             foreach (var time in us.SettingsTimes)
             {
-                DBSTime st = new()
-                {
-                    Id = time.Id,
-                    Start = time.Start,
-                    End = time.End,
-                    DBSettingsID = time.SettingsID
-                };
+                DBSTime st = new DBSTime(time.Id, time.Start, time.End, time.SettingsID);
                 STimes[us.Id].Add(st);
             }
         }
@@ -89,10 +67,5 @@ public class SettingsRepo : ISettingsRepo
             STimes.Remove(Settings[user_name].Id);
         }
         Settings.Remove(user_name);
-    }
-
-    public void Save()
-    {
-        return;
     }
 }

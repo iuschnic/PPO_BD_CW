@@ -6,7 +6,7 @@ using Types;
 
 namespace Storage.StorageAdapters;
 
-public class HabitRepo : IHabitRepo
+public class DummyHabitRepo : IHabitRepo
 {
     //Моделирует таблицу DBHabits
     private Dictionary<string, List<DBHabit>> UserHabits = new();
@@ -72,25 +72,12 @@ public class HabitRepo : IHabitRepo
         List<DBPrefFixedTime> prefFixedTimes = new();
         foreach (var at in h.ActualTimings)
         {
-            DBActualTime dbat = new()
-            {
-                Id = at.Id,
-                Start = at.Start,
-                End = at.End,
-                Day = at.Day.ToString(),
-                DBHabitID = at.HabitID,
-            };
+            DBActualTime dbat = new DBActualTime(at.Id, at.Start, at.End, at.Day.ToString(), at.HabitID);
             actualTimes.Add(dbat);
         }
         foreach (var pf in h.PrefFixedTimings)
         {
-            DBPrefFixedTime dbpf = new()
-            {
-                Id = pf.Id,
-                Start = pf.Start,
-                End = pf.End,
-                DBHabitID = pf.HabitID
-            };
+            DBPrefFixedTime dbpf = new DBPrefFixedTime(pf.Id, pf.Start, pf.End, pf.HabitID);
             prefFixedTimes.Add(dbpf);
         }
         string op;
@@ -100,15 +87,7 @@ public class HabitRepo : IHabitRepo
             op = "Preffered";
         else
             op = "NoMatter";
-        DBHabit dbh = new()
-        {
-            Id = h.Id,
-            Name = h.Name,
-            MinsToComplete = h.MinsToComplete,
-            Option = op,
-            DBUserNameID = h.UserNameID,
-            NDays = h.NDays
-        };
+        DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, op, h.UserNameID, h.NDays);
         if (!UserHabits.ContainsKey(dbh.DBUserNameID))
             UserHabits[dbh.DBUserNameID] = [];
         UserHabits[dbh.DBUserNameID].Add(dbh);
@@ -157,10 +136,4 @@ public class HabitRepo : IHabitRepo
             }
         UserHabits.Remove(user_name);
     }
-
-    public void Save()
-    {
-        return;
-    }
-
 }
