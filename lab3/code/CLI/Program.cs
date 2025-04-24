@@ -5,10 +5,12 @@ using Domain.Models;
 using LoadAdapters;
 using Microsoft.Extensions.DependencyInjection;
 using Storage;
-using Storage.StorageAdapters;
+using Storage.PostgresStorageAdapters;
 using Types;
+using Microsoft.EntityFrameworkCore;
+//using Storage.StorageAdapters;
 
-var serviceProvider = new ServiceCollection()
+/*var serviceProvider = new ServiceCollection()
     .AddSingleton<IEventRepo, DummyEventRepo>()
     .AddSingleton<IHabitRepo, DummyHabitRepo>()
     .AddSingleton<IMessageRepo, DummyMessageRepo>()
@@ -17,10 +19,19 @@ var serviceProvider = new ServiceCollection()
     .AddTransient<IShedLoad, DummyShedAdapter>()
     .AddTransient<ITaskTracker, TaskTracker>()
     .AddTransient<IHabitDistributor, HabitDistributor>()
+    .BuildServiceProvider();*/
+var serviceProvider = new ServiceCollection()
+    .AddSingleton<IEventRepo, PostgresEventRepo>()
+    .AddSingleton<IHabitRepo, PostgresHabitRepo>()
+    .AddSingleton<ISettingsRepo, PostgresSettingsRepo>()
+    .AddSingleton<IUserRepo, PostgresUserRepo>()
+    .AddDbContext<PostgresDBContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
+    .AddTransient<IShedLoad, DummyShedAdapter>()
+    .AddTransient<ITaskTracker, TaskTracker>()
+    .AddTransient<IHabitDistributor, HabitDistributor>()
     .BuildServiceProvider();
 
 var TaskService = serviceProvider.GetRequiredService<ITaskTracker>();
-
 
 Console.WriteLine("_______________________________________________________________________________");
 Console.WriteLine("Тест создания пользователя");
@@ -29,8 +40,7 @@ if (valid_user != null)
     Console.Write(valid_user);
 else
 {
-    Console.WriteLine("Что то пошло не так 1");
-    return;
+    Console.WriteLine("Пользователь уже существует");
 }
 
 Console.WriteLine("_______________________________________________________________________________");
@@ -67,13 +77,24 @@ else
     Console.WriteLine("OK");
 
 Console.WriteLine("_______________________________________________________________________________");
+Console.WriteLine("Тест входа в аккаунт с существующим именем пользователя");
+valid_user = TaskService.LogIn("kulikov_egor", "12345");
+if (valid_user == null)
+{
+    Console.WriteLine("Что то пошло не так 2");
+    return;
+}
+else
+    Console.WriteLine("OK");
+
+Console.WriteLine("_______________________________________________________________________________");
 Console.WriteLine("Тест добавления привычки без расписания");
 //Для создания привычки от пользователя требуется:
 //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
 var ans = TaskService.AddHabit(valid_user.NameID, "Тестовая привычка0", 90, 1, TimeOption.NoMatter, []);
 if (ans != null)
 {
-    valid_user = ans.Item1 as User;
+    valid_user = ans.Item1;
     Console.Write(valid_user);
     foreach (var habit in ans.Item2)
         Console.WriteLine("Habit {0} wasn't distributed for {1} times", habit.Name, habit.NDays);
@@ -194,7 +215,8 @@ Console.WriteLine("_____________________________________________________________
 Console.WriteLine("\nТест изменения настроек уведомлений");
 //Для создания привычки от пользователя требуется:
 //название, сколько минутв вып, сколько дней вып, опция времени, список таймингов
-valid_user = TaskService.ChangeNotify(valid_user.NameID, false);
+valid_user.Settings.NotifyOn = !valid_user.Settings.NotifyOn;
+valid_user = TaskService.ChangeSettings(valid_user.Settings);
 if (valid_user != null)
     Console.Write(valid_user);
 else

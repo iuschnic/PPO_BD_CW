@@ -19,5 +19,6 @@ public interface ITaskTracker
     Tuple<User, List<Habit>>? AddHabit(string user_name, string name, int mins_complete, int ndays, TimeOption op,
         List<Tuple<TimeOnly, TimeOnly>> preffixedtimes);
     Tuple<User, List<Habit>>? DeleteHabit(string user_name, string name);
-    User? ChangeNotify(string user_name, bool flag);
+    //User? ChangeNotify(string user_name, bool flag);
+    public User? ChangeSettings(UserSettings settings);
 }

@@ -9,7 +9,7 @@ public class TaskTracker : ITaskTracker
 {
     private readonly IEventRepo _eventRepo;
     private readonly IHabitRepo _habitRepo;
-    private readonly IMessageRepo _messageRepo;
+    //private readonly IMessageRepo _messageRepo;
     private readonly ISettingsRepo _settingsRepo;
     private readonly IUserRepo _userRepo;
     private readonly IShedLoad _shedLoader;
@@ -22,22 +22,23 @@ public class TaskTracker : ITaskTracker
         if (user == null) return null;
         UserSettings? settings = _settingsRepo.TryGet(user_name);
         if (settings == null) return null;
-        List<Habit> habits = _habitRepo.Get(user_name);
+        List<Habit>? habits = _habitRepo.TryGet(user_name);
+        if (habits == null) return null;
         if (habits == null) habits = [];
-        List<Event> events = _eventRepo.Get(user_name);
-        if (events == null) events = [];
+        List<Event>? events = _eventRepo.TryGet(user_name);
+        if (events == null) return null;
         user.Habits = habits;
         user.Events = events;
         user.Settings = settings;
         return user;
     }
 
-    public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo, IMessageRepo messageRepo,
+    public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo,
         ISettingsRepo settingsRepo, IUserRepo userRepo, IShedLoad shedLoader, IHabitDistributor distributer)
     {
         _eventRepo = eventRepo;
         _habitRepo = habitRepo;
-        _messageRepo = messageRepo;
+        //_messageRepo = messageRepo;
         _settingsRepo = settingsRepo;
         _userRepo = userRepo;
         _shedLoader = shedLoader;
@@ -55,9 +56,10 @@ public class TaskTracker : ITaskTracker
         var s = new UserSettings(Guid.NewGuid(), true, u.NameID, []);
         if (!_settingsRepo.TryCreate(s))
         {
-            _userRepo.Delete(u.NameID);
+            _userRepo.TryDelete(u.NameID);
             return null;
         }
+
         return GetUser(u.NameID);
     }
 
@@ -81,13 +83,14 @@ public class TaskTracker : ITaskTracker
         if (u == null) return null;
 
         var events = _shedLoader.LoadShedule(user_name, path);
-        var habits = _habitRepo.Get(user_name);
+        var habits = _habitRepo.TryGet(user_name);
+        if (habits == null) return null;
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        _eventRepo.DeleteEvents(user_name);
-        _eventRepo.CreateMany(events);
-        _habitRepo.DeleteHabits(user_name);
-        _habitRepo.CreateMany(habits);
+        if (!_eventRepo.TryDeleteEvents(user_name)) return null;
+        if (!_eventRepo.TryCreateMany(events)) return null;
+        if (!_habitRepo.TryDeleteHabits(user_name)) return null;
+        if (!_habitRepo.TryCreateMany(habits)) return null;
 
         u = GetUser(user_name);
         return new Tuple<User, List<Habit>>(u, no_distributed);
@@ -102,8 +105,10 @@ public class TaskTracker : ITaskTracker
         User? u = _userRepo.TryGet(user_name);
         if (u == null) return null;
 
-        var events = _eventRepo.Get(user_name);
-        var habits = _habitRepo.Get(user_name);
+        var events = _eventRepo.TryGet(user_name);
+        if (events == null) return null;
+        var habits = _habitRepo.TryGet(user_name);
+        if (habits == null) return null;
         Guid hid = Guid.NewGuid();
         List<PrefFixedTime> times = [];
         foreach (var t in preffixedtimes)
@@ -112,10 +117,10 @@ public class TaskTracker : ITaskTracker
         habits.Add(habit);
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        _eventRepo.DeleteEvents(user_name);
-        _eventRepo.CreateMany(events);
-        _habitRepo.DeleteHabits(user_name);
-        _habitRepo.CreateMany(habits);
+        if (!_eventRepo.TryDeleteEvents(user_name)) return null;
+        if (!_eventRepo.TryCreateMany(events)) return null;
+        if (!_habitRepo.TryDeleteHabits(user_name)) return null;
+        if (!_habitRepo.TryCreateMany(habits)) return null;
 
         u = GetUser(user_name);
         return new Tuple<User, List<Habit>>(u, no_distributed);
@@ -128,16 +133,18 @@ public class TaskTracker : ITaskTracker
         User? u = _userRepo.TryGet(user_name);
         if (u == null) return null;
 
-        var events = _eventRepo.Get(user_name);
-        var habits = _habitRepo.Get(user_name);
+        var events = _eventRepo.TryGet(user_name);
+        if (events == null) return null;
+        var habits = _habitRepo.TryGet(user_name);
+        if (habits == null) return null;
         habits.RemoveAll(h => h.Name == name);
 
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        _eventRepo.DeleteEvents(user_name);
-        _eventRepo.CreateMany(events);
-        _habitRepo.DeleteHabits(user_name);
-        _habitRepo.CreateMany(habits);
+        if (!_eventRepo.TryDeleteEvents(user_name)) return null;
+        if (!_eventRepo.TryCreateMany(events)) return null;
+        if (!_habitRepo.TryDeleteHabits(user_name)) return null;
+        if (!_habitRepo.TryCreateMany(habits)) return null;
 
         u = GetUser(user_name);
         return new Tuple<User, List<Habit>>(u, no_distributed);
@@ -145,12 +152,22 @@ public class TaskTracker : ITaskTracker
 
     /*Функция изменения флага разрешения отправки сообщения для пользователя с идентификатором user_id
      Возвращает кортеж информацию о пользователе если он существует*/
-    public User? ChangeNotify(string user_name, bool value)
+    //TODO вместо changenotify нудно сделать changesettings
+    /*public User? ChangeNotify(string user_name, bool value)
     {
         var settings = _settingsRepo.TryGet(user_name);
         if (settings == null) return null;
         settings.NotifyOn = value;
         _settingsRepo.Update(settings);
         return GetUser(user_name);
+    }*/
+
+    public User? ChangeSettings(UserSettings settings)
+    {
+        var dbs = _settingsRepo.TryGet(settings.UserNameID);
+        if (dbs == null) return null;
+        if (!_settingsRepo.TryUpdate(settings))
+            return null;
+        return GetUser(settings.UserNameID);
     }
 }

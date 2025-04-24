@@ -1,5 +1,4 @@
-﻿using Domain.Models;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Storage.Models;
 
 namespace Storage.PostgresStorageAdapters;
@@ -12,13 +11,20 @@ public class PostgresDBContext : DbContext
     public DbSet<DBActualTime> ActualTimes { get; set; }
     public DbSet<DBPrefFixedTime> PrefFixedTimes { get; set; }
     public DbSet<DBSTime> SettingsTimes { get; set; }
-    public DbSet<DBUserSettings> Settings { get; set; }
-    public PostgresDBContext()
+    public DbSet<DBUserSettings> USettings { get; set; }
+    public PostgresDBContext(DbContextOptions<PostgresDBContext> options) : base(options)
     {
+        Database.EnsureDeleted();
         Database.EnsureCreated();
     }
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=usersdb;Username=postgres;Password=postgres");
+        modelBuilder.Entity<DBUser>().HasKey(u => u.NameID);
+        modelBuilder.Entity<DBEvent>().HasKey(e => e.Id);
+        modelBuilder.Entity<DBHabit>().HasKey(h => h.Id);
+        modelBuilder.Entity<DBActualTime>().HasKey(t => t.Id);
+        modelBuilder.Entity<DBPrefFixedTime>().HasKey(t => t.Id);
+        modelBuilder.Entity<DBSTime>().HasKey(t => t.Id);
+        modelBuilder.Entity<DBUserSettings>().HasKey(s => s.Id);
     }
 }

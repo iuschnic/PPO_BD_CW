@@ -30,13 +30,14 @@ public class DummyUserRepo : IUserRepo
         return true;
     }
 
-    public void Update(User u)
+    public bool TryUpdate(User u)
     {
-        return;
+        return true;
     }
 
-    public void Delete(string user_name)
+    public bool TryDelete(string user_name)
     {
         Users.Remove(user_name);
+        return true;
     }
 }

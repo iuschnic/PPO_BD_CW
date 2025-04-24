@@ -6,6 +6,6 @@ public interface IUserRepo
 {
     User? TryGet(string username);
     bool TryCreate(User user);
-    void Update(User user);
-    void Delete(string username);
+    bool TryUpdate(User user);
+    bool TryDelete(string username);
 }

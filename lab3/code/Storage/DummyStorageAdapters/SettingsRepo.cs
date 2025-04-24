@@ -21,10 +21,10 @@ public class DummySettingsRepo : ISettingsRepo
         if (STimes.ContainsKey(dbs.Id))
             foreach (DBSTime time in STimes[dbs.Id])
             {
-                SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBSettingsID);
+                SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBUserSettingsID);
                 settingsTimes.Add(st);
             }
-        UserSettings s = new UserSettings(dbs.Id, dbs.NotifyOn, dbs.DBUserNameID, settingsTimes);
+        UserSettings s = new UserSettings(dbs.Id, dbs.NotifyOn, dbs.DBUserID, settingsTimes);
         return s;
     }
 
@@ -40,11 +40,11 @@ public class DummySettingsRepo : ISettingsRepo
             DBSTime st = new DBSTime(time.Id, time.Start, time.End, time.SettingsID);
             STimes[us.Id].Add(st);
         }
-        Settings[dbus.DBUserNameID] = dbus;
+        Settings[dbus.DBUserID] = dbus;
         return true;
     }
 
-    public void Update(UserSettings us)
+    public bool TryUpdate(UserSettings us)
     {
         DBUserSettings dbus = new DBUserSettings(us.Id, us.NotifyOn, us.UserNameID);
         if (STimes.ContainsKey(us.Id))
@@ -56,16 +56,17 @@ public class DummySettingsRepo : ISettingsRepo
                 STimes[us.Id].Add(st);
             }
         }
-        Settings[dbus.DBUserNameID] = dbus;
-        return;
+        Settings[dbus.DBUserID] = dbus;
+        return true;
     }
 
-    public void Delete(string user_name)
+    public bool TryDelete(string user_name)
     {
         if (Settings.ContainsKey(user_name))
         {
             STimes.Remove(Settings[user_name].Id);
         }
         Settings.Remove(user_name);
+        return true;
     }
 }

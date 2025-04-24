@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿namespace Storage.Models;
 
-namespace Storage.Models;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
 [Table("SettingsTime")]
 public class DBSTime
 {
+    [Key]
     [Column("id")]
     public Guid Id { get; set; }
     [Column("s_start")]
@@ -18,30 +14,45 @@ public class DBSTime
     [Column("s_end")]
     public TimeOnly End { get; set; }
     [Column("settings_id")]
-    public Guid DBSettingsID { get; set; }
+    public Guid DBUserSettingsID { get; set; }
+    public DBUserSettings? DBUserSettings { get; set; }
     public DBSTime(Guid id, TimeOnly start, TimeOnly end, Guid dbsettingsid) 
     {
         Id = id;
         Start = start;
         End = end;
-        DBSettingsID = dbsettingsid;
+        DBUserSettingsID = dbsettingsid;
+    }
+    public DBSTime(Guid id, TimeOnly start, TimeOnly end)
+    {
+        Id = id;
+        Start = start;
+        End = end;
     }
 }
+
 
 [Table("Settings")]
 public class DBUserSettings
 {
+    [Key]
     [Column("id")]
     public Guid Id { get; set; }
     [Column("notify_on")]
     public bool NotifyOn { get; set; }
     [Column("user_name")]
-    public string DBUserNameID { get; set; }
+    public string? DBUserID { get; set; }
+    public DBUser? DBUser { get; set; }
     //public List<DBSTime> ForbiddenTimings { get; set; }
-    public DBUserSettings(Guid id, bool notifyon, string dBUserNameID)
+    public DBUserSettings(Guid id, bool notifyOn, string dBUserNameID)
     {
         Id = id;
-        NotifyOn = notifyon;
-        DBUserNameID = dBUserNameID;
+        NotifyOn = notifyOn;
+        DBUserID = dBUserNameID;
+    }
+    public DBUserSettings(Guid id, bool notifyOn)
+    {
+        Id = id;
+        NotifyOn = notifyOn;
     }
 }

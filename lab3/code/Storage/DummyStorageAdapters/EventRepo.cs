@@ -11,7 +11,8 @@ public class DummyEventRepo : IEventRepo
     //Моделирует таблицу DBEvent
     private Dictionary<string, List<DBEvent>> UserEvents = new();
 
-    public List<Event> Get(string user_name)
+
+    public List<Event>? TryGet(string user_name)
     {
         var dbevents =  UserEvents.GetValueOrDefault(user_name);
         if (dbevents == null)
@@ -39,27 +40,35 @@ public class DummyEventRepo : IEventRepo
         return events;
     }
 
-    public void Create(Event e)
+    public bool TryCreate(Event e)
     {
-        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day, e.UserNameID);
+        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
         if (!UserEvents.ContainsKey(dbe.DBUserNameID))
             UserEvents[dbe.DBUserNameID] = [];
         UserEvents[dbe.DBUserNameID].Add(dbe);
+        return true;
     }
 
-    public void CreateMany(List<Event> events)
+    public bool TryCreateMany(List<Event> events)
     {
         foreach(var e in events)
-            Create(e);
+            TryCreate(e);
+        return true;
     }
 
-    public void Update(Event e)
+    public bool TryUpdate(Event e)
     {
-        return;
+        return true;
     }
 
-    public void DeleteEvents(string user_name)
+    public bool TryDelete(Guid event_id)
+    {
+        return true;
+    }
+
+    public bool TryDeleteEvents(string user_name)
     {
         UserEvents.Remove(user_name);
+        return true;
     }
 }

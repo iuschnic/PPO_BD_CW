@@ -5,12 +5,15 @@ using System.Text;
 using System.Threading.Tasks;
 
 namespace Storage.Models;
+
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
 [Table("Messages")]
 public class DBMessage
 {
+    [Key]
     [Column("id")]
     public Guid Id { get; set; }
     [Column("data")]
@@ -29,9 +32,9 @@ public class DBMessage
 public class DBUserMessage
 {
     [Column("user_name")]
-    public string DBUserNameID { get; set; }
+    public string? DBUserNameID { get; set; }
     [Column("message_id")]
-    public Guid DBMessageID { get; set; }
+    public Guid? DBMessageID { get; set; }
     public DBUserMessage(string dbusernameid, Guid dbmessageid) 
     {
         DBMessageID = dbmessageid;

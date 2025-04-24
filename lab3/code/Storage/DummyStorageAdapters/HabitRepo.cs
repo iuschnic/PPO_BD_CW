@@ -14,7 +14,7 @@ public class DummyHabitRepo : IHabitRepo
     private Dictionary<Guid, List<DBActualTime>> ATimes = new();
     //Моделирует таблицу DBPrefFixedTime
     private Dictionary<Guid, List<DBPrefFixedTime>> PfTimes = new();
-    public List<Habit>? Get(string user_name)
+    public List<Habit>? TryGet(string user_name)
     {
         DayOfWeek day;
         var dbhabits = UserHabits.GetValueOrDefault(user_name);
@@ -66,7 +66,7 @@ public class DummyHabitRepo : IHabitRepo
         return habits;
     }
 
-    public void Create(Habit h)
+    public bool TryCreate(Habit h)
     {
         List<DBActualTime> actualTimes = new();
         List<DBPrefFixedTime> prefFixedTimes = new();
@@ -93,20 +93,22 @@ public class DummyHabitRepo : IHabitRepo
         UserHabits[dbh.DBUserNameID].Add(dbh);
         ATimes[h.Id] = actualTimes;
         PfTimes[h.Id] = prefFixedTimes;
+        return true;
     }
 
-    public void CreateMany(List<Habit> habits)
+    public bool TryCreateMany(List<Habit> habits)
     {
         foreach (var h in habits) 
-            Create(h);
+            TryCreate(h);
+        return true;
     }
 
-    public void Update(Habit h)
+    public bool TryUpdate(Habit h)
     {
-        return;
+        return true;
     }
 
-    public void Delete(Guid habit_id)
+    public bool TryDelete(Guid habit_id)
     {
         foreach(var habits in UserHabits)
         {
@@ -124,9 +126,10 @@ public class DummyHabitRepo : IHabitRepo
             if (flag)
                 break;
         }
+        return true;
     }
 
-    public void DeleteHabits(string user_name)
+    public bool TryDeleteHabits(string user_name)
     {
         if (UserHabits.ContainsKey(user_name))
             foreach(var habit in UserHabits[user_name])
@@ -135,5 +138,6 @@ public class DummyHabitRepo : IHabitRepo
                 PfTimes.Remove(habit.Id);
             }
         UserHabits.Remove(user_name);
+        return true;
     }
 }
