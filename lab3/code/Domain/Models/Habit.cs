@@ -59,6 +59,8 @@ public class Habit
     public Habit(Guid id, string name, int mins_to_complete,
         TimeOption option, string user_name, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int nDays)
     {
+        if (pref_fixed_timings.Count() == 0 && (option == TimeOption.Preffered || option == TimeOption.Fixed))
+            throw new Exception("Preffered or fixed time habit should have at least one time interval");
         Id = id;
         Name = name;
         MinsToComplete = mins_to_complete;

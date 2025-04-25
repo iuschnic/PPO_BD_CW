@@ -144,7 +144,7 @@ Console.WriteLine("Тест загрузки расписания");
 ans = TaskService.ImportNewShedule(valid_user.NameID, "dummmy");
 if (ans != null)
 {
-    valid_user = ans.Item1 as User;
+    valid_user = ans.Item1;
     Console.Write(valid_user);
 }
 else
