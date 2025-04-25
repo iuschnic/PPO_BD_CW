@@ -50,7 +50,7 @@ public class Habit
     public Guid Id { get; }
     public string Name { get; }
     public int MinsToComplete { get; }
-    public List<ActualTime> ActualTimings { get; }
+    public List<ActualTime> ActualTimings { get; }  //readonly list + проверка timeoption и количество таймингов preffixed
     public List<PrefFixedTime> PrefFixedTimings { get; }
     public TimeOption Option { get; }
     public string UserNameID { get; }

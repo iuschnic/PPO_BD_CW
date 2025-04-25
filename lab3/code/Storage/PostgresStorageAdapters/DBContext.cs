@@ -12,6 +12,8 @@ public class PostgresDBContext : DbContext
     public DbSet<DBPrefFixedTime> PrefFixedTimes { get; set; }
     public DbSet<DBSTime> SettingsTimes { get; set; }
     public DbSet<DBUserSettings> USettings { get; set; }
+    public DbSet<DBMessage> Messages { get; set; }
+    public DbSet<DBUserMessage> UserMessages { get; set; }
     public PostgresDBContext(DbContextOptions<PostgresDBContext> options) : base(options)
     {
         Database.EnsureDeleted();
@@ -26,5 +28,7 @@ public class PostgresDBContext : DbContext
         modelBuilder.Entity<DBPrefFixedTime>().HasKey(t => t.Id);
         modelBuilder.Entity<DBSTime>().HasKey(t => t.Id);
         modelBuilder.Entity<DBUserSettings>().HasKey(s => s.Id);
+        modelBuilder.Entity<DBMessage>().HasKey(s => s.Id);
+        modelBuilder.Entity<DBUserMessage>().HasNoKey();
     }
 }

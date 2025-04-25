@@ -4,11 +4,9 @@ using Domain.OutPorts;
 using Domain.Models;
 using LoadAdapters;
 using Microsoft.Extensions.DependencyInjection;
-using Storage;
 using Storage.PostgresStorageAdapters;
 using Types;
 using Microsoft.EntityFrameworkCore;
-//using Storage.StorageAdapters;
 
 /*var serviceProvider = new ServiceCollection()
     .AddSingleton<IEventRepo, DummyEventRepo>()
@@ -39,9 +37,7 @@ User? valid_user = TaskService.CreateUser("kulikov_egor", new PhoneNumber("+7916
 if (valid_user != null)
     Console.Write(valid_user);
 else
-{
     Console.WriteLine("Пользователь уже существует");
-}
 
 Console.WriteLine("_______________________________________________________________________________");
 Console.WriteLine("Тест создания такого же пользователя");

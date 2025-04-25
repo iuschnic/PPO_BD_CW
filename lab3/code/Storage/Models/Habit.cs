@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;
 
-[Table("ActualTime")]
+[Table("actual_time")]
 public class DBActualTime
 {
     [Key]
@@ -22,25 +22,17 @@ public class DBActualTime
     public Guid DBHabitID { get; set; }
     public DBHabit? DBHabit { get; set; }
 
-    public DBActualTime(Guid id, TimeOnly start, TimeOnly end, string day, Guid dbhabitid)
+    public DBActualTime(Guid id, TimeOnly start, TimeOnly end, string day, Guid dBHabitID)
     {
         Id = id;
         Start = start;
         End = end;
         Day = day;
-        DBHabitID = dbhabitid;
-    }
-    public DBActualTime(Guid id, TimeOnly start, TimeOnly end, string day)
-    {
-        Id = id;
-        Start = start;
-        End = end;
-        Day = day;
-        //DBHabitID = dbhabitid;
+        DBHabitID = dBHabitID;
     }
 }
 
-[Table("PrefFixedTime")]
+[Table("pref_fixed_time")]
 public class DBPrefFixedTime
 {
     [Key]
@@ -55,22 +47,16 @@ public class DBPrefFixedTime
     [Column("habit_id")]
     public Guid DBHabitID { get; set; }
     public DBHabit? DBHabit { get; set; }
-    public DBPrefFixedTime(Guid id, TimeOnly start, TimeOnly end, Guid dbhabitid)
+    public DBPrefFixedTime(Guid id, TimeOnly start, TimeOnly end, Guid dBHabitID)
     {
         Id = id;
         Start = start;
         End = end;
-        DBHabitID = dbhabitid;
-    }
-    public DBPrefFixedTime(Guid id, TimeOnly start, TimeOnly end)
-    {
-        Id = id;
-        Start = start;
-        End = end;
+        DBHabitID = dBHabitID;
     }
 }
 
-[Table("Habits")]
+[Table("habits")]
 public class DBHabit
 {
     [Key]

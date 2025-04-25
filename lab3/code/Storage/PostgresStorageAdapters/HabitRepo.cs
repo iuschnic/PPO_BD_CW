@@ -12,12 +12,6 @@ namespace Storage.PostgresStorageAdapters;
 
 public class PostgresHabitRepo : IHabitRepo
 {
-    //Моделирует таблицу DBHabits
-    //private Dictionary<string, List<DBHabit>> UserHabits = new();
-    //Моделирует таблицу DBActualTime
-    //private Dictionary<Guid, List<DBActualTime>> ATimes = new();
-    //Моделирует таблицу DBPrefFixedTime
-    //private Dictionary<Guid, List<DBPrefFixedTime>> PfTimes = new();
     private PostgresDBContext _dbContext;
 
     public List<Habit>? TryGet(string user_name)
@@ -26,7 +20,6 @@ public class PostgresHabitRepo : IHabitRepo
         if (test == null)
             return null;
         DayOfWeek day;
-        //var dbhabits = UserHabits.GetValueOrDefault(user_name);
         var dbhabits = _dbContext.Habits.Where(h => h.DBUserNameID == user_name).ToList();
         if (dbhabits == null)
             return [];

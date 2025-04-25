@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-[Table("SettingsTime")]
+[Table("settings_time")]
 public class DBSTime
 {
     [Key]
@@ -16,23 +16,17 @@ public class DBSTime
     [Column("settings_id")]
     public Guid DBUserSettingsID { get; set; }
     public DBUserSettings? DBUserSettings { get; set; }
-    public DBSTime(Guid id, TimeOnly start, TimeOnly end, Guid dbsettingsid) 
+    public DBSTime(Guid id, TimeOnly start, TimeOnly end, Guid dBUserSettingsID)
     {
         Id = id;
         Start = start;
         End = end;
-        DBUserSettingsID = dbsettingsid;
-    }
-    public DBSTime(Guid id, TimeOnly start, TimeOnly end)
-    {
-        Id = id;
-        Start = start;
-        End = end;
+        DBUserSettingsID = dBUserSettingsID;
     }
 }
 
 
-[Table("Settings")]
+[Table("settings")]
 public class DBUserSettings
 {
     [Key]
@@ -44,15 +38,10 @@ public class DBUserSettings
     public string? DBUserID { get; set; }
     public DBUser? DBUser { get; set; }
     //public List<DBSTime> ForbiddenTimings { get; set; }
-    public DBUserSettings(Guid id, bool notifyOn, string dBUserNameID)
+    public DBUserSettings(Guid id, bool notifyOn, string dBUserID)
     {
         Id = id;
         NotifyOn = notifyOn;
-        DBUserID = dBUserNameID;
-    }
-    public DBUserSettings(Guid id, bool notifyOn)
-    {
-        Id = id;
-        NotifyOn = notifyOn;
+        DBUserID = dBUserID;
     }
 }

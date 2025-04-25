@@ -6,14 +6,9 @@ namespace Storage.PostgresStorageAdapters;
 
 public class PostgresSettingsRepo : ISettingsRepo
 {
-    //Словарь NameId пользователя и настройки
-    //private Dictionary<string, DBUserSettings> Settings = new();
-    //Словарь Id настроек и время
-    //private Dictionary<Guid, List<DBSTime>> STimes = new();
     private PostgresDBContext _dbContext;
     public UserSettings? TryGet(string user_name)
     {
-        //var dbs = Settings.GetValueOrDefault(user_name);
         var settings = _dbContext.USettings.ToList();
         Console.WriteLine(settings.Count);
         var dbs = _dbContext.USettings.FirstOrDefault(s => s.DBUserID == user_name);
@@ -66,20 +61,6 @@ public class PostgresSettingsRepo : ISettingsRepo
         _dbContext.SaveChanges();
         Console.Write(dbs.NotifyOn);
         return true;
-        /*
-        DBUserSettings dbus = new DBUserSettings(us.Id, us.NotifyOn, us.UserNameID);
-        List<DBSTime> times = [];
-        foreach (var time in us.SettingsTimes)
-        {
-            DBSTime st = new DBSTime(time.Id, time.Start, time.End, time.SettingsID);
-            times.Add(st);
-        }
-        _dbContext.USettings.Update(dbus);
-        var prev_times = _dbContext.SettingsTimes.Where(el => el.Id == us.Id);
-        _dbContext.SettingsTimes.RemoveRange(prev_times);
-        _dbContext.SettingsTimes.AddRange(times);
-        _dbContext.SaveChanges();
-        return;*/
     }
 
     public bool TryDelete(string user_name)

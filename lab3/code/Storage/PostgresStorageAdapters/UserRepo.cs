@@ -1,19 +1,12 @@
 ﻿using Domain.Models;
 using Domain.OutPorts;
 using Storage.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Types;
 
 namespace Storage.PostgresStorageAdapters;
 
 public class PostgresUserRepo : IUserRepo
 {
-    //Nameid - User
-    //private Dictionary<string, DBUser> Users = new();
     PostgresDBContext _dbContext;
 
     public PostgresUserRepo(PostgresDBContext dbContext)
@@ -53,7 +46,6 @@ public class PostgresUserRepo : IUserRepo
 
     public bool TryDelete(string user_name)
     {
-        //Users.Remove(user_name);
         var dbu = _dbContext.Users.Find(user_name);
         if (dbu == null)
             return false;

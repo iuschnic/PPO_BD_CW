@@ -1,17 +1,9 @@
-﻿using Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Storage.Models;
+﻿namespace Storage.Models;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
-[Table("Events")]
+[Table("events")]
 public class DBEvent
 {
     [Key]
@@ -28,21 +20,13 @@ public class DBEvent
     [Column("user_name")]
     public string? DBUserNameID { get; set; }
     public DBUser? DBUser { get; set; }
-    public DBEvent(Guid id, string name, TimeOnly start, TimeOnly end, string day, string user_name)
+    public DBEvent(Guid id, string name, TimeOnly start, TimeOnly end, string day, string dBUserNameID)
     {
         Id = id;
         Name = name;
         Start = start;
         End = end;
         Day = day;
-        DBUserNameID = user_name;
-    }
-    public DBEvent(Guid id, string name, TimeOnly start, TimeOnly end, string day)
-    {
-        Id = id;
-        Name = name;
-        Start = start;
-        End = end;
-        Day = day;
+        DBUserNameID = dBUserNameID;
     }
 }

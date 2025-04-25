@@ -44,10 +44,7 @@ public class PostgresEventRepo : IEventRepo
         var test = _dbContext.Events.Find(e.Id);
         if (test != null) 
             return false;
-        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString())
-        {
-            DBUserNameID = e.UserNameID
-        };
+        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
         _dbContext.Events.Add(dbe);
         _dbContext.SaveChanges();
         return true;

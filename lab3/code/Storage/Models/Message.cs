@@ -1,16 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Storage.Models;
+﻿namespace Storage.Models;
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
 
-[Table("Messages")]
+[Table("message")]
 public class DBMessage
 {
     [Key]
@@ -28,16 +21,16 @@ public class DBMessage
     }
 }
 
-[Table("User_Message")]
+[Table("user_message")]
 public class DBUserMessage
 {
     [Column("user_name")]
-    public string? DBUserNameID { get; set; }
+    public string? DBUserID { get; set; }
     [Column("message_id")]
-    public Guid? DBMessageID { get; set; }
-    public DBUserMessage(string dbusernameid, Guid dbmessageid) 
+    public Guid DBMessageID { get; set; }
+    public DBUserMessage(string dBUserID, Guid dBMessageID) 
     {
-        DBMessageID = dbmessageid;
-        DBUserNameID = dbusernameid;
+        DBMessageID = dBMessageID;
+        DBUserID = dBUserID;
     }
 }
