@@ -1,5 +1,6 @@
 ﻿using Domain.Models;
 using Domain.OutPorts;
+using Microsoft.EntityFrameworkCore;
 using Storage.Models;
 
 namespace Storage.PostgresStorageAdapters;
@@ -11,13 +12,18 @@ public class PostgresSettingsRepo : ISettingsRepo
     {
         var settings = _dbContext.USettings.ToList();
         Console.WriteLine(settings.Count);
-        var dbs = _dbContext.USettings.FirstOrDefault(s => s.DBUserID == user_name);
+        var dbs = _dbContext.USettings.Include(us => us.ForbiddenTimings).FirstOrDefault(s => s.DBUserID == user_name);
         if (dbs == null)
             return null;
 
         List<SettingsTime> settingsTimes = [];
-        var stimes = _dbContext.SettingsTimes.Where(t => t.DBUserSettingsID == dbs.Id).ToList();
+        /*var stimes = _dbContext.SettingsTimes.Where(t => t.DBUserSettingsID == dbs.Id).ToList();
         foreach (DBSTime time in stimes)
+        {
+            SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBUserSettingsID);
+            settingsTimes.Add(st);
+        }*/
+        foreach (DBSTime time in dbs.ForbiddenTimings)
         {
             SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBUserSettingsID);
             settingsTimes.Add(st);

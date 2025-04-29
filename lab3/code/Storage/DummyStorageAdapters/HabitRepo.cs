@@ -29,7 +29,7 @@ public class DummyHabitRepo : IHabitRepo
             {
                 foreach (var at in ATimes[dbh.Id])
                 {
-                    if (at.Day == "Monday")
+                    /*if (at.Day == "Monday")
                         day = DayOfWeek.Monday;
                     else if (at.Day == "Tuesday")
                         day = DayOfWeek.Tuesday;
@@ -43,7 +43,8 @@ public class DummyHabitRepo : IHabitRepo
                         day = DayOfWeek.Saturday;
                     else
                         day = DayOfWeek.Sunday;
-                    actualTimes.Add(new ActualTime(at.Id, at.Start, at.End, day, at.DBHabitID));
+                    actualTimes.Add(new ActualTime(at.Id, at.Start, at.End, day, at.DBHabitID));*/
+                    actualTimes.Add(new ActualTime(at.Id, at.Start, at.End, at.Day, at.DBHabitID));
                 }
             }
             if (PfTimes.ContainsKey(dbh.Id))
@@ -53,7 +54,7 @@ public class DummyHabitRepo : IHabitRepo
                     prefFixedTimes.Add(new PrefFixedTime(pf.Id, pf.Start, pf.End, pf.DBHabitID));
                 }
             }
-            TimeOption op;
+            /*TimeOption op;
             if (dbh.Option == "Fixed")
                 op = TimeOption.Fixed;
             else if (dbh.Option == "Preffered")
@@ -61,6 +62,8 @@ public class DummyHabitRepo : IHabitRepo
             else
                 op = TimeOption.NoMatter;
             habits.Add(new Habit(dbh.Id, dbh.Name, dbh.MinsToComplete, op, dbh.DBUserNameID,
+                actualTimes, prefFixedTimes, dbh.NDays));*/
+            habits.Add(new Habit(dbh.Id, dbh.Name, dbh.MinsToComplete, dbh.Option, dbh.DBUserNameID,
                 actualTimes, prefFixedTimes, dbh.NDays));
         }
         return habits;
@@ -72,7 +75,8 @@ public class DummyHabitRepo : IHabitRepo
         List<DBPrefFixedTime> prefFixedTimes = new();
         foreach (var at in h.ActualTimings)
         {
-            DBActualTime dbat = new DBActualTime(at.Id, at.Start, at.End, at.Day.ToString(), at.HabitID);
+            //DBActualTime dbat = new DBActualTime(at.Id, at.Start, at.End, at.Day.ToString(), at.HabitID);
+            DBActualTime dbat = new DBActualTime(at.Id, at.Start, at.End, at.Day, at.HabitID);
             actualTimes.Add(dbat);
         }
         foreach (var pf in h.PrefFixedTimings)
@@ -80,14 +84,15 @@ public class DummyHabitRepo : IHabitRepo
             DBPrefFixedTime dbpf = new DBPrefFixedTime(pf.Id, pf.Start, pf.End, pf.HabitID);
             prefFixedTimes.Add(dbpf);
         }
-        string op;
+        /*string op;
         if (h.Option == TimeOption.Fixed)
             op = "Fixed";
         else if (h.Option == TimeOption.Preffered)
             op = "Preffered";
         else
             op = "NoMatter";
-        DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, op, h.UserNameID, h.NDays);
+        DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, op, h.UserNameID, h.NDays);*/
+        DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, h.NDays);
         if (!UserHabits.ContainsKey(dbh.DBUserNameID))
             UserHabits[dbh.DBUserNameID] = [];
         UserHabits[dbh.DBUserNameID].Add(dbh);

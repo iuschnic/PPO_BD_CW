@@ -2,7 +2,7 @@
 
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Microsoft.EntityFrameworkCore;
+using Types;
 
 [Table("actual_time")]
 public class DBActualTime
@@ -15,14 +15,15 @@ public class DBActualTime
     [Column("a_end")]
     public TimeOnly End { get; set; }
     [Column("day")]
-    public string Day { get; set; }
+    //public string Day { get; set; }
+    public DayOfWeek Day { get; set; }
 
     //Внешний ключ
     [Column("habit_id")]
     public Guid DBHabitID { get; set; }
     public DBHabit? DBHabit { get; set; }
 
-    public DBActualTime(Guid id, TimeOnly start, TimeOnly end, string day, Guid dBHabitID)
+    public DBActualTime(Guid id, TimeOnly start, TimeOnly end, DayOfWeek day, Guid dBHabitID)
     {
         Id = id;
         Start = start;
@@ -66,17 +67,19 @@ public class DBHabit
     public string Name { get; set; }
     [Column("mins_to_complete")]
     public int MinsToComplete { get; set; }
-    //public List<DBActualTime> ActualTimings { get; set; }
-    //public List<DBPrefFixedTime> PrefFixedTimings { get; set; }
+    //Навигационные свойства
+    public List<DBActualTime> ActualTimings { get; set; } = [];
+    public List<DBPrefFixedTime> PrefFixedTimings { get; set; } = [];
     [Column("option")]
-    public string Option { get; set; }
+    //public string Option { get; set; }
+    public TimeOption Option { get; set; }
     [Column("user_name")]
     //Внешний ключ
     public string? DBUserNameID { get; set; }
     public DBUser? DBUser { get; set; }
     [Column("ndays")]
     public int NDays { get; set; }
-    public DBHabit(Guid id, string name, int minsToComplete, string option, string dBUserNameID, int nDays)
+    public DBHabit(Guid id, string name, int minsToComplete, TimeOption option, string dBUserNameID, int nDays)
     {
         Id = id;
         Name = name;

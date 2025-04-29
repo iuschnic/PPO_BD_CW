@@ -37,7 +37,7 @@ public class DBUserSettings
     [Column("user_name")]
     public string? DBUserID { get; set; }
     public DBUser? DBUser { get; set; }
-    //public List<DBSTime> ForbiddenTimings { get; set; }
+    public List<DBSTime> ForbiddenTimings { get; set; } = [];
     public DBUserSettings(Guid id, bool notifyOn, string dBUserID)
     {
         Id = id;
