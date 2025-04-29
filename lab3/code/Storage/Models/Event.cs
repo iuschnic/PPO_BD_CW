@@ -16,7 +16,6 @@ public class DBEvent
     [Column("e_end")]
     public TimeOnly End { get; set; }
     [Column("day")]
-    //public string Day { get; set; }
     public DayOfWeek Day { get; set; }
     [Column("user_name")]
     public string? DBUserNameID { get; set; }

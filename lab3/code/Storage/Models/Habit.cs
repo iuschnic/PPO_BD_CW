@@ -15,7 +15,6 @@ public class DBActualTime
     [Column("a_end")]
     public TimeOnly End { get; set; }
     [Column("day")]
-    //public string Day { get; set; }
     public DayOfWeek Day { get; set; }
 
     //Внешний ключ
@@ -71,7 +70,6 @@ public class DBHabit
     public List<DBActualTime> ActualTimings { get; set; } = [];
     public List<DBPrefFixedTime> PrefFixedTimings { get; set; } = [];
     [Column("option")]
-    //public string Option { get; set; }
     public TimeOption Option { get; set; }
     [Column("user_name")]
     //Внешний ключ
