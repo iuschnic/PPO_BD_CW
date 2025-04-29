@@ -21,7 +21,7 @@ public class DummyEventRepo : IEventRepo
         DayOfWeek day;
         foreach(var dbe in dbevents)
         {
-            if (dbe.Day == "Monday")
+            /*if (dbe.Day == "Monday")
                 day = DayOfWeek.Monday;
             else if (dbe.Day == "Tuesday")
                 day = DayOfWeek.Tuesday;
@@ -35,14 +35,16 @@ public class DummyEventRepo : IEventRepo
                 day = DayOfWeek.Saturday;
             else
                 day = DayOfWeek.Sunday;
-            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, day, dbe.DBUserNameID));
+            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, day, dbe.DBUserNameID));*/
+            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, dbe.Day, dbe.DBUserNameID));
         }
         return events;
     }
 
     public bool TryCreate(Event e)
     {
-        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
+        //DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
+        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day, e.UserNameID);
         if (!UserEvents.ContainsKey(dbe.DBUserNameID))
             UserEvents[dbe.DBUserNameID] = [];
         UserEvents[dbe.DBUserNameID].Add(dbe);

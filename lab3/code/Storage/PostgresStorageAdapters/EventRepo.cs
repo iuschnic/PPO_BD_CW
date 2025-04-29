@@ -20,7 +20,7 @@ public class PostgresEventRepo : IEventRepo
         DayOfWeek day;
         foreach (var dbe in dbevents)
         {
-            if (dbe.Day == "Monday")
+            /*if (dbe.Day == "Monday")
                 day = DayOfWeek.Monday;
             else if (dbe.Day == "Tuesday")
                 day = DayOfWeek.Tuesday;
@@ -34,7 +34,8 @@ public class PostgresEventRepo : IEventRepo
                 day = DayOfWeek.Saturday;
             else
                 day = DayOfWeek.Sunday;
-            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, day, dbe.DBUserNameID));
+            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, day, dbe.DBUserNameID));*/
+            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, dbe.Day, dbe.DBUserNameID));
         }
         return events;
     }
@@ -44,7 +45,8 @@ public class PostgresEventRepo : IEventRepo
         var test = _dbContext.Events.Find(e.Id);
         if (test != null) 
             return false;
-        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
+        //DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
+        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day, e.UserNameID);
         _dbContext.Events.Add(dbe);
         _dbContext.SaveChanges();
         return true;
@@ -58,7 +60,8 @@ public class PostgresEventRepo : IEventRepo
             var test = _dbContext.Events.Find(e.Id);
             if (test != null)
                 return false;
-            DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
+            //DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day.ToString(), e.UserNameID);
+            DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.Day, e.UserNameID);
             dbevents.Add(dbe);
         }
         _dbContext.Events.AddRange(dbevents);
@@ -74,7 +77,8 @@ public class PostgresEventRepo : IEventRepo
         dbe.Name = e.Name;
         dbe.Start = e.Start;
         dbe.End = e.End;
-        dbe.Day = e.Day.ToString();
+        //dbe.Day = e.Day.ToString();
+        dbe.Day = e.Day;
         _dbContext.SaveChanges();
         return true;
     }
