@@ -16,7 +16,6 @@ public class PostgresDBContext : DbContext
     public DbSet<DBUserMessage> UserMessages { get; set; }
     public PostgresDBContext(DbContextOptions<PostgresDBContext> options) : base(options)
     {
-        Database.EnsureDeleted();
         Database.EnsureCreated();
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -4,7 +4,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Types;
 
-[Table("actual_time")]
+[Table("actualtime")]
 public class DBActualTime
 {
     [Key]
@@ -32,7 +32,7 @@ public class DBActualTime
     }
 }
 
-[Table("pref_fixed_time")]
+[Table("preffixedtime")]
 public class DBPrefFixedTime
 {
     [Key]

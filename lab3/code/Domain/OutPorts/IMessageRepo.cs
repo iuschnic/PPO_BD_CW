@@ -1,8 +1,9 @@
 ﻿using Domain.Models;
 namespace Domain.OutPorts;
 
-//Здесь будет наследование от IDisposable
 public interface IMessageRepo
 {
-    void Create(Message m, List<string> users);
+    bool TryCreateMessage(Message message, List<string> users);
+    public bool TryNotify(List<Tuple<string, string>> users_messages);
+    List<Tuple<string, string>> GetUsersToNotify();
 }

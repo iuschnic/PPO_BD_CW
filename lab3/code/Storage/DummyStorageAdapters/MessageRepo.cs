@@ -11,7 +11,8 @@ public class DummyMessageRepo : IMessageRepo
     private List<DBMessage> Messages = new();
     //Моделирует таблицу связку между сообщениями и пользователями
     private List<Tuple<string, Guid>> UserMessage = new();
-    public void Create(Message message, List<string> users)
+
+    public bool TryCreateMessage(Message message, List<string> users)
     {
         DBMessage dbm = new DBMessage(message.Id, message.Text, message.DateSent);
         Messages.Add(dbm);
@@ -19,6 +20,23 @@ public class DummyMessageRepo : IMessageRepo
         {
             UserMessage.Add(new Tuple<string, Guid>(user, message.Id));
         }
-        return;
+        return true;
+    }
+    public bool TryNotify(List<Tuple<string, string>> users_messages)
+    {
+        //List<Tuple<string, string>> users_habits = GetUsersToNotify();
+        foreach (var user in users_messages)
+        {
+            var g = Guid.NewGuid();
+            var date = DateTime.Now;
+            DBMessage dbm = new DBMessage(g, user.Item2,
+                new DateOnly(date.Year, date.Month, date.Day));
+            UserMessage.Add(new Tuple<string, Guid>(user.Item1, g));
+        }
+        return true;
+    }
+    public List<Tuple<string, string>> GetUsersToNotify()
+    {
+        return [];
     }
 }

@@ -10,7 +10,7 @@ public record PhoneNumber
     public PhoneNumber(string number)
     {
         if (!IsValid(number))
-            throw new ArgumentException("Incorrect number format");
+            throw new ArgumentException("Неверный формат номера телефона");
 
         StringNumber = Normalize(number);
     }

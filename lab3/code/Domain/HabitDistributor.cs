@@ -121,7 +121,7 @@ public class HabitDistributor : IHabitDistributor
         List<Habit> undistributed = [];
         foreach (var h in habits)
         {
-            //ВАЖНО
+            //количество дней, на которые нужно распределить привычку (с учетом возможно уже распределенных)
             int ndays = h.NDays - h.ActualTimings.Count;
             List<TimeInterval> fixedTimings = HabitToTimeIntervals(h);
             foreach (var day in freeIntervals)
@@ -166,7 +166,7 @@ public class HabitDistributor : IHabitDistributor
         List<Habit> undistributed = [];
         foreach (var h in habits)
         {
-            //ВАЖНО
+            //количество дней, на которые нужно распределить привычку (с учетом возможно уже распределенных)
             int ndays = h.NDays - h.ActualTimings.Count;
             foreach (var day in freeIntervals)
             {
@@ -241,10 +241,6 @@ public class HabitDistributor : IHabitDistributor
         {
             if (!habitsByPriority.ContainsKey(h.Option))
                 habitsByPriority[h.Option] = [];
-            /*Если пользователь не задал конкретные промежутки времени - распределяем как привычку с безразличным временем
-            if (h.PrefFixedTimings.Count == 0)
-                habitsByPriority[TimeOption.NoMatter].Add(h);   //убрать !!!!!!!!!
-            else*/
             habitsByPriority[h.Option].Add(h);
         }
         //Распределение привычек: фиксированное время, потом предпочтительное, потом безразличное

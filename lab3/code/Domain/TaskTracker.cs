@@ -9,7 +9,6 @@ public class TaskTracker : ITaskTracker
 {
     private readonly IEventRepo _eventRepo;
     private readonly IHabitRepo _habitRepo;
-    //private readonly IMessageRepo _messageRepo;
     private readonly ISettingsRepo _settingsRepo;
     private readonly IUserRepo _userRepo;
     private readonly IShedLoad _shedLoader;
