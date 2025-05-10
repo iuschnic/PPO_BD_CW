@@ -1,7 +1,5 @@
 ﻿using Domain.Models;
 namespace Domain.OutPorts;
-
-//Здесь будет наследование от IDisposable
 public interface ISettingsRepo
 {
     UserSettings? TryGet(string user_name);

@@ -26,9 +26,6 @@ public record PhoneNumber
 
     private string Normalize(string number)
     {
-        if (string.IsNullOrWhiteSpace(number))
-            return string.Empty;
-
         string normalized = number.StartsWith("+") ? "+" : "";
 
         normalized += new string(number.Where(c => char.IsDigit(c)).ToArray());
@@ -36,10 +33,6 @@ public record PhoneNumber
             normalized = "+7" + (normalized.Length > 1 ? normalized[1..] : "");
 
         return normalized;
-    }
-    public void Print()
-    {
-        Console.WriteLine(StringNumber);
     }
     public override string ToString() { return StringNumber; }
 }

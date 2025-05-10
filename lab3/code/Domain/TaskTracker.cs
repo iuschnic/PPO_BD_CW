@@ -11,7 +11,7 @@ public class TaskTracker : ITaskTracker
     private readonly IHabitRepo _habitRepo;
     private readonly ISettingsRepo _settingsRepo;
     private readonly IUserRepo _userRepo;
-    private readonly IShedLoad _shedLoader;
+    private readonly ISheduleLoad _shedLoader;
     private readonly IHabitDistributor _distributer;
 
     /*Функция по guid получает всю информацию о пользователе, его привычках, событиях расписания и настройках*/
@@ -33,7 +33,7 @@ public class TaskTracker : ITaskTracker
     }
 
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo,
-        ISettingsRepo settingsRepo, IUserRepo userRepo, IShedLoad shedLoader, IHabitDistributor distributer)
+        ISettingsRepo settingsRepo, IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer)
     {
         _eventRepo = eventRepo;
         _habitRepo = habitRepo;

@@ -1,7 +1,5 @@
 ﻿using Domain.Models;
 namespace Domain.OutPorts;
-
-//Здесь будет наследование от IDisposable
 public interface IUserRepo
 {
     User? TryGet(string username);

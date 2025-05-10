@@ -205,7 +205,7 @@ var serviceProvider = new ServiceCollection()
             .AddSingleton<ISettingsRepo, PostgresSettingsRepo>()
             .AddSingleton<IUserRepo, PostgresUserRepo>()
             .AddDbContext<PostgresDBContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
-            .AddTransient<IShedLoad, DummyShedAdapter>()
+            .AddTransient<ISheduleLoad, DummyShedAdapter>()
             .AddTransient<ITaskTracker, TaskTracker>()
             .AddTransient<IHabitDistributor, HabitDistributor>()
             .BuildServiceProvider();
