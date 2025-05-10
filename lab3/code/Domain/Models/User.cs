@@ -14,10 +14,10 @@ public class User
     public PhoneNumber Number { get; }
     public List<Habit>? Habits { get; set; }
     public List<Event>? Events { get; set; }
-    public UserSettings? Settings { get; set; }
+    public UserSettings Settings { get; set; }
 
     public User(string name, string passwordHash, PhoneNumber number,
-        UserSettings? settings = null, List<Habit>? habits = null, List<Event>? events = null)
+        UserSettings settings, List<Habit>? habits = null, List<Event>? events = null)
     {
         NameID = name;
         PasswordHash = passwordHash;

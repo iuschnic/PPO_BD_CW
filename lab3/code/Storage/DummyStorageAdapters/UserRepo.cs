@@ -6,7 +6,7 @@ using Types;
 
 namespace Storage.StorageAdapters;
 
-public class DummyUserRepo : IUserRepo
+/*public class DummyUserRepo : IUserRepo
 {
     //Nameid - User
     private Dictionary<string, DBUser> Users = new();
@@ -40,4 +40,4 @@ public class DummyUserRepo : IUserRepo
         Users.Remove(user_name);
         return true;
     }
-}
+}*/

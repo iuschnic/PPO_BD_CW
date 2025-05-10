@@ -202,7 +202,7 @@ using System.Globalization;
 var serviceProvider = new ServiceCollection()
             .AddSingleton<IEventRepo, PostgresEventRepo>()
             .AddSingleton<IHabitRepo, PostgresHabitRepo>()
-            .AddSingleton<ISettingsRepo, PostgresSettingsRepo>()
+            //.AddSingleton<ISettingsRepo, PostgresSettingsRepo>()
             .AddSingleton<IUserRepo, PostgresUserRepo>()
             .AddDbContext<PostgresDBContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
             .AddTransient<ISheduleLoad, DummyShedAdapter>()
