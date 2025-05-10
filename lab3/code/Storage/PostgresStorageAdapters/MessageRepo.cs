@@ -1,10 +1,8 @@
-﻿using Domain;
-using Domain.OutPorts;
+﻿using Domain.OutPorts;
 using Domain.Models;
 using Storage.Models;
 using Storage.PostgresStorageAdapters;
 using Microsoft.EntityFrameworkCore;
-using Npgsql;
 using Dapper;
 
 namespace Storage.StorageAdapters;
@@ -61,13 +59,13 @@ public class PostgresMessageRepo : IMessageRepo
         return ret;
     }
 
-    public List<Tuple<string, string>> GetUsersToNotify()
+    public List<UserHabitInfo> GetUsersToNotify()
     {
-        List<Tuple<string, string>> users_habits = [];
+        List<UserHabitInfo> users_habits = [];
         var conn = _dbContext.Database.GetDbConnection();
         var result = conn.Query("select * from get_habits_due_soon()");
         foreach (var r in result)
-            users_habits.Add(new Tuple<string, string>(r.user_name, r.habit_name));
+            users_habits.Add(new UserHabitInfo(r.user_name, r.habit_name, r.start_time.ToString(), r.end_time.ToString()));
         return users_habits;
     }
 

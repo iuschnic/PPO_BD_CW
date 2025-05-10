@@ -35,7 +35,7 @@ public class DummyMessageRepo : IMessageRepo
         }
         return true;
     }
-    public List<Tuple<string, string>> GetUsersToNotify()
+    public List<UserHabitInfo> GetUsersToNotify()
     {
         return [];
     }

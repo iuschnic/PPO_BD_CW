@@ -1,42 +1,68 @@
-﻿using Telegram.Bot;
+﻿using Microsoft.EntityFrameworkCore;
+using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Telegram.Bot.Exceptions;
 using Domain.OutPorts;
 using Microsoft.Extensions.DependencyInjection;
 using Storage.PostgresStorageAdapters;
 using Storage.StorageAdapters;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.EntityFrameworkCore;
-using Domain.InPorts;
 
 public class Subscriber
 {
     public long ChatId { get; set; }
-    public string TaskTrackerName { get; set; }
+    public string TaskTrackerLogin { get; set; }
+    public string Password { get; set; }
     public string Username { get; set; }
     public DateTime SubscriptionDate { get; set; }
+}
+
+public class SubscriberDbContext : DbContext
+{
+    public DbSet<Subscriber> Subscribers { get; set; }
+
+    public SubscriberDbContext(DbContextOptions<SubscriberDbContext> options) : base(options)
+    {
+        Database.EnsureCreated();
+    }
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Subscriber>().HasKey(u => u.ChatId);
+    }
 }
 
 public class SubscriptionBot
 {
     private readonly ITelegramBotClient _botClient;
-    private readonly Dictionary<long, Subscriber> _subscribers = new();
+    private readonly IMessageRepo _messageRepo;
+    private readonly IUserRepo _userRepo;
+    private readonly SubscriberDbContext _dbContext;
     private CancellationTokenSource _cts;
 
-    private const string WelcomeMessage = "Введите ваш user_name в системе TaskTracker для подписки:";
+    private enum RegistrationState
+    {
+        None,
+        AwaitingLogin,
+        AwaitingPassword
+    }
+
+    private Dictionary<long, RegistrationState> _registrationStates = new();
+    private Dictionary<long, string> _tempLogins = new();
+
+    private const string WelcomeMessage = "Добро пожаловать! Введите ваш логин в системе TaskTracker:";
+    private const string AskPasswordMessage = "Теперь введите ваш пароль в системе TaskTracker:";
+    private const string RegistrationCompleteMessage = "Регистрация завершена! Вы подписаны на рассылку.";
     private const string GoodbyeMessage = "Вы отписались от рассылки";
-    private const string IdSavedMessage = "Ваш user_name в системе TaskTracker сохранён! Вы подписаны на рассылку.";
     private const int timeout = 1;
     private const int timeout_err = 1;
 
-    private readonly IMessageRepo _messageRepo;
-
-    public SubscriptionBot(string botToken, IMessageRepo messageRepo)
+    public SubscriptionBot(string botToken, IMessageRepo messageRepo, IUserRepo userRepo, SubscriberDbContext dbContext)
     {
         _botClient = new TelegramBotClient(botToken);
         _messageRepo = messageRepo;
+        _userRepo = userRepo;
+        _dbContext = dbContext;
     }
 
     public async Task StartAsync()
@@ -70,15 +96,22 @@ public class SubscriptionBot
             {
                 foreach (var user in users_habits)
                 {
-                    var sub = _subscribers.Values.FirstOrDefault(s => s.TaskTrackerName == user.Item1);
-                    if (sub != null)
+                    var subscriber = await _dbContext.Subscribers
+                        .FirstOrDefaultAsync(s => s.TaskTrackerLogin == user.UserName);
+
+                    if (subscriber != null)
+                    {
                         await _botClient.SendMessage(
-                            chatId: sub.ChatId,
-                            text: $"Привет, {sub.Username}! Примерно через полчаса по расписанию нужно выполнить привычку: {user.Item2 ?? "не указана"} (аккаунт {user.Item1 ?? "не указан"})"
+                            chatId: subscriber.ChatId,
+                            text: $"Привет, {subscriber.Username}!\n" +
+                                  $"Логин: {subscriber.TaskTrackerLogin}\n" +
+                                  $"В ближайшие 30 минут нужно будет выполнить привычку: " +
+                                  $"{user.HabitName ?? "не указана"} ({user.Start} - {user.End})\n"
                         );
+                    }
                 }
 
-                Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {_subscribers.Count} подписчикам");
+                Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {await _dbContext.Subscribers.CountAsync()} подписчикам");
                 await Task.Delay(TimeSpan.FromMinutes(timeout), _cts.Token);
             }
             catch (Exception ex)
@@ -107,15 +140,48 @@ public class SubscriptionBot
             {
                 await HandleStopCommand(botClient, message);
             }
-            else if (_subscribers.ContainsKey(chatId) && string.IsNullOrEmpty(_subscribers[chatId].TaskTrackerName))
+            else if (text != null && _registrationStates.TryGetValue(chatId, out var state))
             {
-                // Сохраняем введённый пользователем идентификатор
-                _subscribers[chatId].TaskTrackerName = text;
-                await botClient.SendMessage(
-                    chatId: chatId,
-                    text: IdSavedMessage
-                );
-                Console.WriteLine($"Пользователь {chatId} указал идентификатор: {text}");
+                if (state == RegistrationState.AwaitingLogin)
+                {
+                    var u = _userRepo.TryGet(text);
+                    if (u == null)
+                        await botClient.SendMessage(chatId, "К сожалению такого логина в системе не найдено, попробуйте еще раз.\n\n" + WelcomeMessage);
+                    else
+                    {
+                        _tempLogins[chatId] = text;
+                        _registrationStates[chatId] = RegistrationState.AwaitingPassword;
+                        await botClient.SendMessage(chatId, AskPasswordMessage);
+                    }
+                }
+                else if (state == RegistrationState.AwaitingPassword)
+                {
+                    var u = _userRepo.TryGet(_tempLogins[chatId]);
+                    if (u == null)
+                        await botClient.SendMessage(chatId, "Критическая ошибка, учетная запись не найдена.\n\n" + WelcomeMessage);
+                    else if (u != null && u.PasswordHash != text)
+                        await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);
+                    else
+                    {
+                        var subscriber = new Subscriber
+                        {
+                            ChatId = chatId,
+                            TaskTrackerLogin = _tempLogins[chatId],
+                            Password = text,
+                            Username = message.From.Username ?? message.From.FirstName,
+                            SubscriptionDate = DateTime.Now
+                        };
+                        _dbContext.Subscribers.Add(subscriber);
+                        await _dbContext.SaveChangesAsync();
+
+                        _registrationStates.Remove(chatId);
+                        _tempLogins.Remove(chatId);
+
+                        Console.WriteLine($"Пользователь подписался: {subscriber.Username}, Логин: {subscriber.TaskTrackerLogin}");
+
+                        await botClient.SendMessage(chatId, RegistrationCompleteMessage);
+                    }
+                }
             }
         }
         catch (Exception ex)
@@ -128,7 +194,7 @@ public class SubscriptionBot
     {
         var chatId = message.Chat.Id;
 
-        if (_subscribers.ContainsKey(chatId))
+        if (await _dbContext.Subscribers.AnyAsync(s => s.ChatId == chatId))
         {
             await botClient.SendMessage(
                 chatId: chatId,
@@ -137,33 +203,26 @@ public class SubscriptionBot
             return;
         }
 
-        // Создаем запись о подписчике
-        _subscribers[chatId] = new Subscriber
-        {
-            ChatId = chatId,
-            Username = message.From.Username ?? message.From.FirstName,
-            SubscriptionDate = DateTime.Now,
-            TaskTrackerName = null // Пока идентификатор не указан
-        };
-
-        await botClient.SendMessage(
-            chatId: chatId,
-            text: WelcomeMessage
-        );
+        _registrationStates[chatId] = RegistrationState.AwaitingLogin;
+        await botClient.SendMessage(chatId, WelcomeMessage);
     }
 
     private async Task HandleStopCommand(ITelegramBotClient botClient, Message message)
     {
         var chatId = message.Chat.Id;
+        var subscriber = await _dbContext.Subscribers.FindAsync(chatId);
 
-        if (_subscribers.Remove(chatId, out var subscriber))
+        if (subscriber != null)
         {
+            _dbContext.Subscribers.Remove(subscriber);
+            await _dbContext.SaveChangesAsync();
+
             await botClient.SendMessage(
                 chatId: chatId,
                 text: GoodbyeMessage
             );
 
-            Console.WriteLine($"Пользователь отписался: {subscriber.Username}, ID: {subscriber.TaskTrackerName}");
+            Console.WriteLine($"Пользователь отписался: {subscriber.Username}, Логин: {subscriber.TaskTrackerLogin}");
         }
         else
         {
@@ -176,14 +235,7 @@ public class SubscriptionBot
 
     private Task HandleErrorAsync(ITelegramBotClient botClient, Exception exception, CancellationToken cancellationToken)
     {
-        var errorMessage = exception switch
-        {
-            ApiRequestException apiRequestException =>
-                $"Telegram API Error: [{apiRequestException.ErrorCode}] {apiRequestException.Message}",
-            _ => exception.ToString()
-        };
-
-        Console.WriteLine(errorMessage);
+        Console.WriteLine($"Ошибка: {exception.Message}");
         return Task.CompletedTask;
     }
 
@@ -191,10 +243,10 @@ public class SubscriptionBot
     {
         _cts?.Cancel();
         Console.WriteLine("Бот остановлен. Список подписчиков:");
-
-        foreach (var subscriber in _subscribers.Values)
+        var subscribers = await _dbContext.Subscribers.ToListAsync();
+        foreach (var subscriber in subscribers)
         {
-            Console.WriteLine($"- {subscriber.Username}: {subscriber.TaskTrackerName} (chatId: {subscriber.ChatId})");
+            Console.WriteLine($"- {subscriber.Username}: {subscriber.TaskTrackerLogin}/{subscriber.Password}");
         }
     }
 }
@@ -205,25 +257,31 @@ class Program
     {
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IMessageRepo, PostgresMessageRepo>()
-            .AddDbContext<PostgresDBContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres;Encoding=UTF8"))
+            .AddSingleton<IUserRepo, PostgresUserRepo>()
+            .AddDbContext<PostgresDBContext>(options =>
+                options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
+            .AddDbContext<SubscriberDbContext>(options =>
+                options.UseSqlite("Data Source=subscribers.db"))
             .BuildServiceProvider();
-        var messageRepo = serviceProvider.GetRequiredService<IMessageRepo>();
-        var botToken = "7665679478:AAHtpesgjfWihplWtkBB7Iuwot-6gCElWVY";
-        var bot = new SubscriptionBot(botToken, messageRepo);
 
-        Console.CancelKeyPress += (sender, e) =>
+        using (var scope = serviceProvider.CreateScope())
         {
-            bot.StopAsync().Wait();
+            var db = scope.ServiceProvider.GetRequiredService<SubscriberDbContext>();
+            await db.Database.EnsureCreatedAsync();
+        }
+
+        var bot = new SubscriptionBot(
+            "7665679478:AAHtpesgjfWihplWtkBB7Iuwot-6gCElWVY",
+            serviceProvider.GetRequiredService<IMessageRepo>(),
+            serviceProvider.GetRequiredService<IUserRepo>(),
+            serviceProvider.GetRequiredService<SubscriberDbContext>());
+
+        Console.CancelKeyPress += async (sender, e) =>
+        {
+            await bot.StopAsync();
             Environment.Exit(0);
         };
 
-        try
-        {
-            await bot.StartAsync();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Ошибка: {ex.Message}");
-        }
+        await bot.StartAsync();
     }
 }
