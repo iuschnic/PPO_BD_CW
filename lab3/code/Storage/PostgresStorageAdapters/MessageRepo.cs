@@ -10,6 +10,10 @@ namespace Storage.StorageAdapters;
 public class PostgresMessageRepo : IMessageRepo
 {
     private PostgresDBContext _dbContext { get; }
+    public PostgresMessageRepo(PostgresDBContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
     public bool TryCreateMessage(Message message, List<string> users)
     {
         bool ret = true;
@@ -67,10 +71,5 @@ public class PostgresMessageRepo : IMessageRepo
         foreach (var r in result)
             users_habits.Add(new UserHabitInfo(r.user_name, r.habit_name, r.start_time.ToString(), r.end_time.ToString()));
         return users_habits;
-    }
-
-    public PostgresMessageRepo(PostgresDBContext dbContext)
-    {
-        _dbContext = dbContext;
     }
 }

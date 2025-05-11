@@ -9,4 +9,5 @@ public interface IEventRepo
     bool TryUpdate(Event e);
     bool TryDelete(Guid event_id);
     bool TryDeleteEvents(string user_name);
+    bool TryReplaceEvents(List<Event> events, string user_name);
 }

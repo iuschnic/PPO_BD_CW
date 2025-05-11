@@ -92,6 +92,7 @@ public class SubscriptionBot
         while (!_cts.IsCancellationRequested)
         {
             var users_habits = _messageRepo.GetUsersToNotify();
+            List<Tuple<string, string>> user_message = [];
             try
             {
                 foreach (var user in users_habits)
@@ -101,15 +102,18 @@ public class SubscriptionBot
 
                     if (subscriber != null)
                     {
-                        await _botClient.SendMessage(
-                            chatId: subscriber.ChatId,
-                            text: $"Привет, {subscriber.Username}!\n" +
+                        var message = $"Привет, {subscriber.Username}!\n" +
                                   $"Логин: {subscriber.TaskTrackerLogin}\n" +
                                   $"В ближайшие 30 минут нужно будет выполнить привычку: " +
-                                  $"{user.HabitName ?? "не указана"} ({user.Start} - {user.End})\n"
+                                  $"{user.HabitName ?? "не указана"} ({user.Start} - {user.End})\n";
+                        user_message.Add(new Tuple<string, string>(user.UserName, message));
+                        await _botClient.SendMessage(
+                            chatId: subscriber.ChatId,
+                            text: message
                         );
                     }
                 }
+                _messageRepo.TryNotify(user_message);
 
                 Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {await _dbContext.Subscribers.CountAsync()} подписчикам");
                 await Task.Delay(TimeSpan.FromMinutes(timeout), _cts.Token);

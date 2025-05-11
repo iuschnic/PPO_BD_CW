@@ -273,7 +273,7 @@ if (ans != null)
     valid_user = ans.Item1;
     Console.Write(valid_user);
     foreach (var habit in ans.Item2)
-        Console.WriteLine("Habit {0} wasn't distributed for {1} times", habit.Name, habit.NDays);
+        Console.WriteLine("Habit {0} wasn't distributed for {1} times", habit.Name, habit.CountInWeek);
 }
 else
 {
@@ -292,7 +292,7 @@ if (ans != null)
     Console.Write(valid_user);
     var undistributed = ans.Item2;
     foreach (var habit in undistributed)
-        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.NDays);
+        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.CountInWeek);
 }
 else
 {
@@ -311,7 +311,7 @@ if (ans != null)
     Console.Write(valid_user);
     var undistributed = ans.Item2;
     foreach (var habit in undistributed)
-        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.NDays);
+        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.CountInWeek);
 }
 else
 {
@@ -374,7 +374,7 @@ if (ans != null)
     Console.Write(valid_user);
     var undistributed = ans.Item2;
     foreach (var habit in undistributed)
-        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.NDays);
+        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.CountInWeek);
 }
 else
 {
@@ -393,7 +393,7 @@ if (ans != null)
     Console.Write(valid_user);
     var undistributed = ans.Item2;
     foreach (var habit in undistributed)
-        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.NDays);
+        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.CountInWeek);
 }
 else
 {
@@ -424,7 +424,7 @@ if (ans != null)
     Console.Write(valid_user);
     var undistributed = ans.Item2;
     foreach (var habit in undistributed)
-        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.NDays);
+        Console.WriteLine("Habit {0} wasn't diistributed for {1} times", habit.Name, habit.CountInWeek);
 }
 else
 {

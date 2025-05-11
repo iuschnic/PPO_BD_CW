@@ -18,7 +18,7 @@ public class DBEvent
     [Column("day")]
     public DayOfWeek Day { get; set; }
     [Column("user_name")]
-    public string? DBUserNameID { get; set; }
+    public string DBUserNameID { get; set; }
     public DBUser? DBUser { get; set; }
     public DBEvent(Guid id, string name, TimeOnly start, TimeOnly end, DayOfWeek day, string dBUserNameID)
     {

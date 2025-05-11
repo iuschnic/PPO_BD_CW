@@ -8,6 +8,10 @@ namespace Storage.PostgresStorageAdapters;
 public class PostgresEventRepo : IEventRepo
 {
     private PostgresDBContext _dbContext { get; }
+    public PostgresEventRepo(PostgresDBContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public List<Event>? TryGet(string user_name)
     {
@@ -82,8 +86,11 @@ public class PostgresEventRepo : IEventRepo
         return true;
     }
 
-    public PostgresEventRepo(PostgresDBContext dbContext)
+    public bool TryReplaceEvents(List<Event> events, string user_name)
     {
-        _dbContext = dbContext;
+        if (!events.TrueForAll(e => e.UserNameID == user_name))
+            return false;
+        if (!TryDeleteEvents(user_name)) return false;
+        return TryCreateMany(events);
     }
 }

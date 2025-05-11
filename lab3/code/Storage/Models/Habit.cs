@@ -73,7 +73,7 @@ public class DBHabit
     public TimeOption Option { get; set; }
     [Column("user_name")]
     //Внешний ключ
-    public string? DBUserNameID { get; set; }
+    public string DBUserNameID { get; set; }
     public DBUser? DBUser { get; set; }
     [Column("ndays")]
     public int NDays { get; set; }

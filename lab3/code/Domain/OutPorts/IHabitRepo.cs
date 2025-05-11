@@ -9,4 +9,5 @@ public interface IHabitRepo
     bool TryUpdate(Habit habit);
     bool TryDelete(Guid habit_id);
     bool TryDeleteHabits(string user_name);
+    bool TryReplaceHabits(List<Habit> habits, string user_name);
 }

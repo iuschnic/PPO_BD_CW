@@ -43,3 +43,15 @@ public enum TimeOption
     Fixed,
     NoMatter
 }
+
+public class TimeInterval
+{
+    public TimeOnly Start { get; set; }
+    public TimeOnly End { get; set; }
+
+    public TimeInterval(TimeOnly start, TimeOnly end)
+    {
+        Start = start;
+        End = end;
+    }
+}

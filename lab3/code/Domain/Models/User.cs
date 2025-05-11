@@ -12,9 +12,9 @@ public class User
     public string NameID { get; }
     public string PasswordHash { get; }
     public PhoneNumber Number { get; }
-    public List<Habit>? Habits { get; set; }
-    public List<Event>? Events { get; set; }
-    public UserSettings Settings { get; set; }
+    public List<Habit>? Habits { get; }
+    public List<Event>? Events { get; }
+    public UserSettings Settings { get; }
 
     public User(string name, string passwordHash, PhoneNumber number,
         UserSettings settings, List<Habit>? habits = null, List<Event>? events = null)

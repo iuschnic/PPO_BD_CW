@@ -13,12 +13,6 @@ public class TaskTracker : ITaskTracker
     private readonly ISheduleLoad _shedLoader;
     private readonly IHabitDistributor _distributer;
 
-    /*Функция по username получает всю информацию о пользователе, его привычках, событиях расписания и настройках*/
-    private User? GetUser(string user_name)
-    {
-        return _userRepo.TryFullGet(user_name);
-    }
-
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo,
         IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer)
     {
@@ -29,16 +23,20 @@ public class TaskTracker : ITaskTracker
         _distributer = distributer;
     }
 
+    /*Функция по username получает всю информацию о пользователе, его привычках, событиях расписания и настройках*/
+    private User? GetUser(string user_name)
+    {
+        return _userRepo.TryFullGet(user_name);
+    }
+
     /*Функция создания пользователя по имени пользователя, номеру телефона и паролю
      Возвращает полную информацию о пользователе если такого пользователя в системе еще нет
      иначе возвращает null*/
     public User? CreateUser(string username, PhoneNumber phone_number, string password)
     {
-        //Возможно userepo лучше объединить с settingsrepo так как не существует пользователя без настроек и наоборот
         var s = new UserSettings(Guid.NewGuid(), true, username, []);
         var u = new User(username, password, phone_number, s);
         if (!_userRepo.TryCreate(u)) return null;
-        Console.WriteLine("OK\n");
         return GetUser(u.NameID);
     }
 
@@ -53,7 +51,7 @@ public class TaskTracker : ITaskTracker
         return GetUser(u.NameID);
     }
 
-    /*Функция импорта нового расписания для пользователя с идентификатором user_id
+    /*Функция импорта нового расписания для пользователя с именем-идентификатором user_name
      Возвращает кортеж из информации о пользователе и информации о нераспределенных привычках*/
     public Tuple<User, List<Habit>>? ImportNewShedule(string user_name, string path)
     {
@@ -65,15 +63,13 @@ public class TaskTracker : ITaskTracker
         if (habits == null) return null;
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!_eventRepo.TryDeleteEvents(user_name)) return null;
-        if (!_eventRepo.TryCreateMany(events)) return null;
-        if (!_habitRepo.TryDeleteHabits(user_name)) return null;
-        if (!_habitRepo.TryCreateMany(habits)) return null;
+        if (!_eventRepo.TryReplaceEvents(events, user_name)) return null;
+        if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
 
         return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
     }
 
-    /*Функция добавления привычки для пользователя с идентификатором user_id
+    /*Функция добавления привычки для пользователя с именем-идентификатором user_name
      Возвращает кортеж из информации о пользователе и информации о нераспределенных привычках*/
     public Tuple<User, List<Habit>>? AddHabit(string user_name, string name, int mins_complete, int ndays, TimeOption op,
         List<Tuple<TimeOnly, TimeOnly>> preffixedtimes)
@@ -93,15 +89,13 @@ public class TaskTracker : ITaskTracker
         habits.Add(habit);
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!_eventRepo.TryDeleteEvents(user_name)) return null;
-        if (!_eventRepo.TryCreateMany(events)) return null;
-        if (!_habitRepo.TryDeleteHabits(user_name)) return null;
-        if (!_habitRepo.TryCreateMany(habits)) return null;
+        if (!_eventRepo.TryReplaceEvents(events, user_name)) return null;
+        if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
 
         return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
     }
 
-    /*Функция удаления привычки для пользователя с идентификатором user_id
+    /*Функция удаления привычки для пользователя с именем-идентификатором user_name
      Возвращает кортеж из информации о пользователе и информации о нераспределенных привычках*/
     public Tuple<User, List<Habit>>? DeleteHabit(string user_name, string name)
     {
@@ -115,10 +109,8 @@ public class TaskTracker : ITaskTracker
 
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!_eventRepo.TryDeleteEvents(user_name)) return null;
-        if (!_eventRepo.TryCreateMany(events)) return null;
-        if (!_habitRepo.TryDeleteHabits(user_name)) return null;
-        if (!_habitRepo.TryCreateMany(habits)) return null;
+        if (!_eventRepo.TryReplaceEvents(events, user_name)) return null;
+        if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
 
         return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
     }

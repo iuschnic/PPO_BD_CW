@@ -17,19 +17,18 @@ public class PostgresUserRepo : IUserRepo
 
     public User? TryGet(string username)
     {
-        var dbuser = _dbContext.Users.Find(username);
+        var dbuser = _dbContext.Users
+            .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
+            .FirstOrDefault(u => u.NameID == username);
         if (dbuser == null)
             return null;
-        var dbs = _dbContext.USettings.Include(us => us.ForbiddenTimings).FirstOrDefault(s => s.DBUserID == username);
-        if (dbs == null)
-            return null;
         List<SettingsTime> settingsTimes = [];
-        foreach (DBSTime time in dbs.ForbiddenTimings)
+        foreach (DBSTime time in dbuser.Settings.ForbiddenTimings)
         {
             SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBUserSettingsID);
             settingsTimes.Add(st);
         }
-        UserSettings s = new UserSettings(dbs.Id, dbs.NotifyOn, dbs.DBUserID, settingsTimes);
+        UserSettings s = new UserSettings(dbuser.Settings.Id, dbuser.Settings.NotifyOn, dbuser.Settings.DBUserID, settingsTimes);
         return new User(dbuser.NameID, dbuser.PasswordHash, new PhoneNumber(dbuser.Number), s);
     }
 

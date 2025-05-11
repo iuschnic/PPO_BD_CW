@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Domain.OutPorts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Storage.Models;
 using Types;
 
@@ -9,6 +10,10 @@ namespace Storage.PostgresStorageAdapters;
 public class PostgresHabitRepo : IHabitRepo
 {
     private PostgresDBContext _dbContext;
+    public PostgresHabitRepo(PostgresDBContext dbContext)
+    {
+        _dbContext = dbContext;
+    }
 
     public List<Habit>? TryGet(string user_name)
     {
@@ -51,7 +56,7 @@ public class PostgresHabitRepo : IHabitRepo
             DBPrefFixedTime dbpf = new DBPrefFixedTime(pf.Id, pf.Start, pf.End, pf.HabitID);
             prefFixedTimes.Add(dbpf);
         }
-        DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, h.NDays);
+        DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, h.CountInWeek);
         _dbContext.Habits.Add(dbh);
         _dbContext.ActualTimes.AddRange(actualTimes);
         _dbContext.PrefFixedTimes.AddRange(prefFixedTimes);
@@ -79,7 +84,7 @@ public class PostgresHabitRepo : IHabitRepo
                 DBPrefFixedTime dbpf = new DBPrefFixedTime(pf.Id, pf.Start, pf.End, pf.HabitID);
                 prefFixedTimes.Add(dbpf);
             }
-            DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, h.NDays);
+            DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, h.CountInWeek);
             dbhabits.Add(dbh);
         }
         _dbContext.Habits.AddRange(dbhabits);
@@ -128,8 +133,11 @@ public class PostgresHabitRepo : IHabitRepo
         return true;
     }
 
-    public PostgresHabitRepo(PostgresDBContext dbContext)
+    public bool TryReplaceHabits(List<Habit> habits, string user_name)
     {
-        _dbContext = dbContext;
+        if (!habits.TrueForAll(h => h.UserNameID == user_name))
+            return false;
+        if (!TryDeleteHabits(user_name)) return false;
+        return TryCreateMany(habits);
     }
 }

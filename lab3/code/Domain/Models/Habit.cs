@@ -54,13 +54,13 @@ public class Habit
     public List<PrefFixedTime> PrefFixedTimings { get; }
     public TimeOption Option { get; }
     public string UserNameID { get; }
-    public int NDays { get; set; } //сколько дней в неделю нужно выполнять
+    public int CountInWeek { get; set; }
 
     public Habit(Guid id, string name, int mins_to_complete,
-        TimeOption option, string user_name, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int nDays)
+        TimeOption option, string user_name, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int countInWeek)
     {
         if (pref_fixed_timings.Count() == 0 && (option == TimeOption.Preffered || option == TimeOption.Fixed))
-            throw new Exception("Preffered or fixed time habit should have at least one time interval");
+            throw new ArgumentException("Preffered or fixed time habit should have at least one time interval");
         Id = id;
         Name = name;
         MinsToComplete = mins_to_complete;
@@ -68,11 +68,11 @@ public class Habit
         PrefFixedTimings = pref_fixed_timings;
         Option = option;
         UserNameID = user_name;
-        NDays = nDays;
+        CountInWeek = countInWeek;
     }
     public override string ToString()
     {
-        string ans = $"HABIT: Name = {Name}, Mins to complete = {MinsToComplete}, NDays = {NDays}, TimeOpt = {Option}\n";
+        string ans = $"HABIT: Name = {Name}, Mins to complete = {MinsToComplete}, CountInWeek = {CountInWeek}, TimeOpt = {Option}\n";
         foreach (var t in PrefFixedTimings) { ans += "    " + t; }
         if (ActualTimings.Count == 0)
             ans += "    NOT DISTRIBUTED\n";
