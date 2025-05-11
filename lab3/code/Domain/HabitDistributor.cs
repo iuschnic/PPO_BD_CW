@@ -56,21 +56,6 @@ public class HabitDistributor : IHabitDistributor
         return result;
     }
 
-    /*Функция конвертирует список предпочтительного/фиксированного времени для привычки
-     в список временных интервалов(в другой тип)*/
-    private List<TimeInterval> HabitToTimeIntervals(Habit h)
-    {
-        List<TimeInterval> timings = [];
-        if (h.PrefFixedTimings == null || h.PrefFixedTimings.Count == 0)
-        {
-            timings.Add(new TimeInterval(new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59)));
-            return timings;
-        }
-        foreach (var t in h.PrefFixedTimings)
-            timings.Add(new TimeInterval(t.Start, t.End));
-        return timings;
-    }
-
     /*Функция из списка временных интервалов вычитает заданный интервал
      Предполагается что вычитаемый интервал принадлежит одному из интервалов списка!
      Список интервалов сортируется на выходе по Start*/
@@ -111,7 +96,8 @@ public class HabitDistributor : IHabitDistributor
         {
             //количество дней, на которые нужно распределить привычку (с учетом возможно уже распределенных)
             int countInWeek = h.CountInWeek - h.ActualTimings.Count;
-            List<TimeInterval> fixedTimings = HabitToTimeIntervals(h);
+            //List<TimeInterval> fixedTimings = HabitToTimeIntervals(h);
+            List<TimeInterval> fixedTimings = h.ToPrefFixedTimeIntervals();
             foreach (var day in freeIntervals)
             {
                 //привычка выполняется не более 1 раза в день

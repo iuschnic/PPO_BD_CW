@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Types;
 
@@ -39,9 +38,9 @@ public record PhoneNumber
 
 public enum TimeOption
 {
+    NoMatter,
     Preffered,
     Fixed,
-    NoMatter
 }
 
 public class TimeInterval

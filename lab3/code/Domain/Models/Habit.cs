@@ -80,4 +80,17 @@ public class Habit
             foreach (var t in ActualTimings) { ans += "    " + t; }
         return ans;
     }
+
+    public List<TimeInterval> ToPrefFixedTimeIntervals()
+    {
+        List<TimeInterval> timings = [];
+        if (PrefFixedTimings == null || PrefFixedTimings.Count == 0)
+        {
+            timings.Add(new TimeInterval(new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59)));
+            return timings;
+        }
+        foreach (var t in PrefFixedTimings)
+            timings.Add(new TimeInterval(t.Start, t.End));
+        return timings;
+    }
 }

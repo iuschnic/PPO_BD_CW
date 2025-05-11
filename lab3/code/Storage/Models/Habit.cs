@@ -38,9 +38,9 @@ public class DBPrefFixedTime
     [Key]
     [Column("id")]
     public Guid Id { get; set; }
-    [Column("a_start")]
+    [Column("pf_start")]
     public TimeOnly Start { get; set; }
-    [Column("a_end")]
+    [Column("pf_end")]
     public TimeOnly End { get; set; }
 
     //Внешний ключ
