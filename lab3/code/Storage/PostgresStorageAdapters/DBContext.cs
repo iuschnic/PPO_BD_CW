@@ -16,6 +16,8 @@ public class PostgresDBContext : DbContext
     public DbSet<DBUserMessage> UserMessages { get; set; }
     public PostgresDBContext(DbContextOptions<PostgresDBContext> options) : base(options)
     {
+        AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+        AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
         Database.EnsureCreated();
     }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -28,6 +30,6 @@ public class PostgresDBContext : DbContext
         modelBuilder.Entity<DBSTime>().HasKey(t => t.Id);
         modelBuilder.Entity<DBUserSettings>().HasKey(s => s.Id);
         modelBuilder.Entity<DBMessage>().HasKey(s => s.Id);
-        modelBuilder.Entity<DBUserMessage>().HasNoKey();
+        modelBuilder.Entity<DBUserMessage>().HasKey(um => new { um.DBMessageID, um.DBUserID });
     }
 }

@@ -95,6 +95,7 @@ public class SubscriptionBot
             List<Tuple<string, string>> user_message = [];
             try
             {
+                int cnt = 0;
                 foreach (var user in users_habits)
                 {
                     var subscriber = await _dbContext.Subscribers
@@ -102,6 +103,7 @@ public class SubscriptionBot
 
                     if (subscriber != null)
                     {
+                        cnt++;
                         var message = $"Привет, {subscriber.Username}!\n" +
                                   $"Логин: {subscriber.TaskTrackerLogin}\n" +
                                   $"В ближайшие 30 минут нужно будет выполнить привычку: " +
@@ -115,7 +117,7 @@ public class SubscriptionBot
                 }
                 _messageRepo.TryNotify(user_message);
 
-                Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {await _dbContext.Subscribers.CountAsync()} подписчикам");
+                Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {cnt} подписчикам");
                 await Task.Delay(TimeSpan.FromMinutes(timeout), _cts.Token);
             }
             catch (Exception ex)

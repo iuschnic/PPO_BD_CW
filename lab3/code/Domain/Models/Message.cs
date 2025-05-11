@@ -4,11 +4,11 @@ public class Message
 {
     public Guid Id { get; }
     public string Text { get; }
-    public DateOnly DateSent { get; }
-    public Message(Guid id, string text, DateOnly dateSent)
+    public DateTime TimeSent { get; }
+    public Message(Guid id, string text, DateTime timeSent)
     {
         Id = id;
         Text = text;
-        DateSent = dateSent;
+        TimeSent = timeSent;
     }
 }

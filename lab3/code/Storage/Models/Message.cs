@@ -3,7 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-[Table("message")]
+[Table("messages")]
 public class DBMessage
 {
     [Key]
@@ -11,13 +11,13 @@ public class DBMessage
     public Guid Id { get; set; }
     [Column("data")]
     public string Text { get; set; }
-    [Column("date_sent")]
-    public DateOnly DateSent { get; set; }
-    public DBMessage(Guid id, string text, DateOnly dateSent)
+    [Column("time_sent")]
+    public DateTime TimeSent { get; set; }
+    public DBMessage(Guid id, string text, DateTime timeSent)
     {
         Id = id;
         Text = text;
-        DateSent = dateSent;
+        TimeSent = timeSent;
     }
 }
 
@@ -28,6 +28,8 @@ public class DBUserMessage
     public string? DBUserID { get; set; }
     [Column("message_id")]
     public Guid DBMessageID { get; set; }
+    public DBUser? DBUser { get; set; }
+    public DBMessage? DBMessage { get; set; }
     public DBUserMessage(string dBUserID, Guid dBMessageID) 
     {
         DBMessageID = dBMessageID;

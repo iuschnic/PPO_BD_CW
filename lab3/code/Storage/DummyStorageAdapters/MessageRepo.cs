@@ -14,7 +14,7 @@ public class DummyMessageRepo : IMessageRepo
 
     public bool TryCreateMessage(Message message, List<string> users)
     {
-        DBMessage dbm = new DBMessage(message.Id, message.Text, message.DateSent);
+        DBMessage dbm = new DBMessage(message.Id, message.Text, message.TimeSent.ToUniversalTime());
         Messages.Add(dbm);
         foreach (var user in users)
         {
@@ -28,9 +28,7 @@ public class DummyMessageRepo : IMessageRepo
         foreach (var user in users_messages)
         {
             var g = Guid.NewGuid();
-            var date = DateTime.Now;
-            DBMessage dbm = new DBMessage(g, user.Item2,
-                new DateOnly(date.Year, date.Month, date.Day));
+            DBMessage dbm = new DBMessage(g, user.Item2, DateTime.Now.ToUniversalTime());
             UserMessage.Add(new Tuple<string, Guid>(user.Item1, g));
         }
         return true;

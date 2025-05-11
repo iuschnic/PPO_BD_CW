@@ -21,7 +21,7 @@ public class PostgresMessageRepo : IMessageRepo
         if (dbusers == null)
             return false;
 
-        DBMessage dbm = new DBMessage(message.Id, message.Text, message.DateSent);
+        DBMessage dbm = new DBMessage(message.Id, message.Text, message.TimeSent.ToUniversalTime());
         List<DBUserMessage> user_message = [];
         foreach (var user in users)
         {
@@ -33,6 +33,7 @@ public class PostgresMessageRepo : IMessageRepo
         }
         _dbContext.Messages.Add(dbm);
         _dbContext.UserMessages.AddRange(user_message);
+        _dbContext.SaveChanges();
         return ret;
     }
     public bool TryNotify(List<Tuple<string, string>> users_messages)
@@ -52,14 +53,21 @@ public class PostgresMessageRepo : IMessageRepo
             else
             {
                 var g = Guid.NewGuid();
-                var date = DateTime.Now;
-                DBMessage dbm = new DBMessage(g, user.Item2, new DateOnly(date.Year, date.Month, date.Day));
+                DBMessage dbm = new DBMessage(g, user.Item2, DateTime.Now);
                 user_message.Add(new DBUserMessage(user.Item1, g));
                 messages.Add(dbm);
             }
         }
         _dbContext.Messages.AddRange(messages);
         _dbContext.UserMessages.AddRange(user_message);
+        try
+        {
+            _dbContext.SaveChanges();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.ToString());
+        }
         return ret;
     }
 
