@@ -16,9 +16,10 @@ public interface ITaskTracker
     */
     Tuple<User, List<Habit>>? ImportNewShedule(string user_name, string path);
     //Добавляет привычку для указанного пользователя, возвращает null при некорректном идентификаторе пользователя
-    Tuple<User, List<Habit>>? AddHabit(string user_name, string name, int mins_complete, int ndays, TimeOption op,
-        List<Tuple<TimeOnly, TimeOnly>> preffixedtimes);
+    Tuple<User, List<Habit>>? AddHabit(Habit habit);
     Tuple<User, List<Habit>>? DeleteHabit(string user_name, string name);
+    Tuple<User, List<Habit>>? DeleteHabits(string name);
     //User? ChangeNotify(string user_name, bool flag);
     public User? ChangeSettings(UserSettings settings);
+    bool DeleteUser(string username);
 }
