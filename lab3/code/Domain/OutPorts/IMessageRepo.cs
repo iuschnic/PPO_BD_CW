@@ -1,0 +1,23 @@
+﻿using Domain.Models;
+namespace Domain.OutPorts;
+
+public class UserHabitInfo
+{
+    public string UserName;
+    public string HabitName;
+    public string Start;
+    public string End;
+    public UserHabitInfo(string user_name, string habit_name, string start, string end)
+    {
+        UserName = user_name;
+        HabitName = habit_name;
+        Start = start;
+        End = end;
+    }
+}
+public interface IMessageRepo
+{
+    bool TryCreateMessage(Message message, List<string> users);
+    public bool TryNotify(List<Tuple<string, string>> users_messages);
+    List<UserHabitInfo> GetUsersToNotify();
+}

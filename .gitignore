@@ -1,2 +1,8 @@
-*.bkp
-*.svg
+.bkp
+.svg
+*.sln
+.vs/
+[Bb]in/
+[Oo]bj/
+*.csproj
+*.obj
