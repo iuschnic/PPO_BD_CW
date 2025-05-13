@@ -71,28 +71,22 @@ public class TaskTracker : ITaskTracker
 
     /*Функция добавления привычки для пользователя с именем-идентификатором user_name
      Возвращает кортеж из информации о пользователе и информации о нераспределенных привычках*/
-    public Tuple<User, List<Habit>>? AddHabit(string user_name, string name, int mins_complete, int ndays, TimeOption op,
-        List<Tuple<TimeOnly, TimeOnly>> preffixedtimes)
+    public Tuple<User, List<Habit>>? AddHabit(Habit habit)
     {
         //В текущей реализации удаляем все привычки, перераспределем и добавляем заново, хорошо бы переделать под Update
-        if (_userRepo.TryGet(user_name) == null) return null;
+        if (_userRepo.TryGet(habit.UserNameID) == null) return null;
 
-        var events = _eventRepo.TryGet(user_name);
+        var events = _eventRepo.TryGet(habit.UserNameID);
         if (events == null) return null;
-        var habits = _habitRepo.TryGet(user_name);
+        var habits = _habitRepo.TryGet(habit.UserNameID);
         if (habits == null) return null;
-        Guid hid = Guid.NewGuid();
-        List<PrefFixedTime> times = [];
-        foreach (var t in preffixedtimes)
-            times.Add(new PrefFixedTime(Guid.NewGuid(), t.Item1, t.Item2, hid));
-        Habit habit = new Habit(hid, name, mins_complete, op, user_name, [], times, ndays);
         habits.Add(habit);
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!_eventRepo.TryReplaceEvents(events, user_name)) return null;
-        if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
+        if (!_eventRepo.TryReplaceEvents(events, habit.UserNameID)) return null;
+        if (!_habitRepo.TryReplaceHabits(habits, habit.UserNameID)) return null;
 
-        return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
+        return new Tuple<User, List<Habit>>(GetUser(habit.UserNameID), no_distributed);
     }
 
     /*Функция удаления привычки для пользователя с именем-идентификатором user_name
