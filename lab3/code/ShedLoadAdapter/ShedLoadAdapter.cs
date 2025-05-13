@@ -5,7 +5,7 @@ using Types;
 
 namespace LoadAdapters;
 
-public class DummyShedAdapter: ISheduleLoad
+public class DummyShedAdapter : ISheduleLoad
 {
     public List<Event> LoadShedule(string user_name, string path)
     {
