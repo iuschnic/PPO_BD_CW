@@ -108,6 +108,18 @@ public class TaskTracker : ITaskTracker
 
         return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
     }
+    public Tuple<User, List<Habit>>? DeleteHabits(string user_name)
+    {
+        if (_userRepo.TryGet(user_name) == null) return null;
+
+        var events = _eventRepo.TryGet(user_name);
+        if (events == null) return null;
+        var habits = _habitRepo.TryGet(user_name);
+        if (habits == null) return null;
+
+        if (!_habitRepo.TryDeleteHabits(user_name)) return null;
+        return new Tuple<User, List<Habit>>(GetUser(user_name), []);
+    }
 
     public User? ChangeSettings(UserSettings settings)
     {
@@ -115,5 +127,10 @@ public class TaskTracker : ITaskTracker
         if (!_userRepo.TryUpdateSettings(settings))
             return null;
         return GetUser(settings.UserNameID);
+    }
+
+    public bool DeleteUser(string username)
+    {
+        return _userRepo.TryDelete(username);
     }
 }

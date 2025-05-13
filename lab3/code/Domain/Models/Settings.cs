@@ -29,7 +29,7 @@ public class SettingsTime
 public class UserSettings
 {
     public Guid Id { get; }
-    public bool NotifyOn { get; set; }
+    public bool NotifyOn { get; }
     public List<SettingsTime> SettingsTimes { get; }
     public string UserNameID { get; }
 
