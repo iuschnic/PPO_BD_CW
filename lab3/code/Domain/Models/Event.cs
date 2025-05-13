@@ -9,7 +9,7 @@ public class Event
     public TimeOnly Start { get; }
     public TimeOnly End { get; }
     public DayOfWeek Day { get; }
-    public string UserNameID { get; }
+    public string? UserNameID { get; }
 
     public Event(Guid id, string name, TimeOnly start, TimeOnly end, DayOfWeek day, string user_id)
     {

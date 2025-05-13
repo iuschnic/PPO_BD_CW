@@ -8,5 +8,5 @@ public interface IHabitDistributor
      Получает на вход списки привычек и событий расписания, изменяет привычки в полученном списке
      добавляя им реальное время в которое они могут быть выполнены при текущем расписании
      Возвращает список новых экземпляров привычек, которые не были распределены полностью или частично*/
-    List<Habit> DistributeHabits(List<Habit> habits, List<Event> events);
+    List<Habit> DistributeHabits(List<Habit> habitsForDistribution, List<Event> events);
 }

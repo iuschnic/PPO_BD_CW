@@ -3,18 +3,6 @@ using Types;
 
 namespace Domain;
 
-public class TimeInterval
-{
-    public TimeOnly Start { get; set; }
-    public TimeOnly End { get; set; }
-
-    public TimeInterval(TimeOnly start, TimeOnly end)
-    {
-        Start = start;
-        End = end;
-    }
-}
-
 public class HabitDistributor : IHabitDistributor
 {
     /*Функция по списку интервалов занятости получает список свободных временных интервалов*/
@@ -68,21 +56,6 @@ public class HabitDistributor : IHabitDistributor
         return result;
     }
 
-    /*Функция конвертирует список предпочтительного/фиксированного времени для привычки
-     в список временных интервалов(в другой тип)*/
-    private List<TimeInterval> HabitToTimeIntervals(Habit h)
-    {
-        List<TimeInterval> timings = [];
-        if (h.PrefFixedTimings == null || h.PrefFixedTimings.Count == 0)
-        {
-            timings.Add(new TimeInterval(new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59)));
-            return timings;
-        }
-        foreach (var t in h.PrefFixedTimings)
-            timings.Add(new TimeInterval(t.Start, t.End));
-        return timings;
-    }
-
     /*Функция из списка временных интервалов вычитает заданный интервал
      Предполагается что вычитаемый интервал принадлежит одному из интервалов списка!
      Список интервалов сортируется на выходе по Start*/
@@ -121,9 +94,10 @@ public class HabitDistributor : IHabitDistributor
         List<Habit> undistributed = [];
         foreach (var h in habits)
         {
-            //ВАЖНО
-            int ndays = h.NDays - h.ActualTimings.Count;
-            List<TimeInterval> fixedTimings = HabitToTimeIntervals(h);
+            //количество дней, на которые нужно распределить привычку (с учетом возможно уже распределенных)
+            int countInWeek = h.CountInWeek - h.ActualTimings.Count;
+            //List<TimeInterval> fixedTimings = HabitToTimeIntervals(h);
+            List<TimeInterval> fixedTimings = h.ToPrefFixedTimeIntervals();
             foreach (var day in freeIntervals)
             {
                 //привычка выполняется не более 1 раза в день
@@ -143,16 +117,16 @@ public class HabitDistributor : IHabitDistributor
                             day.Key, h.Id));
                         //устанавливаем занятость времени вычитая полученный интервал из свободных интервалов на данный день
                         SubstractInterval(day.Value, new TimeInterval(interval.Start, interval.Start.AddMinutes(h.MinsToComplete)));
-                        ndays--;
+                        countInWeek--;
                         //привычка выполняется не более 1 раза в день
                         break;
                     }
                 }
-                if (ndays == 0)
+                if (countInWeek == 0)
                     break;
             }
-            if (ndays > 0)
-                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, [], [null], ndays));
+            if (countInWeek > 0)
+                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, [], [null], countInWeek));
         }
         return undistributed;
     }
@@ -166,8 +140,8 @@ public class HabitDistributor : IHabitDistributor
         List<Habit> undistributed = [];
         foreach (var h in habits)
         {
-            //ВАЖНО
-            int ndays = h.NDays - h.ActualTimings.Count;
+            //количество дней, на которые нужно распределить привычку (с учетом возможно уже распределенных)
+            int countInWeek = h.CountInWeek - h.ActualTimings.Count;
             foreach (var day in freeIntervals)
             {
                 //привычка выполняется не более 1 раза в день
@@ -183,16 +157,16 @@ public class HabitDistributor : IHabitDistributor
                         h.ActualTimings.Add(new ActualTime(Guid.NewGuid(), interval.Start, interval.Start.AddMinutes(h.MinsToComplete),
                             day.Key, h.Id));
                         interval.Start = interval.Start.AddMinutes(h.MinsToComplete);
-                        ndays--;
+                        countInWeek--;
                         //привычка выполняется не более 1 раза в день
                         break;
                     }
                 }
-                if (ndays == 0)
+                if (countInWeek == 0)
                     break;
             }
-            if (ndays > 0)
-                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, [], [null], ndays));
+            if (countInWeek > 0)
+                undistributed.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, [], [null], countInWeek));
         }
         return undistributed;
     }
@@ -222,9 +196,9 @@ public class HabitDistributor : IHabitDistributor
         freeIntervals[DayOfWeek.Sunday] = [new TimeInterval(new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59))];
         return freeIntervals;
     }
-    public List<Habit> DistributeHabits(List<Habit> habits, List<Event> events)
+    public List<Habit> DistributeHabits(List<Habit> habitsToDistribute, List<Event> events)
     {
-        foreach (var h in habits)
+        foreach (var h in habitsToDistribute)
             h.ActualTimings.Clear();
         //Получение словаря интервалов занятости из расписания для каждого дня
         Dictionary<DayOfWeek, List<TimeInterval>> eventsIntervals = EventsToTimeIntervals(events);
@@ -237,14 +211,10 @@ public class HabitDistributor : IHabitDistributor
         List<Habit> undistributed = [];
         //Формирование словаря привычек по приоритету - фиксированное время, предпочитаемое время, безразличное время
         Dictionary<TimeOption, List<Habit>> habitsByPriority = [];
-        foreach (var h in habits)
+        foreach (var h in habitsToDistribute)
         {
             if (!habitsByPriority.ContainsKey(h.Option))
                 habitsByPriority[h.Option] = [];
-            /*Если пользователь не задал конкретные промежутки времени - распределяем как привычку с безразличным временем
-            if (h.PrefFixedTimings.Count == 0)
-                habitsByPriority[TimeOption.NoMatter].Add(h);   //убрать !!!!!!!!!
-            else*/
             habitsByPriority[h.Option].Add(h);
         }
         //Распределение привычек: фиксированное время, потом предпочтительное, потом безразличное

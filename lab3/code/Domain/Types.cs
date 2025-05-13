@@ -1,5 +1,4 @@
-﻿using System.Reflection.Metadata.Ecma335;
-using System.Text.RegularExpressions;
+﻿using System.Text.RegularExpressions;
 
 namespace Types;
 
@@ -10,7 +9,7 @@ public record PhoneNumber
     public PhoneNumber(string number)
     {
         if (!IsValid(number))
-            throw new ArgumentException("Incorrect number format");
+            throw new ArgumentException("Неверный формат номера телефона");
 
         StringNumber = Normalize(number);
     }
@@ -26,9 +25,6 @@ public record PhoneNumber
 
     private string Normalize(string number)
     {
-        if (string.IsNullOrWhiteSpace(number))
-            return string.Empty;
-
         string normalized = number.StartsWith("+") ? "+" : "";
 
         normalized += new string(number.Where(c => char.IsDigit(c)).ToArray());
@@ -37,16 +33,24 @@ public record PhoneNumber
 
         return normalized;
     }
-    public void Print()
-    {
-        Console.WriteLine(StringNumber);
-    }
     public override string ToString() { return StringNumber; }
 }
 
 public enum TimeOption
 {
+    NoMatter,
     Preffered,
     Fixed,
-    NoMatter
+}
+
+public class TimeInterval
+{
+    public TimeOnly Start { get; set; }
+    public TimeOnly End { get; set; }
+
+    public TimeInterval(TimeOnly start, TimeOnly end)
+    {
+        Start = start;
+        End = end;
+    }
 }

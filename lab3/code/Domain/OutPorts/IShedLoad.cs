@@ -1,8 +1,7 @@
 ﻿using Domain.Models;
 namespace Domain.OutPorts;
 
-public interface IShedLoad
+public interface ISheduleLoad
 {
-    //TODO
     public List<Event> LoadShedule(string user_name, string path);
 }
