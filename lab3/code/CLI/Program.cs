@@ -7,8 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Storage.PostgresStorageAdapters;
 using Types;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
-using static Dapper.SqlMapper;
 
 
 class Program

@@ -21,7 +21,7 @@ public class PostgresMessageRepo : IMessageRepo
         if (dbusers == null)
             return false;
 
-        DBMessage dbm = new DBMessage(message.Id, message.Text, message.TimeSent.ToUniversalTime());
+        DBMessage dbm = new DBMessage(message.Id, message.Text, message.TimeSent.ToUniversalTime(), message.TimeOutdated);
         List<DBUserMessage> user_message = [];
         foreach (var user in users)
         {
@@ -29,7 +29,7 @@ public class PostgresMessageRepo : IMessageRepo
             if (!dbusers.Any(dbu => dbu.NameID == user))
                 ret = false;
             else
-                user_message.Add(new DBUserMessage(user, dbm.Id));
+                user_message.Add(new DBUserMessage(user, dbm.Id, false));
         }
         _dbContext.Messages.Add(dbm);
         _dbContext.UserMessages.AddRange(user_message);
@@ -53,8 +53,8 @@ public class PostgresMessageRepo : IMessageRepo
             else
             {
                 var g = Guid.NewGuid();
-                DBMessage dbm = new DBMessage(g, user.Item2, DateTime.Now);
-                user_message.Add(new DBUserMessage(user.Item1, g));
+                DBMessage dbm = new DBMessage(g, user.Item2, DateTime.Now, DateTime.Now);
+                user_message.Add(new DBUserMessage(user.Item1, g, false));
                 messages.Add(dbm);
             }
         }
@@ -68,6 +68,7 @@ public class PostgresMessageRepo : IMessageRepo
         {
             Console.WriteLine(ex.ToString());
         }
+        
         return ret;
     }
 
@@ -77,7 +78,7 @@ public class PostgresMessageRepo : IMessageRepo
         var conn = _dbContext.Database.GetDbConnection();
         var result = conn.Query("select * from get_habits_due_soon()");
         foreach (var r in result)
-            users_habits.Add(new UserHabitInfo(r.user_name, r.habit_name, r.start_time.ToString(), r.end_time.ToString()));
+            users_habits.Add(new UserHabitInfo(r.user_name, r.habit_name, TimeOnly.Parse(r.start_time.ToString()), TimeOnly.Parse(r.end_time.ToString())));
         return users_habits;
     }
 }

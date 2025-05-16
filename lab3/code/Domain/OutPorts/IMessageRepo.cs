@@ -5,9 +5,9 @@ public class UserHabitInfo
 {
     public string UserName;
     public string HabitName;
-    public string Start;
-    public string End;
-    public UserHabitInfo(string user_name, string habit_name, string start, string end) 
+    public TimeOnly Start;
+    public TimeOnly End;
+    public UserHabitInfo(string user_name, string habit_name, TimeOnly start, TimeOnly end) 
     { 
         UserName = user_name;
         HabitName = habit_name;

@@ -17,7 +17,7 @@ public class DummyShedAdapter : ISheduleLoad
 
         events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0), DayOfWeek.Tuesday, user_name));
         events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 0, 0), new TimeOnly(9, 0, 0), DayOfWeek.Tuesday, user_name));
-        events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(21, 0, 0), DayOfWeek.Tuesday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(20, 50, 0), DayOfWeek.Tuesday, user_name));
         events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59), DayOfWeek.Tuesday, user_name));
 
         events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59), DayOfWeek.Wednesday, user_name));

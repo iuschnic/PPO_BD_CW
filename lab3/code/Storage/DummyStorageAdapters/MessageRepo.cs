@@ -5,7 +5,7 @@ using Storage.Models;
 
 namespace Storage.StorageAdapters;
 
-public class DummyMessageRepo : IMessageRepo
+/*public class DummyMessageRepo : IMessageRepo
 {
     //Моделирует таблицу DBMessage
     private List<DBMessage> Messages = new();
@@ -38,3 +38,4 @@ public class DummyMessageRepo : IMessageRepo
         return [];
     }
 }
+*/
