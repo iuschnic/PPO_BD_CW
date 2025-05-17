@@ -2,6 +2,7 @@
 using Domain.InPorts;
 using Domain.Models;
 using Types;
+using Dapper;
 
 namespace Domain;
 
@@ -49,6 +50,32 @@ public class TaskTracker : ITaskTracker
         if (u == null) return null;
         if (u.PasswordHash != password) return null;
         return GetUser(u.NameID);
+    }
+
+    public List<Habit>? TryRedistributeNMTimeHabits(List<Habit> habits, List<Event> events, string user_name)
+    {
+        List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
+        if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
+        return no_distributed;
+    }
+
+    public List<Habit>? TryRedistributeNMTimeHabitDB(string user_name, System.Data.Common.DbConnection conn)
+    {
+        List<Habit> no_distributed = [];
+        var result = conn.Query("select * from distribute_with_no_matter_time()");
+        if (result == null)
+            return null;
+        foreach (var r in result)
+        {
+            Guid g = new Guid(r.habit_id.ToString());
+            string name = r.habit_name.ToString();
+            int mins_to_complete = Int32.Parse(r.mins_to_complete.ToString());
+            TimeOption opt = (TimeOption)Int32.Parse(r.option.toString());
+            string u_name = r.user_name.ToString();
+            int ndays = Int32.Parse(r.ndays.toString());
+            no_distributed.Add(new Habit(g, name, mins_to_complete, opt, u_name, [], [], ndays));
+        }
+        return no_distributed;
     }
 
     /*Функция импорта нового расписания для пользователя с именем-идентификатором user_name

@@ -66,6 +66,12 @@ class Program
                 }
                 timings.Add(new PrefFixedTime(Guid.NewGuid(), start, end, g));
             }
+            if (timings.Count() == 0)
+            {
+                Console.WriteLine("Привычка с предпочтительным или фиксированным временем выполнения " +
+                    "должна содержать хотя бы один временной интервал");
+                return null;
+            }
         }
 
         Console.WriteLine("Введите положительное число от 1 до 7 - сколько дней в неделю нужно выполнять привычку:");

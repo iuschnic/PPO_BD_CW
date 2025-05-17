@@ -9,6 +9,8 @@ public interface ITaskTracker
     //По имени пользователя и паролю возвращает всю информацию о пользователе включая привычки, расписание или null если пользователя
     //нет или пароль неверен
     User? LogIn(string username, string password);
+    public List<Habit>? TryRedistributeNMTimeHabits(List<Habit> habits, List<Event> events, string user_name);
+    public List<Habit>? TryRedistributeNMTimeHabitDB(string user_name, System.Data.Common.DbConnection conn);
     /*По идентификатору пользователя импортирует новое расписание и перераспределяет привычки,
     возвращает всю информацию о пользователе 
     и словарь с нераспределенными привычками (которые распределились не на все указанное количество дней)
