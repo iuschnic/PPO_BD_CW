@@ -54,6 +54,8 @@ public class TaskTracker : ITaskTracker
 
     public List<Habit>? TryRedistributeNMTimeHabits(List<Habit> habits, List<Event> events, string user_name)
     {
+        foreach (var h in habits)
+            h.ActualTimings.Clear();
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
         if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
         return no_distributed;
