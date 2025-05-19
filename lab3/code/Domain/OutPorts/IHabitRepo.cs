@@ -10,4 +10,5 @@ public interface IHabitRepo
     bool TryDelete(Guid habit_id);
     bool TryDeleteHabits(string user_name);
     bool TryReplaceHabits(List<Habit> habits, string user_name);
+    public List<Habit>? TryRedistributeNMTimeHabitsDB(string user_name);
 }

@@ -43,6 +43,45 @@ public class DummyShedAdapter : ISheduleLoad
         events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59), DayOfWeek.Sunday, user_name));
         return events;
     }
+    public List<Event> LoadSheduleForMeasures(string user_name)
+    {
+        List<Event> events = new();
+        events.Add(new Event(Guid.NewGuid(), "1", new TimeOnly(1, 0, 0), new TimeOnly(2, 0, 0), DayOfWeek.Monday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "2", new TimeOnly(6, 0, 0), new TimeOnly(7, 0, 0), DayOfWeek.Monday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "3", new TimeOnly(11, 0, 0), new TimeOnly(12, 0, 0), DayOfWeek.Monday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "4", new TimeOnly(16, 0, 0), new TimeOnly(17, 0, 0), DayOfWeek.Monday, user_name));
+
+        events.Add(new Event(Guid.NewGuid(), "1", new TimeOnly(2, 0, 0), new TimeOnly(3, 0, 0), DayOfWeek.Tuesday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "2", new TimeOnly(7, 0, 0), new TimeOnly(8, 0, 0), DayOfWeek.Tuesday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "3", new TimeOnly(12, 0, 0), new TimeOnly(13, 0, 0), DayOfWeek.Tuesday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "4", new TimeOnly(17, 0, 0), new TimeOnly(18, 0, 0), DayOfWeek.Tuesday, user_name));
+
+        events.Add(new Event(Guid.NewGuid(), "1", new TimeOnly(3, 0, 0), new TimeOnly(4, 0, 0), DayOfWeek.Wednesday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "2", new TimeOnly(8, 0, 0), new TimeOnly(9, 0, 0), DayOfWeek.Wednesday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "3", new TimeOnly(13, 0, 0), new TimeOnly(14, 0, 0), DayOfWeek.Wednesday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "4", new TimeOnly(18, 0, 0), new TimeOnly(19, 0, 0), DayOfWeek.Wednesday, user_name));
+
+        events.Add(new Event(Guid.NewGuid(), "1", new TimeOnly(4, 0, 0), new TimeOnly(5, 0, 0), DayOfWeek.Thursday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "2", new TimeOnly(9, 0, 0), new TimeOnly(10, 0, 0), DayOfWeek.Thursday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "3", new TimeOnly(14, 0, 0), new TimeOnly(15, 0, 0), DayOfWeek.Thursday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "4", new TimeOnly(19, 0, 0), new TimeOnly(20, 0, 0), DayOfWeek.Thursday, user_name));
+
+        events.Add(new Event(Guid.NewGuid(), "1", new TimeOnly(5, 0, 0), new TimeOnly(6, 0, 0), DayOfWeek.Friday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "2", new TimeOnly(10, 0, 0), new TimeOnly(11, 0, 0), DayOfWeek.Friday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "3", new TimeOnly(15, 0, 0), new TimeOnly(16, 0, 0), DayOfWeek.Friday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "4", new TimeOnly(20, 0, 0), new TimeOnly(21, 0, 0), DayOfWeek.Friday, user_name));
+
+        events.Add(new Event(Guid.NewGuid(), "1", new TimeOnly(6, 0, 0), new TimeOnly(7, 0, 0), DayOfWeek.Saturday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "2", new TimeOnly(11, 0, 0), new TimeOnly(12, 0, 0), DayOfWeek.Saturday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "3", new TimeOnly(16, 0, 0), new TimeOnly(17, 0, 0), DayOfWeek.Saturday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "4", new TimeOnly(21, 0, 0), new TimeOnly(22, 0, 0), DayOfWeek.Saturday, user_name));
+
+        events.Add(new Event(Guid.NewGuid(), "1", new TimeOnly(7, 0, 0), new TimeOnly(8, 0, 0), DayOfWeek.Sunday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "2", new TimeOnly(12, 0, 0), new TimeOnly(13, 0, 0), DayOfWeek.Sunday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "3", new TimeOnly(17, 0, 0), new TimeOnly(18, 0, 0), DayOfWeek.Sunday, user_name));
+        events.Add(new Event(Guid.NewGuid(), "4", new TimeOnly(22, 0, 0), new TimeOnly(23, 0, 0), DayOfWeek.Sunday, user_name));
+        return events;
+    }
     /*public List<Event> LoadShedule(string user_name, string path)
     {
         List<Event> events = new();

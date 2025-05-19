@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Dapper;
+using Domain.Models;
 using Domain.OutPorts;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -37,6 +38,56 @@ public class PostgresHabitRepo : IHabitRepo
                 actualTimes, prefFixedTimes, dbh.NDays));
         }
         return habits;
+    }
+    /*public List<Habit>? TryRedistributeNMTimeHabitsDB(string user_name)
+    {
+        List<Habit> no_distributed = [];
+        var conn = _dbContext.Database.GetDbConnection();
+        var result = conn.Query("SELECT * FROM distribute_with_no_matter_time(@u_name)",
+                                      new { u_name = user_name });
+        _dbContext.SaveChanges();
+        if (result == null)
+            return null;
+        foreach (var r in result)
+        {
+            Guid g = new Guid(r.habit_id.ToString());
+            string name = r.habit_name.ToString();
+            int mins_to_complete = Int32.Parse(r.mins_to_complete.ToString());
+            TimeOption opt = (TimeOption)Int32.Parse(r.option.toString());
+            string u_name = r.user_name.ToString();
+            int ndays = Int32.Parse(r.ndays.toString());
+            no_distributed.Add(new Habit(g, name, mins_to_complete, opt, u_name, [], [], ndays));
+        }
+        return no_distributed;
+    }*/
+    public List<Habit>? TryRedistributeNMTimeHabitsDB(string user_name)
+    {
+        var conn = _dbContext.Database.GetDbConnection();
+
+        // Вызываем хранимую процедуру (она сама делает INSERT/DELETE)
+        var result = conn.Query(
+            "SELECT * FROM distribute_with_no_matter_time(@u_name)",
+            new { u_name = user_name }
+        ).ToList();
+
+        // Отключаем отслеживание, чтобы EF Core не пытался сохранить изменения
+        _dbContext.ChangeTracker.Clear(); // Важно!
+
+        if (!result.Any())
+            return null;
+
+        var no_distributed = new List<Habit>();
+        foreach (var r in result)
+        {
+            Guid g = new Guid(r.habit_id.ToString());
+            string name = r.habit_name.ToString();
+            int mins_to_complete = Int32.Parse(r.mins_to_complete.ToString());
+            TimeOption opt = (TimeOption)Int32.Parse(r.option.toString());
+            string u_name = r.user_name.ToString();
+            int ndays = Int32.Parse(r.ndays.toString());
+            no_distributed.Add(new Habit(g, name, mins_to_complete, opt, u_name, [], [], ndays));
+        }
+        return no_distributed;
     }
 
     public bool TryCreate(Habit h)

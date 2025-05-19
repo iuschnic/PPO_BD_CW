@@ -3,6 +3,7 @@ using Domain.InPorts;
 using Domain.Models;
 using Types;
 using Dapper;
+using System.IO;
 
 namespace Domain;
 
@@ -52,8 +53,12 @@ public class TaskTracker : ITaskTracker
         return GetUser(u.NameID);
     }
 
-    public List<Habit>? TryRedistributeNMTimeHabits(List<Habit> habits, List<Event> events, string user_name)
+    public List<Habit>? TryRedistributeNMTimeHabits(string user_name)
     {
+        var habits = _habitRepo.TryGet(user_name);
+        var events = _eventRepo.TryGet(user_name);
+        if (habits == null || events == null)
+            return null;
         foreach (var h in habits)
             h.ActualTimings.Clear();
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
@@ -61,22 +66,10 @@ public class TaskTracker : ITaskTracker
         return no_distributed;
     }
 
-    public List<Habit>? TryRedistributeNMTimeHabitDB(string user_name, System.Data.Common.DbConnection conn)
+    public List<Habit>? TryRedistributeNMTimeHabitsDB(string user_name)
     {
         List<Habit> no_distributed = [];
-        var result = conn.Query("select * from distribute_with_no_matter_time()");
-        if (result == null)
-            return null;
-        foreach (var r in result)
-        {
-            Guid g = new Guid(r.habit_id.ToString());
-            string name = r.habit_name.ToString();
-            int mins_to_complete = Int32.Parse(r.mins_to_complete.ToString());
-            TimeOption opt = (TimeOption)Int32.Parse(r.option.toString());
-            string u_name = r.user_name.ToString();
-            int ndays = Int32.Parse(r.ndays.toString());
-            no_distributed.Add(new Habit(g, name, mins_to_complete, opt, u_name, [], [], ndays));
-        }
+        var undistributed = _habitRepo.TryRedistributeNMTimeHabitsDB(user_name);
         return no_distributed;
     }
 
@@ -84,7 +77,6 @@ public class TaskTracker : ITaskTracker
      Возвращает кортеж из информации о пользователе и информации о нераспределенных привычках*/
     public Tuple<User, List<Habit>>? ImportNewShedule(string user_name, string path)
     {
-        //В текущей реализации удаляем все привычки, перераспределем и добавляем заново, хорошо бы переделать под Update
         if (_userRepo.TryGet(user_name) == null) return null;
 
         var events = _shedLoader.LoadShedule(user_name, path);
@@ -97,6 +89,22 @@ public class TaskTracker : ITaskTracker
 
         return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
     }
+
+    public Tuple<User, List<Habit>>? ImportNewSheduleForMeasures(string user_name)
+    {
+        if (_userRepo.TryGet(user_name) == null) return null;
+
+        var events = _shedLoader.LoadSheduleForMeasures(user_name);
+        var habits = _habitRepo.TryGet(user_name);
+        if (habits == null) return null;
+        List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
+
+        if (!_eventRepo.TryReplaceEvents(events, user_name)) return null;
+        if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
+
+        return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
+    }
+
 
     /*Функция добавления привычки для пользователя с именем-идентификатором user_name
      Возвращает кортеж из информации о пользователе и информации о нераспределенных привычках*/
