@@ -95,7 +95,7 @@ class Program
             switch (opt)
             {
                 case 1:
-                    Console.WriteLine("\nВведите название csv файла\n");
+                    Console.WriteLine("\nВведите название файла\n");
                     var path = Console.ReadLine();
                     Tuple<User, List<Habit>>? ret;
                     if (path == null)

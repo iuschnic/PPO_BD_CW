@@ -36,7 +36,7 @@ public class PostgresMessageRepo : IMessageRepo
         _dbContext.SaveChanges();
         return ret;
     }
-    public bool TryNotify(List<Tuple<string, string>> users_messages)
+    public bool TryCreateMessages(List<Tuple<string, string>> users_messages)
     {
         bool ret = true;
         var dbusers = _dbContext.Users.ToList();

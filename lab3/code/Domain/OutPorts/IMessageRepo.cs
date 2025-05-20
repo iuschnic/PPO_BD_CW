@@ -18,6 +18,6 @@ public class UserHabitInfo
 public interface IMessageRepo
 {
     bool TryCreateMessage(Message message, List<string> users);
-    public bool TryNotify(List<Tuple<string, string>> users_messages);
+    public bool TryCreateMessages(List<Tuple<string, string>> users_messages);
     List<UserHabitInfo> GetUsersToNotify();
 }

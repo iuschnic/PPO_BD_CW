@@ -115,7 +115,7 @@ public class SubscriptionBot
                         );
                     }
                 }
-                _messageRepo.TryNotify(user_message);
+                _messageRepo.TryCreateMessages(user_message);
 
                 Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {cnt} подписчикам");
                 await Task.Delay(TimeSpan.FromMinutes(timeout), _cts.Token);

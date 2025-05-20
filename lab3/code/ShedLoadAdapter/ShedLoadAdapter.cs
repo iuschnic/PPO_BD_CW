@@ -4,6 +4,9 @@ using Types;
 using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
+using Ical.Net;
+using Ical.Net.CalendarComponents;
+using Ical.Net.DataTypes;
 
 namespace LoadAdapters;
 
@@ -84,14 +87,29 @@ public class ShedAdapter : ISheduleLoad
 
         return events;
     }
-    public List<Event> LoadShedule(string userName, string filePath)
+    public List<Event> LoadShedule(string user_name, string file_path)
     {
-        // Проверка существования файла
-        if (!File.Exists(filePath))
+        string extension = Path.GetExtension(file_path);
+        if (extension == ".csv")
         {
-            throw new Exception($"Файла {filePath} не существует");
+            return LoadCsv(user_name, file_path);
         }
+        else if (extension == ".ics")
+        { 
+            return LoadIcs(user_name, file_path);
+        }
+        else
+        {
+            throw new Exception($"Не поддерживаемый формат файла - {extension}");
+        }
+    }
 
+    private List<Event> LoadCsv(string user_name, string file_path)
+    {
+        if (!File.Exists(file_path))
+        {
+            throw new Exception($"Файла {file_path} не существует");
+        }
         var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
             HasHeaderRecord = true,
@@ -99,7 +117,7 @@ public class ShedAdapter : ISheduleLoad
             HeaderValidated = null
         };
 
-        using var reader = new StreamReader(filePath);
+        using var reader = new StreamReader(file_path);
         using var csv = new CsvReader(reader, config);
 
         var records = new List<EventCsvRecord>();
@@ -138,7 +156,7 @@ public class ShedAdapter : ISheduleLoad
                     name: record.Name,
                     start: timeStart,
                     end: timeEnd,
-                    userNameID: userName,
+                    userNameID: user_name,
                     option: option,
                     day: day,
                     eDate: date
@@ -149,6 +167,72 @@ public class ShedAdapter : ISheduleLoad
             catch (Exception ex)
             {
                 throw new InvalidDataException($"Ошибка обработки записи: {record.Name}. {ex.Message}");
+            }
+        }
+
+        return events;
+    }
+    public List<Event> LoadIcs(string user_name, string file_path)
+    {
+        if (!File.Exists(file_path))
+        {
+            throw new FileNotFoundException("Файл не существует", file_path);
+        }
+
+        var events = new List<Event>();
+        var calendar = Ical.Net.Calendar.Load(File.ReadAllText(file_path));
+
+        foreach (var calendarEvent in calendar.Events)
+        {
+            try
+            {
+                var name = calendarEvent.Summary;
+                var startTime = TimeOnly.FromDateTime(calendarEvent.DtStart.AsSystemLocal);
+                var endTime = TimeOnly.FromDateTime(calendarEvent.DtEnd.AsSystemLocal);
+
+                EventOption option = EventOption.EveryWeek;
+                DayOfWeek? dayOfWeek = null;
+                DateOnly? eventDate = null;
+
+                if (calendarEvent.RecurrenceRules?.Any() == true)
+                {
+                    // Повторяющиеся события
+                    var rrule = calendarEvent.RecurrenceRules.First();
+
+                    if (rrule.Frequency == FrequencyType.Weekly)
+                    {
+                        option = EventOption.EveryWeek;
+                        dayOfWeek = calendarEvent.DtStart.AsSystemLocal.DayOfWeek;
+                    }
+                    if (rrule.Interval == 2 && rrule.Frequency == FrequencyType.Weekly)
+                    {
+                        option = EventOption.EveryTwoWeeks;
+                        dayOfWeek = calendarEvent.DtStart.AsSystemLocal.DayOfWeek;
+                        eventDate = DateOnly.FromDateTime(calendarEvent.DtStart.AsSystemLocal);
+                    }
+                }
+                else
+                {
+                    // Одноразовые события
+                    option = EventOption.Once;
+                    eventDate = DateOnly.FromDateTime(calendarEvent.DtStart.AsSystemLocal);
+                    dayOfWeek = calendarEvent.DtStart.AsSystemLocal.DayOfWeek;
+                }
+
+                events.Add(new Event(
+                    id: Guid.NewGuid(),
+                    name: name,
+                    start: startTime,
+                    end: endTime,
+                    userNameID: user_name,
+                    option: option,
+                    day: dayOfWeek,
+                    eDate: eventDate
+                ));
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidDataException($"Ошибка обработки события: {calendarEvent.Summary}. {ex.Message}");
             }
         }
 
