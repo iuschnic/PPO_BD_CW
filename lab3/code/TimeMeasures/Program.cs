@@ -44,12 +44,12 @@ class Program
         File.WriteAllText(file2, "");
 
         // Количество повторений для каждого n
-        int repetitions = 1;
+        int repetitions = 500;
 
         // Диапазон значений n
-        int minN = 1;
+        int minN = 2;
         int maxN = 120; //в сутках 24 часа, 4 из них заняты событиями, берем привычки по 10 минут каждая -> максимум 120 привычек уместится в сутках
-
+        taskService.AddHabit(new Habit(Guid.NewGuid(), "1", 10, TimeOption.NoMatter, user_name, [], [], 7));
         Console.WriteLine("Starting benchmarks...");
         ans = taskService.DeleteHabits(user_name);
         if (ans == null)
@@ -58,7 +58,7 @@ class Program
             return;
         }
 
-        for (int n = minN; n <= maxN; n++)
+        for (int n = minN; n <= maxN; n+=2)
         {
             taskService.AddHabit(new Habit(Guid.NewGuid(), n.ToString(), 10, TimeOption.NoMatter, user_name, [], [], 7));
             Console.WriteLine($"Testing n = {n}");
