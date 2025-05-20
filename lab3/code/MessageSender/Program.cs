@@ -265,7 +265,7 @@ class Program
             .AddSingleton<IMessageRepo, PostgresMessageRepo>()
             .AddSingleton<IUserRepo, PostgresUserRepo>()
             .AddDbContext<PostgresDBContext>(options =>
-                options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
+                options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
             .AddDbContext<SubscriberDbContext>(options =>
                 options.UseSqlite("Data Source=subscribers.db"))
             .BuildServiceProvider();

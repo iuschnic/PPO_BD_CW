@@ -41,8 +41,7 @@ public class PostgresHabitRepo : IHabitRepo
 
     public bool TryCreate(Habit h)
     {
-        var test = _dbContext.Habits.Find(h.Id);
-        if (test != null) 
+        if (_dbContext.Habits.Find(h.Id) != null) 
             return false;
         List<DBActualTime> actualTimes = new();
         List<DBPrefFixedTime> prefFixedTimes = new();
@@ -121,6 +120,7 @@ public class PostgresHabitRepo : IHabitRepo
         List<DBPrefFixedTime> pref_fixed_times = [];
         var habits = _dbContext.Habits.Include(h => h.ActualTimings).Include(h => h.PrefFixedTimings)
             .Where(h => h.DBUserNameID == user_name).ToList();
+        if (habits == null) return false;
         foreach (var habit in habits)
         {
             actual_times.AddRange(habit.ActualTimings);

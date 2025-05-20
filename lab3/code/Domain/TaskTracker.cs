@@ -26,7 +26,13 @@ public class TaskTracker : ITaskTracker
     /*Функция по username получает всю информацию о пользователе, его привычках, событиях расписания и настройках*/
     private User? GetUser(string user_name)
     {
-        return _userRepo.TryFullGet(user_name);
+        var user = _userRepo.TryFullGet(user_name);
+        if (user == null) return null;
+        var events = _eventRepo.TryGet(user_name);
+        if (events == null) return null;
+        user.Events.Clear();
+        user.Events.AddRange(events);
+        return user;
     }
 
     /*Функция создания пользователя по имени пользователя, номеру телефона и паролю

@@ -43,6 +43,13 @@ public enum TimeOption
     Fixed,
 }
 
+public enum EventOption
+{
+    Once,
+    EveryWeek,
+    EveryTwoWeeks,
+}
+
 public class TimeInterval
 {
     public TimeOnly Start { get; set; }

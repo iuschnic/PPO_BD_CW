@@ -8,7 +8,6 @@ using Storage.PostgresStorageAdapters;
 using Types;
 using Microsoft.EntityFrameworkCore;
 
-
 class Program
 {
     private static Habit? ParseHabit(ITaskTracker task_service, string user_name)
@@ -96,22 +95,38 @@ class Program
             switch (opt)
             {
                 case 1:
-                    var ret = task_service.ImportNewShedule(user.NameID, "dummy");
-                    if (ret == null)
+                    Console.WriteLine("\nВведите название csv файла\n");
+                    var path = Console.ReadLine();
+                    Tuple<User, List<Habit>>? ret;
+                    if (path == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
-                        return;
+                        Console.WriteLine("\nОшибка ввода\n");
+                        break;
                     }
-                    user = ret.Item1;
-                    undistributed = ret.Item2;
-                    Console.WriteLine("\nРасписание было успешно импортировано, нераспределенные привычки:\n");
-                    if (undistributed.Count == 0)
-                        Console.WriteLine("\nВсе привычки были распределены успешно\n");
-                    else
-                        foreach (var u in undistributed)
-                            Console.Write(u);
-                    Console.WriteLine();
-                    Console.Write(user);
+                    try
+                    {
+                        ret = task_service.ImportNewShedule(user.NameID, path);
+                        if (ret == null)
+                        {
+                            Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                            return;
+                        }
+                        user = ret.Item1;
+                        undistributed = ret.Item2;
+                        Console.WriteLine("\nРасписание было успешно импортировано, нераспределенные привычки:\n");
+                        if (undistributed.Count == 0)
+                            Console.WriteLine("\nВсе привычки были распределены успешно\n");
+                        else
+                            foreach (var u in undistributed)
+                                Console.Write(u);
+                        Console.WriteLine();
+                        Console.Write(user);
+                        break;
+                    }
+                    catch(Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     break;
                 case 2:
                     var habit = ParseHabit(task_service, user.NameID);
@@ -125,7 +140,7 @@ class Program
                     }
                     user = ret.Item1;
                     undistributed = ret.Item2;
-                    Console.WriteLine("\nРасписание было успешно импортировано, нераспределенные привычки:\n");
+                    Console.WriteLine("\nПривычка была успешно добавлена, нераспределенные привычки:\n");
                     if (undistributed.Count == 0)
                         Console.WriteLine("\nВсе привычки были распределены успешно\n");
                     else
@@ -375,8 +390,8 @@ class Program
             .AddSingleton<IEventRepo, PostgresEventRepo>()
             .AddSingleton<IHabitRepo, PostgresHabitRepo>()
             .AddSingleton<IUserRepo, PostgresUserRepo>()
-            .AddDbContext<PostgresDBContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
-            .AddTransient<ISheduleLoad, DummyShedAdapter>()
+            .AddDbContext<PostgresDBContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
+            .AddTransient<ISheduleLoad, ShedAdapter>()
             .AddTransient<ITaskTracker, TaskTracker>()
             .AddTransient<IHabitDistributor, HabitDistributor>()
             .BuildServiceProvider();
