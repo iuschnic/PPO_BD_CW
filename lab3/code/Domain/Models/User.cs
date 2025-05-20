@@ -1,4 +1,4 @@
-﻿using Types;
+using Types;
 
 namespace Domain.Models;
 

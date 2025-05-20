@@ -1,4 +1,4 @@
-﻿using Domain.OutPorts;
+using Domain.OutPorts;
 using Domain.Models;
 using Types;
 using System.Globalization;
