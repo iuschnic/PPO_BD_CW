@@ -1,4 +1,4 @@
-﻿using Domain;
+using Domain;
 using Domain.Models;
 using Types;
 namespace Tests

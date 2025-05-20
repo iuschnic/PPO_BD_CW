@@ -1,4 +1,4 @@
-﻿using Domain.OutPorts;
+using Domain.OutPorts;
 using Domain.InPorts;
 using Domain.Models;
 using Types;
