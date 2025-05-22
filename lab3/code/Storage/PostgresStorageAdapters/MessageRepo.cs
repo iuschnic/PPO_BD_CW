@@ -14,62 +14,60 @@ public class PostgresMessageRepo : IMessageRepo
     {
         _dbContext = dbContext;
     }
-    public bool TryCreateMessage(Message message, List<string> users)
+    public bool TryCreateMessages(List<Message> users_messages)
     {
         bool ret = true;
         var dbusers = _dbContext.Users.ToList();
         if (dbusers == null)
             return false;
 
-        DBMessage dbm = new DBMessage(message.Id, message.Text, message.TimeSent.ToUniversalTime(), message.TimeOutdated);
-        List<DBUserMessage> user_message = [];
-        foreach (var user in users)
+        List<DBUserMessage> dbuser_messages = [];
+        List<DBMessage> dbmessages = [];
+        foreach (var user_message in users_messages)
         {
-            //сообщение рассылается всем пользователям, но если по какой то причине пользователя нет, возвращаем false
-            if (!dbusers.Any(dbu => dbu.NameID == user))
-                ret = false;
-            else
-                user_message.Add(new DBUserMessage(user, dbm.Id, false));
-        }
-        _dbContext.Messages.Add(dbm);
-        _dbContext.UserMessages.AddRange(user_message);
-        _dbContext.SaveChanges();
-        return ret;
-    }
-    public bool TryCreateMessages(List<Tuple<string, string>> users_messages)
-    {
-        bool ret = true;
-        var dbusers = _dbContext.Users.ToList();
-        if (dbusers == null)
-            return false;
-
-        List<DBUserMessage> user_message = [];
-        List<DBMessage> messages = [];
-        foreach (var user in users_messages)
-        {
-            //сообщение рассылается всем пользователям, но если по какой то причине пользователя нет, возвращаем false
-            if (!dbusers.Any(dbu => dbu.NameID == user.Item1))
+            if (!dbusers.Any(dbu => dbu.NameID == user_message.UserNameID))
                 ret = false;
             else
             {
                 var g = Guid.NewGuid();
-                DBMessage dbm = new DBMessage(g, user.Item2, DateTime.Now, DateTime.Now);
-                user_message.Add(new DBUserMessage(user.Item1, g, false));
-                messages.Add(dbm);
+                DBMessage dbm = new DBMessage(user_message.Id, user_message.Text);
+                dbuser_messages.Add(new DBUserMessage(user_message.UserNameID, user_message.Id, false, user_message.TimeOutdated, null));
+                dbmessages.Add(dbm);
             }
         }
-        _dbContext.Messages.AddRange(messages);
-        _dbContext.UserMessages.AddRange(user_message);
-        try
-        {
-            _dbContext.SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
-        
+        _dbContext.Messages.AddRange(dbmessages);
+        _dbContext.UserMessages.AddRange(dbuser_messages);
+        _dbContext.SaveChanges();
         return ret;
+    }
+
+    public List<Message> GetMessagesToSend()
+    {
+        var messages = _dbContext.UserMessages.Where(dbum => dbum.TimeOutdated > DateTime.Now && dbum.WasSent == false)
+            .Include(dbum => dbum.DBMessage)
+            .Include(dbum => dbum.DBUser)
+            .ToList();
+        List<Message> to_send = [];
+        foreach (var message in messages)
+            to_send.Add(new Message(message.DBMessageID, message.DBMessage.Text, null, message.TimeOutdated, message.WasSent, message.DBUserID));
+        return to_send;
+    }
+
+    public bool MarkMessagesSent(List<Message> messages)
+    {
+        var dbusermessages = _dbContext.UserMessages.ToList();
+        if (dbusermessages == null) return false;
+        foreach (var message in messages)
+        {
+            var dbum = dbusermessages.Find(d => d.DBMessageID == message.Id);
+            if (dbum != null)
+            {
+                dbum.WasSent = message.WasSent;
+                dbum.TimeSent = message.TimeSent;
+            }
+        }
+        _dbContext.SaveChanges();
+        return true;
     }
 
     public List<UserHabitInfo> GetUsersToNotify()
