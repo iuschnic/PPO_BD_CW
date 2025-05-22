@@ -396,7 +396,7 @@ class Program
             .Build();
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
-            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Warning)
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
             .CreateLogger();
         try
         {
