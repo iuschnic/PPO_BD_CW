@@ -110,10 +110,6 @@ public class SubscriptionBot
                             user_habit.End.Hour, user_habit.End.Minute, user_habit.End.Second);
                         
                         messages.Add(new Domain.Models.Message(Guid.NewGuid(), text, null, outdated, false, user_habit.UserName));
-                        /*await _botClient.SendMessage(
-                            chatId: subscriber.ChatId,
-                            text: text
-                        );*/
                     }
                 }
                 _messageRepo.TryCreateMessages(messages);

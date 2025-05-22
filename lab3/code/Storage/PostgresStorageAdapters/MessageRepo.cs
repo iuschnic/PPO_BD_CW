@@ -56,9 +56,7 @@ public class PostgresMessageRepo : IMessageRepo
             .ToList();
         List<Message> to_send = [];
         foreach (var message in messages)
-        {
-            to_send.Add(new Message(message.DBMessageID, message.DBMessage.Text, null, message.TimeOutdated, false, message.DBUserID));
-        }
+            to_send.Add(new Message(message.DBMessageID, message.DBMessage.Text, null, message.TimeOutdated, message.WasSent, message.DBUserID));
         return to_send;
     }
 
