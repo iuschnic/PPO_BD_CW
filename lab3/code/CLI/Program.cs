@@ -417,11 +417,11 @@ class Program
                 .AddTransient<IHabitDistributor, HabitDistributor>()
                 .BuildServiceProvider();
 
-            Log.Information("Приложение запущено");
+            //Log.Information("Приложение запущено");
             var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
             LogInCycle(taskService);
-            Log.Information("Приложение остановлено");
-            Log.CloseAndFlush();
+            //Log.Information("Приложение остановлено");
+            //Log.CloseAndFlush();
         }
         catch (Exception ex)
         {
@@ -429,7 +429,7 @@ class Program
         }
         finally
         {
-            Log.Information("Приложение остановлено");
+            //Log.Information("Приложение остановлено");
             Log.CloseAndFlush();
         }
     }
