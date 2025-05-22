@@ -11,16 +11,10 @@ public class DBMessage
     public Guid Id { get; set; }
     [Column("data")]
     public string Text { get; set; }
-    [Column("time_sent")]
-    public DateTime? TimeSent { get; set; }
-    [Column("time_outdated")]
-    public DateTime TimeOutdated { get; set; }
-    public DBMessage(Guid id, string text, DateTime? timeSent, DateTime timeOutdated)
+    public DBMessage(Guid id, string text)
     {
         Id = id;
         Text = text;
-        TimeSent = timeSent;
-        TimeOutdated = timeOutdated;
     }
 }
 
@@ -33,12 +27,18 @@ public class DBUserMessage
     public Guid DBMessageID { get; set; }
     [Column("was_sent")]
     public bool WasSent { get; set; }
+    [Column("time_outdated")]
+    public DateTime TimeOutdated { get; set; }
+    [Column("time_sent")]
+    public DateTime? TimeSent { get; set; }
     public DBUser? DBUser { get; set; }
     public DBMessage? DBMessage { get; set; }
-    public DBUserMessage(string dBUserID, Guid dBMessageID, bool wasSent) 
+    public DBUserMessage(string dBUserID, Guid dBMessageID, bool wasSent, DateTime timeOutdated, DateTime? timeSent)
     {
         DBMessageID = dBMessageID;
         DBUserID = dBUserID;
         WasSent = wasSent;
+        TimeOutdated = timeOutdated;
+        TimeSent = timeSent;
     }
 }

@@ -92,31 +92,50 @@ public class SubscriptionBot
         while (!_cts.IsCancellationRequested)
         {
             var users_habits = _messageRepo.GetUsersToNotify();
-            List<Tuple<string, string>> user_message = [];
+            List<Domain.Models.Message> messages = [];
             try
             {
                 int cnt = 0;
-                foreach (var user in users_habits)
+                foreach (var user_habit in users_habits)
                 {
                     var subscriber = await _dbContext.Subscribers
-                        .FirstOrDefaultAsync(s => s.TaskTrackerLogin == user.UserName);
+                        .FirstOrDefaultAsync(s => s.TaskTrackerLogin == user_habit.UserName);
+                    if (subscriber != null)
+                    {
+                        var text = $"Привет, {subscriber.Username}!\n" +
+                                  $"Логин: {subscriber.TaskTrackerLogin}\n" +
+                                  $"В ближайшие 30 минут нужно будет выполнить привычку: " +
+                                  $"{user_habit.HabitName ?? "не указана"} ({user_habit.Start} - {user_habit.End})\n";
+                        DateTime outdated = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
+                            user_habit.End.Hour, user_habit.End.Minute, user_habit.End.Second);
+                        
+                        messages.Add(new Domain.Models.Message(Guid.NewGuid(), text, null, outdated, false, user_habit.UserName));
+                        /*await _botClient.SendMessage(
+                            chatId: subscriber.ChatId,
+                            text: text
+                        );*/
+                    }
+                }
+                _messageRepo.TryCreateMessages(messages);
+
+                var to_send = _messageRepo.GetMessagesToSend();
+                List<Domain.Models.Message> sent_messages = [];
+                foreach (var send in to_send)
+                {
+                    var subscriber = await _dbContext.Subscribers
+                        .FirstOrDefaultAsync(s => s.TaskTrackerLogin ==send.UserNameID);
 
                     if (subscriber != null)
                     {
-                        cnt++;
-                        var message = $"Привет, {subscriber.Username}!\n" +
-                                  $"Логин: {subscriber.TaskTrackerLogin}\n" +
-                                  $"В ближайшие 30 минут нужно будет выполнить привычку: " +
-                                  $"{user.HabitName ?? "не указана"} ({user.Start} - {user.End})\n";
-                        user_message.Add(new Tuple<string, string>(user.UserName, message));
                         await _botClient.SendMessage(
                             chatId: subscriber.ChatId,
-                            text: message
+                            text: send.Text
                         );
+                        cnt++;
+                        sent_messages.Add(new Domain.Models.Message(send.Id, send.Text, DateTime.Now, send.TimeOutdated, true, send.UserNameID));
                     }
                 }
-                _messageRepo.TryCreateMessages(user_message);
-
+                _messageRepo.MarkMessagesSent(sent_messages);
                 Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {cnt} подписчикам");
                 await Task.Delay(TimeSpan.FromMinutes(timeout), _cts.Token);
             }
