@@ -30,21 +30,14 @@ public class PostgresMessageRepo : IMessageRepo
             else
             {
                 var g = Guid.NewGuid();
-                DBMessage dbm = new DBMessage(g, user_message.Text);
-                dbuser_messages.Add(new DBUserMessage(user_message.UserNameID, g, false, user_message.TimeOutdated, null));
+                DBMessage dbm = new DBMessage(user_message.Id, user_message.Text);
+                dbuser_messages.Add(new DBUserMessage(user_message.UserNameID, user_message.Id, false, user_message.TimeOutdated, null));
                 dbmessages.Add(dbm);
             }
         }
         _dbContext.Messages.AddRange(dbmessages);
         _dbContext.UserMessages.AddRange(dbuser_messages);
-        try
-        {
-            _dbContext.SaveChanges();
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine(ex.ToString());
-        }
+        _dbContext.SaveChanges();
         return ret;
     }
 

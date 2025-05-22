@@ -54,7 +54,8 @@ public class SubscriptionBot
     private const string AskPasswordMessage = "Теперь введите ваш пароль в системе TaskTracker:";
     private const string RegistrationCompleteMessage = "Регистрация завершена! Вы подписаны на рассылку.";
     private const string GoodbyeMessage = "Вы отписались от рассылки";
-    private const int timeout = 1;
+    private const int timeout_send = 1;
+    private const int timeout_generate = 30;
     private const int timeout_err = 1;
 
     public SubscriptionBot(string botToken, IMessageRepo messageRepo, IUserRepo userRepo, SubscriberDbContext dbContext)
@@ -82,6 +83,7 @@ public class SubscriptionBot
         );
 
         _ = Task.Run(StartBroadcasting, _cts.Token);
+        _ = Task.Run(StartCreatingMessages, _cts.Token);
 
         Console.WriteLine("Бот запущен. Нажмите Ctrl+C для остановки.");
         await Task.Delay(-1, _cts.Token);
@@ -92,28 +94,11 @@ public class SubscriptionBot
         while (!_cts.IsCancellationRequested)
         {
             var users_habits = _messageRepo.GetUsersToNotify();
+            Console.WriteLine("StartBroadcasting");
             List<Domain.Models.Message> messages = [];
             try
             {
                 int cnt = 0;
-                foreach (var user_habit in users_habits)
-                {
-                    var subscriber = await _dbContext.Subscribers
-                        .FirstOrDefaultAsync(s => s.TaskTrackerLogin == user_habit.UserName);
-                    if (subscriber != null)
-                    {
-                        var text = $"Привет, {subscriber.Username}!\n" +
-                                  $"Логин: {subscriber.TaskTrackerLogin}\n" +
-                                  $"В ближайшие 30 минут нужно будет выполнить привычку: " +
-                                  $"{user_habit.HabitName ?? "не указана"} ({user_habit.Start} - {user_habit.End})\n";
-                        DateTime outdated = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
-                            user_habit.End.Hour, user_habit.End.Minute, user_habit.End.Second);
-                        
-                        messages.Add(new Domain.Models.Message(Guid.NewGuid(), text, null, outdated, false, user_habit.UserName));
-                    }
-                }
-                _messageRepo.TryCreateMessages(messages);
-
                 var to_send = _messageRepo.GetMessagesToSend();
                 List<Domain.Models.Message> sent_messages = [];
                 foreach (var send in to_send)
@@ -132,12 +117,48 @@ public class SubscriptionBot
                     }
                 }
                 _messageRepo.MarkMessagesSent(sent_messages);
-                Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {cnt} подписчикам");
-                await Task.Delay(TimeSpan.FromMinutes(timeout), _cts.Token);
+                Console.WriteLine($"{DateTime.Now}: Отправлено {cnt} сообщений");
+                await Task.Delay(TimeSpan.FromMinutes(timeout_send), _cts.Token);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка при рассылке: {ex.Message}");
+                await Task.Delay(TimeSpan.FromMinutes(timeout_err), _cts.Token);
+            }
+        }
+    }
+
+    private async Task StartCreatingMessages()
+    {
+        while (!_cts.IsCancellationRequested)
+        {
+            Console.WriteLine("StartCreating");
+            var users_habits = _messageRepo.GetUsersToNotify();
+            List<Domain.Models.Message> messages = [];
+            try
+            {
+                foreach (var user_habit in users_habits)
+                {
+                    var subscriber = await _dbContext.Subscribers
+                        .FirstOrDefaultAsync(s => s.TaskTrackerLogin == user_habit.UserName);
+                    if (subscriber != null)
+                    {
+                        var text = $"Привет, {subscriber.Username}!\n" +
+                                  $"Логин: {subscriber.TaskTrackerLogin}\n" +
+                                  $"В ближайшие 30 минут нужно будет выполнить привычку: " +
+                                  $"{user_habit.HabitName ?? "не указана"} ({user_habit.Start} - {user_habit.End})\n";
+                        DateTime outdated = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
+                            user_habit.End.Hour, user_habit.End.Minute, user_habit.End.Second);
+
+                        messages.Add(new Domain.Models.Message(Guid.NewGuid(), text, null, outdated, false, user_habit.UserName));
+                    }
+                }
+                Console.WriteLine($"{DateTime.Now}: Создано {messages.Count} сообщений");
+                _messageRepo.TryCreateMessages(messages);
+                await Task.Delay(TimeSpan.FromMinutes(timeout_generate), _cts.Token);
+            }
+            catch (Exception ex)
+            {
                 await Task.Delay(TimeSpan.FromMinutes(timeout_err), _cts.Token);
             }
         }
