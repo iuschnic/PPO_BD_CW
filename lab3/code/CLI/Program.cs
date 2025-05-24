@@ -7,8 +7,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Storage.PostgresStorageAdapters;
 using Types;
 using Microsoft.EntityFrameworkCore;
-using SQLitePCL;
-using static Dapper.SqlMapper;
 
 
 class Program
@@ -99,22 +97,38 @@ class Program
             switch (opt)
             {
                 case 1:
-                    var ret = task_service.ImportNewShedule(user.NameID, "dummy");
-                    if (ret == null)
+                    Console.WriteLine("\nВведите название файла\n");
+                    var path = Console.ReadLine();
+                    Tuple<User, List<Habit>>? ret;
+                    if (path == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
-                        return;
+                        Console.WriteLine("\nОшибка ввода\n");
+                        break;
                     }
-                    user = ret.Item1;
-                    undistributed = ret.Item2;
-                    Console.WriteLine("\nРасписание было успешно импортировано, нераспределенные привычки:\n");
-                    if (undistributed.Count == 0)
-                        Console.WriteLine("\nВсе привычки были распределены успешно\n");
-                    else
-                        foreach (var u in undistributed)
-                            Console.Write(u);
-                    Console.WriteLine();
-                    Console.Write(user);
+                    try
+                    {
+                        ret = task_service.ImportNewShedule(user.NameID, path);
+                        if (ret == null)
+                        {
+                            Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                            return;
+                        }
+                        user = ret.Item1;
+                        undistributed = ret.Item2;
+                        Console.WriteLine("\nРасписание было успешно импортировано, нераспределенные привычки:\n");
+                        if (undistributed.Count == 0)
+                            Console.WriteLine("\nВсе привычки были распределены успешно\n");
+                        else
+                            foreach (var u in undistributed)
+                                Console.Write(u);
+                        Console.WriteLine();
+                        Console.Write(user);
+                        break;
+                    }
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     break;
                 case 2:
                     var habit = ParseHabit(task_service, user.NameID);

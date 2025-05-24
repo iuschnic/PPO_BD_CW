@@ -29,7 +29,7 @@ public class User
 
     public override string ToString()
     {
-        string ans = $"\nUSER: Name = {NameID}, Password = {PasswordHash}, Number = {Number}\n";
+        string ans = $"\nUSER: Name = {NameID}, PhoneNumber = {Number}\n";
         if (Habits == null || Habits.Count == 0)
             ans += "\nNO HABITS\n";
         else
