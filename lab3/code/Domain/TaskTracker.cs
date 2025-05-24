@@ -140,7 +140,6 @@ public class TaskTracker : ITaskTracker
 
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!_eventRepo.TryReplaceEvents(events, user_name)) return null;
         if (!_habitRepo.TryReplaceHabits(habits, user_name)) return null;
 
         return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);

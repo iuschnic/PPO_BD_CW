@@ -1,17 +1,36 @@
-namespace GUI
+using System;
+using System.Windows.Forms;
+using Domain.InPorts;
+using Domain.OutPorts;
+using LoadAdapters;
+using Microsoft.Extensions.DependencyInjection;
+using Storage.PostgresStorageAdapters;
+using Microsoft.EntityFrameworkCore;
+using Domain;
+
+namespace HabitTrackerGUI
 {
-    internal static class Program
+    static class Program
     {
-        /// <summary>
-        ///  The main entry point for the application.
-        /// </summary>
         [STAThread]
         static void Main()
         {
-            // To customize application configuration such as set high DPI settings or default font,
-            // see https://aka.ms/applicationconfiguration.
-            ApplicationConfiguration.Initialize();
-            Application.Run(new Form1());
+            Application.EnableVisualStyles();
+            Application.SetCompatibleTextRenderingDefault(false);
+
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton<IEventRepo, PostgresEventRepo>()
+                .AddSingleton<IHabitRepo, PostgresHabitRepo>()
+                .AddSingleton<IUserRepo, PostgresUserRepo>()
+                .AddDbContext<PostgresDBContext>(options =>
+                    options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
+                .AddTransient<ISheduleLoad, DummyShedAdapter>()
+                .AddTransient<ITaskTracker, TaskTracker>()
+                .AddTransient<IHabitDistributor, HabitDistributor>()
+                .BuildServiceProvider();
+
+            var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
+            Application.Run(new MainForm(taskService));
         }
     }
 }

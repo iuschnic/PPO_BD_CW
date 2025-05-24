@@ -106,10 +106,10 @@ public class PostgresUserRepo : IUserRepo
         List<DBSTime> times = [];
         foreach (var time in us.SettingsTimes)
         {
-            DBSTime st = new DBSTime(time.Id, time.Start, time.End, time.SettingsID);
+            DBSTime st = new DBSTime(time.Id, time.Start, time.End, dbs.Id);
             times.Add(st);
         }
-        var prev_times = _dbContext.SettingsTimes.Where(el => el.Id == us.Id);
+        var prev_times = _dbContext.SettingsTimes.Where(el => el.DBUserSettingsID == us.Id);
         _dbContext.SettingsTimes.RemoveRange(prev_times);
         _dbContext.SettingsTimes.AddRange(times);
         dbs.NotifyOn = us.NotifyOn;
