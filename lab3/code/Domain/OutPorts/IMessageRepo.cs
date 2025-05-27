@@ -7,8 +7,8 @@ public class UserHabitInfo
     public string HabitName;
     public string Start;
     public string End;
-    public UserHabitInfo(string user_name, string habit_name, string start, string end)
-    {
+    public UserHabitInfo(string user_name, string habit_name, string start, string end) 
+    { 
         UserName = user_name;
         HabitName = habit_name;
         Start = start;
