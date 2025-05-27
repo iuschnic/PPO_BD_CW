@@ -34,7 +34,7 @@ namespace HabitTrackerGUI
         private void LoadData()
         {
             LoadHabits();
-            LoadEvents();
+            LoadTimeTable();
         }
 
         private void LoadHabits()
@@ -42,45 +42,81 @@ namespace HabitTrackerGUI
             lstHabits.Items.Clear();
             foreach (var habit in _user.Habits)
             {
-                lstHabits.Items.Add($"Привычка: {habit.Name}, {habit.CountInWeek} дней в неделю, {habit.MinsToComplete} мин, {habit.Option}");
+                lstHabits.Items.Add($"Привычка: {habit.Name} - {habit.ActualTimings.Count} из {habit.CountInWeek} дней в неделю, {habit.MinsToComplete} мин, {habit.Option} time");
                 foreach (var timing in habit.PrefFixedTimings)
                     lstHabits.Items.Add($"    Предпочит/Фикс время выполнения: {timing.Start} - {timing.End}");
             }
         }
 
-        private void LoadEvents()
+        private void LoadTimeTable()
         {
-            lstEvents.Items.Clear();
+            lstTimeTable.Items.Clear();
 
-            // Группируем события по дню недели
-            var eventsByDay = new Dictionary<DayOfWeek, List<Event>>();
+            // Создаем список всех элементов расписания (событий и привычек)
+            var scheduleItems = new List<ScheduleItem>();
 
+            // Добавляем события
             foreach (var ev in _user.Events)
             {
-                if (!eventsByDay.ContainsKey(ev.Day))
+                scheduleItems.Add(new ScheduleItem
                 {
-                    eventsByDay[ev.Day] = new List<Event>();
-                }
-                eventsByDay[ev.Day].Add(ev);
+                    Day = ev.Day,
+                    StartTime = ev.Start,
+                    EndTime = ev.End,
+                    Name = ev.Name,
+                    IsEvent = true
+                });
             }
 
-            // Сортируем дни недели
-            var sortedDays = Enum.GetValues(typeof(DayOfWeek)).Cast<DayOfWeek>();
-
-            foreach (var day in sortedDays)
+            // Добавляем привычки
+            foreach (var habit in _user.Habits)
             {
-                if (eventsByDay.TryGetValue(day, out var dayEvents))
+                foreach (var timing in habit.ActualTimings)
                 {
-                    lstEvents.Items.Add($"[{GetDayName(day)}]");
-
-                    foreach (var ev in dayEvents.OrderBy(e => e.Start))
+                    scheduleItems.Add(new ScheduleItem
                     {
-                        lstEvents.Items.Add($"   {ev.Name}: {ev.Start}-{ev.End}");
-                    }
-
-                    lstEvents.Items.Add(""); // Пустая строка между днями
+                        Day = timing.Day,
+                        StartTime = timing.Start,
+                        EndTime = timing.End,
+                        Name = habit.Name,
+                        IsEvent = false
+                    });
                 }
             }
+
+            // Группируем по дням недели и сортируем
+            var groupedByDay = scheduleItems
+                .GroupBy(item => item.Day)
+                .OrderBy(group => group.Key); // Сортировка по DayOfWeek
+
+            foreach (var dayGroup in groupedByDay)
+            {
+                // Добавляем заголовок дня
+                lstTimeTable.Items.Add($"[{GetDayName(dayGroup.Key)}]");
+
+                // Сортируем элементы дня по времени начала
+                var sortedItems = dayGroup.OrderBy(item => item.StartTime);
+
+                // Добавляем элементы расписания
+                foreach (var item in sortedItems)
+                {
+                    string typePrefix = item.IsEvent ? "Событие" : "Привычка";
+                    lstTimeTable.Items.Add($"   {typePrefix}: {item.Name} ({item.StartTime}-{item.EndTime})");
+                }
+
+                // Пустая строка между днями
+                lstTimeTable.Items.Add("");
+            }
+        }
+
+        // Вспомогательный класс для хранения элементов расписания
+        private class ScheduleItem
+        {
+            public DayOfWeek Day { get; set; }
+            public TimeOnly StartTime { get; set; }
+            public TimeOnly EndTime { get; set; }
+            public string Name { get; set; }
+            public bool IsEvent { get; set; }
         }
 
         private string GetDayName(DayOfWeek day)
@@ -120,7 +156,7 @@ namespace HabitTrackerGUI
 
                     _user = result.Item1;
                     UpdateUserInfo();
-                    LoadHabits();
+                    LoadData();
 
                     if (result.Item2.Count > 0)
                     {
@@ -155,7 +191,7 @@ namespace HabitTrackerGUI
 
                     _user = result.Item1;
                     UpdateUserInfo();
-                    LoadHabits();
+                    LoadData();
 
                     if (result.Item2.Count > 0)
                     {
@@ -191,7 +227,7 @@ namespace HabitTrackerGUI
             }
 
             _user = result.Item1;
-            LoadHabits();
+            LoadData();
             MessageBox.Show("Привычка успешно удалена", "Успех",
                 MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
@@ -211,7 +247,7 @@ namespace HabitTrackerGUI
                 }
 
                 _user = result.Item1;
-                LoadHabits();
+                LoadData();
                 MessageBox.Show("Все привычки успешно удалены", "Успех",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
@@ -297,9 +333,8 @@ namespace HabitTrackerGUI
             this.btnNotificationTimes = new System.Windows.Forms.Button();
             this.btnDeleteAccount = new System.Windows.Forms.Button();
             this.btnLogout = new System.Windows.Forms.Button();
-            // Новые элементы для событий
-            this.lblEvents = new System.Windows.Forms.Label();
-            this.lstEvents = new System.Windows.Forms.ListBox();
+            this.lblTimeTable = new System.Windows.Forms.Label();
+            this.lstTimeTable = new System.Windows.Forms.ListBox();
             this.SuspendLayout();
 
             // lblUsername
@@ -373,34 +408,34 @@ namespace HabitTrackerGUI
             this.btnNotificationTimes.Click += new System.EventHandler(this.btnNotificationTimes_Click);
 
             // btnDeleteAccount
-            this.btnDeleteAccount.Location = new System.Drawing.Point(330, 290);
+            this.btnDeleteAccount.Location = new System.Drawing.Point(330, 250);
             this.btnDeleteAccount.Name = "btnDeleteAccount";
             this.btnDeleteAccount.Size = new System.Drawing.Size(150, 30);
             this.btnDeleteAccount.Text = "Удалить аккаунт";
             this.btnDeleteAccount.Click += new System.EventHandler(this.btnDeleteAccount_Click);
 
             // btnLogout
-            this.btnLogout.Location = new System.Drawing.Point(330, 330);
+            this.btnLogout.Location = new System.Drawing.Point(330, 290);
             this.btnLogout.Name = "btnLogout";
             this.btnLogout.Size = new System.Drawing.Size(150, 30);
             this.btnLogout.Text = "Выйти";
             this.btnLogout.Click += new System.EventHandler(this.btnLogout_Click);
 
-            // lblEvents
-            this.lblEvents.AutoSize = true;
-            this.lblEvents.Location = new System.Drawing.Point(20, 330);
-            this.lblEvents.Name = "lblEvents";
-            this.lblEvents.Size = new System.Drawing.Size(50, 13);
-            this.lblEvents.Text = "Расписание:";
+            // lblTimeTable
+            this.lblTimeTable.AutoSize = true;
+            this.lblTimeTable.Location = new System.Drawing.Point(20, 330);
+            this.lblTimeTable.Name = "lblEvents";
+            this.lblTimeTable.Size = new System.Drawing.Size(50, 13);
+            this.lblTimeTable.Text = "Расписание:";
 
-            // lstEvents
-            this.lstEvents.FormattingEnabled = true;
-            this.lstEvents.Location = new System.Drawing.Point(20, 350);
-            this.lstEvents.Name = "lstEvents";
-            this.lstEvents.Size = new System.Drawing.Size(460, 160);
+            // lstTimeTable
+            this.lstTimeTable.FormattingEnabled = true;
+            this.lstTimeTable.Location = new System.Drawing.Point(20, 350);
+            this.lstTimeTable.Name = "lstEvents";
+            this.lstTimeTable.Size = new System.Drawing.Size(460, 160);
 
             // UserDashboardForm
-            this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(5F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(500, 550);
             this.Controls.Add(this.lblUsername);
@@ -415,8 +450,8 @@ namespace HabitTrackerGUI
             this.Controls.Add(this.btnNotificationTimes);
             this.Controls.Add(this.btnDeleteAccount);
             this.Controls.Add(this.btnLogout);
-            this.Controls.Add(this.lblEvents);
-            this.Controls.Add(this.lstEvents);
+            this.Controls.Add(this.lblTimeTable);
+            this.Controls.Add(this.lstTimeTable);
             this.Name = "UserDashboardForm";
             this.Text = "Трекер привычек - Личный кабинет";
             this.ResumeLayout(false);
@@ -435,7 +470,7 @@ namespace HabitTrackerGUI
         private System.Windows.Forms.Button btnNotificationTimes;
         private System.Windows.Forms.Button btnDeleteAccount;
         private System.Windows.Forms.Button btnLogout;
-        private System.Windows.Forms.Label lblEvents;
-        private System.Windows.Forms.ListBox lstEvents;
+        private System.Windows.Forms.Label lblTimeTable;
+        private System.Windows.Forms.ListBox lstTimeTable;
     }
 }
