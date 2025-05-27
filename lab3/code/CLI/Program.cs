@@ -7,7 +7,10 @@ using Microsoft.Extensions.DependencyInjection;
 using Storage.PostgresStorageAdapters;
 using Types;
 using Microsoft.EntityFrameworkCore;
-
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using System.IO;
 class Program
 {
     private static Habit? ParseHabit(ITaskTracker task_service, string user_name)
@@ -76,7 +79,7 @@ class Program
             Console.WriteLine("Ошибка ввода");
             return null;
         }
-        Habit habit = new Habit(g, name, mins, (TimeOption) opt, user_name, [], timings, ndays);
+        Habit habit = new Habit(g, name, mins, (TimeOption)opt, user_name, [], timings, ndays);
         return habit;
     }
     private static void LoggedCycle(ITaskTracker task_service, User user)
@@ -84,7 +87,7 @@ class Program
         while (true)
         {
             Console.WriteLine("\n1) Импортировать новое расписание\n2) Добавить привычку\n3) Удалить привычку\n" +
-                "4) Удалить все привычки\n5) Разрешить уведомления\n6) Запретить уведомления\n" + 
+                "4) Удалить все привычки\n5) Разрешить уведомления\n6) Запретить уведомления\n" +
                 "7) Изменить запрещенное время посылки уведомлений\n8) Выйти из учетной записи\n9) Удалить учетную запись\n");
             List<Habit>? undistributed;
             if (!Int32.TryParse(Console.ReadLine(), out int opt) || opt < 1 || opt > 9)
@@ -108,7 +111,7 @@ class Program
                         ret = task_service.ImportNewShedule(user.NameID, path);
                         if (ret == null)
                         {
-                            Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
                             return;
                         }
                         user = ret.Item1;
@@ -123,7 +126,7 @@ class Program
                         Console.Write(user);
                         break;
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                     }
@@ -135,7 +138,7 @@ class Program
                     ret = task_service.AddHabit(habit);
                     if (ret == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         return;
                     }
                     user = ret.Item1;
@@ -160,7 +163,7 @@ class Program
                     ret = task_service.DeleteHabit(user.NameID, name);
                     if (ret == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         return;
                     }
                     user = ret.Item1;
@@ -177,7 +180,7 @@ class Program
                     ret = task_service.DeleteHabits(user.NameID);
                     if (ret == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         return;
                     }
                     user = ret.Item1;
@@ -190,7 +193,7 @@ class Program
                     var tmpuser = task_service.ChangeSettings(settings);
                     if (tmpuser == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         return;
                     }
                     user = tmpuser;
@@ -203,7 +206,7 @@ class Program
                     tmpuser = task_service.ChangeSettings(settings);
                     if (tmpuser == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         return;
                     }
                     user = tmpuser;
@@ -243,7 +246,7 @@ class Program
                     tmpuser = task_service.ChangeSettings(settings);
                     if (tmpuser == null)
                     {
-                        Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         return;
                     }
                     user = tmpuser;
@@ -267,7 +270,7 @@ class Program
                     {
                         if (task_service.DeleteUser(user.NameID) == false)
                         {
-                            Console.WriteLine("\nКритическая ошибка, пользователь не существует\n");
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
                             return;
                         }
                         else
@@ -380,23 +383,54 @@ class Program
                     LoggedCycle(task_service, user);
                     break;
                 case 3:
+                    Log.CloseAndFlush();
                     return;
             }
         }
     }
     static void Main()
     {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton<IEventRepo, PostgresEventRepo>()
-            .AddSingleton<IHabitRepo, PostgresHabitRepo>()
-            .AddSingleton<IUserRepo, PostgresUserRepo>()
-            .AddDbContext<PostgresDBContext>(options => options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
-            .AddTransient<ISheduleLoad, ShedAdapter>()
-            .AddTransient<ITaskTracker, TaskTracker>()
-            .AddTransient<IHabitDistributor, HabitDistributor>()
-            .BuildServiceProvider();
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(configuration)
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
+            .CreateLogger();
+        try
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddSingleton<IConfiguration>(configuration)
+                .AddLogging(loggingBuilder =>
+                {
+                    loggingBuilder.ClearProviders();
+                    loggingBuilder.AddSerilog();
+                })
+                .AddSingleton<IEventRepo, PostgresEventRepo>()
+                .AddSingleton<IHabitRepo, PostgresHabitRepo>()
+                .AddSingleton<IUserRepo, PostgresUserRepo>()
+                .AddDbContext<PostgresDBContext>(options =>
+                    options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")))
+                .AddTransient<ISheduleLoad, ShedAdapter>()
+                .AddTransient<ITaskTracker, TaskTracker>()
+                .AddTransient<IHabitDistributor, HabitDistributor>()
+                .BuildServiceProvider();
 
-        var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
-        LogInCycle(taskService);
+            //Log.Information("Приложение запущено");
+            var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
+            LogInCycle(taskService);
+            //Log.Information("Приложение остановлено");
+            //Log.CloseAndFlush();
+        }
+        catch (Exception ex)
+        {
+            Log.Fatal(ex, "Приложение завершилось с неизвестной ошибкой");
+        }
+        finally
+        {
+            //Log.Information("Приложение остановлено");
+            Log.CloseAndFlush();
+        }
     }
 }
