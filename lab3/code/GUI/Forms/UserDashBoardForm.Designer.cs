@@ -4,6 +4,7 @@ using System.Windows.Forms;
 using Domain;
 using Domain.InPorts;
 using Domain.Models;
+using Types;
 
 namespace HabitTrackerGUI
 {
@@ -64,7 +65,9 @@ namespace HabitTrackerGUI
                     StartTime = ev.Start,
                     EndTime = ev.End,
                     Name = ev.Name,
-                    IsEvent = true
+                    IsEvent = true,
+                    EventOption = ev.Option,
+                    EDate = ev.EDate
                 });
             }
 
@@ -79,7 +82,9 @@ namespace HabitTrackerGUI
                         StartTime = timing.Start,
                         EndTime = timing.End,
                         Name = habit.Name,
-                        IsEvent = false
+                        IsEvent = false,
+                        EventOption = null,
+                        EDate = null
                     });
                 }
             }
@@ -100,8 +105,15 @@ namespace HabitTrackerGUI
                 // Добавляем элементы расписания
                 foreach (var item in sortedItems)
                 {
-                    string typePrefix = item.IsEvent ? "Событие" : "Привычка";
-                    lstTimeTable.Items.Add($"   {typePrefix}: {item.Name} ({item.StartTime}-{item.EndTime})");
+                    if (item.IsEvent)
+                    {
+                        string info = $"   Событие: {item.Name} ({item.StartTime}-{item.EndTime}), {item.EventOption}";
+                        if (item.EventOption == EventOption.Once)
+                            info += ", " + item.EDate;
+                        lstTimeTable.Items.Add(info);
+                    }
+                    else
+                        lstTimeTable.Items.Add($"   Привычка: {item.Name} ({item.StartTime}-{item.EndTime})");
                 }
 
                 // Пустая строка между днями
@@ -117,6 +129,8 @@ namespace HabitTrackerGUI
             public TimeOnly EndTime { get; set; }
             public string Name { get; set; }
             public bool IsEvent { get; set; }
+            public EventOption? EventOption { get; set; }
+            public DateOnly? EDate {  get; set; }
         }
 
         private string GetDayName(DayOfWeek day)
@@ -138,7 +152,7 @@ namespace HabitTrackerGUI
         {
             var openFileDialog = new OpenFileDialog
             {
-                Filter = "csv файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
+                Filter = "ics файлы (*.ics)|*.ics|csv файлы (*.csv)|*.csv|Все файлы (*.*)|*.*",
                 Title = "Выберите файл расписания"
             };
 
@@ -404,7 +418,7 @@ namespace HabitTrackerGUI
             this.btnNotificationTimes.Location = new System.Drawing.Point(20, 290);
             this.btnNotificationTimes.Name = "btnNotificationTimes";
             this.btnNotificationTimes.Size = new System.Drawing.Size(220, 30);
-            this.btnNotificationTimes.Text = "Изменить время уведомлений";
+            this.btnNotificationTimes.Text = "Изменить время запрета уведомлений";
             this.btnNotificationTimes.Click += new System.EventHandler(this.btnNotificationTimes_Click);
 
             // btnDeleteAccount

@@ -23,7 +23,7 @@ namespace HabitTrackerGUI
                 .AddSingleton<IHabitRepo, PostgresHabitRepo>()
                 .AddSingleton<IUserRepo, PostgresUserRepo>()
                 .AddDbContext<PostgresDBContext>(options =>
-                    options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
+                    options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
                 .AddTransient<ISheduleLoad, ShedAdapter>()
                 .AddTransient<ITaskTracker, TaskTracker>()
                 .AddTransient<IHabitDistributor, HabitDistributor>()

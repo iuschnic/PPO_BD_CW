@@ -30,8 +30,8 @@ public class PostgresEventRepo : IEventRepo
                     && (fir_day_of_week <= ev.EDate) 
                     && (ev.EDate <= last_day_of_week))) ||
               ((ev.Option == Types.EventOption.EveryTwoWeeks)
-                    && fir_day_of_week.AddDays((int) ev.Day).DayNumber - ((DateOnly)ev.EDate).DayNumber > 0
-                    && ((fir_day_of_week.AddDays((int)ev.Day).DayNumber - ((DateOnly)ev.EDate).DayNumber) / 7) % 2 == 0)
+                    && fir_day_of_week.AddDays((int) ev.Day).DayNumber - ((DateOnly)ev.EDate).DayNumber >= 0
+                    && (((fir_day_of_week.AddDays((int)ev.Day).DayNumber - ((DateOnly)ev.EDate).DayNumber) / 7) % 2 == 0))
             ).ToList();
 
         if (dbevents == null)
