@@ -22,16 +22,10 @@ public class PostgresUserRepo : IUserRepo
             .FirstOrDefault(u => u.NameID == username);
         if (dbuser == null)
             return null;
-        List<SettingsTime> settingsTimes = [];
-        foreach (DBSTime time in dbuser.Settings.ForbiddenTimings)
-        {
-            SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBUserSettingsID);
-            settingsTimes.Add(st);
-        }
-        UserSettings s = new UserSettings(dbuser.Settings.Id, dbuser.Settings.NotifyOn, dbuser.Settings.DBUserID, settingsTimes);
+        UserSettings s = dbuser.Settings.ToModel(dbuser.Settings.ForbiddenTimings);
         return new User(dbuser.NameID, dbuser.PasswordHash, new PhoneNumber(dbuser.Number), s);
     }
-
+    //Не возвращаются event из за более сложной логики получения, добавляются в TaskTracker
     public User? TryFullGet(string username)
     {
         var dbuser = _dbContext.Users
@@ -41,25 +35,11 @@ public class PostgresUserRepo : IUserRepo
             .FirstOrDefault(u => u.NameID == username);
         if (dbuser == null)
             return null;
-        List<SettingsTime> settingsTimes = [];
-        foreach (DBSTime time in dbuser.Settings.ForbiddenTimings)
-        {
-            SettingsTime st = new SettingsTime(time.Id, time.Start, time.End, time.DBUserSettingsID);
-            settingsTimes.Add(st);
-        }
-        UserSettings s = new UserSettings(dbuser.Settings.Id, dbuser.Settings.NotifyOn, dbuser.Settings.DBUserID, settingsTimes);
+        UserSettings s = dbuser.Settings.ToModel(dbuser.Settings.ForbiddenTimings);
         List<Event> events = [];
         List<Habit> habits = [];
         foreach (var h in dbuser.Habits)
-        {
-            List<ActualTime> actualTimes = [];
-            List<PrefFixedTime> preffixedTimes = [];
-            foreach (var pf in h.PrefFixedTimings)
-                preffixedTimes.Add(new PrefFixedTime(pf.Id, pf.Start, pf.End, pf.DBHabitID));
-            foreach (var a in h.ActualTimings)
-                actualTimes.Add(new ActualTime(a.DBHabitID, a.Start, a.End, a.Day, a.DBHabitID));
-            habits.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.DBUserNameID, actualTimes, preffixedTimes, h.CountInWeek));
-        }
+            habits.Add(h.ToModel(h.PrefFixedTimings, h.ActualTimings));
         return new User(dbuser.NameID, dbuser.PasswordHash, new PhoneNumber(dbuser.Number), s, habits, events);
     }
 
@@ -70,11 +50,11 @@ public class PostgresUserRepo : IUserRepo
         if (_dbContext.USettings.Find(u.Settings.Id) != null)
             return false;
         DBUser dbuser = new DBUser(u.NameID, u.Number.StringNumber, u.PasswordHash);
-        DBUserSettings dbus = new DBUserSettings(u.Settings.Id, u.Settings.NotifyOn, u.Settings.UserNameID);
+        DBUserSettings dbus = new DBUserSettings(u.Settings);
         List<DBSTime> times = [];
         foreach (var time in u.Settings.SettingsTimes)
         {
-            DBSTime st = new DBSTime(time.Id, time.Start, time.End, time.SettingsID);
+            DBSTime st = new DBSTime(time);
             times.Add(st);
         }
         _dbContext.Users.Add(dbuser);
