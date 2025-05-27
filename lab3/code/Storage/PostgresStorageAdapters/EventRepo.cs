@@ -1,8 +1,6 @@
 ﻿using Domain.Models;
 using Domain.OutPorts;
-using Microsoft.EntityFrameworkCore;
 using Storage.Models;
-using System.Linq.Expressions;
 
 namespace Storage.PostgresStorageAdapters;
 
@@ -38,7 +36,7 @@ public class PostgresEventRepo : IEventRepo
             return [];
         List<Event> events = [];
         foreach (var dbe in dbevents)
-            events.Add(new Event(dbe.Id, dbe.Name, dbe.Start, dbe.End, dbe.DBUserNameID, dbe.Option, dbe.Day, dbe.EDate));
+            events.Add(dbe.ToModel());
         return events;
     }
 
@@ -47,7 +45,7 @@ public class PostgresEventRepo : IEventRepo
         var test = _dbContext.Events.Find(e.Id);
         if (test != null) 
             return false;
-        DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.UserNameID, e.Option, e.Day, e.EDate);
+        DBEvent dbe = new DBEvent(e);
         _dbContext.Events.Add(dbe);
         _dbContext.SaveChanges();
         return true;
@@ -61,7 +59,7 @@ public class PostgresEventRepo : IEventRepo
             var test = _dbContext.Events.Find(e.Id);
             if (test != null)
                 return false;
-            DBEvent dbe = new DBEvent(e.Id, e.Name, e.Start, e.End, e.UserNameID, e.Option, e.Day, e.EDate);
+            DBEvent dbe = new DBEvent(e);
             dbevents.Add(dbe);
         }
         _dbContext.Events.AddRange(dbevents);

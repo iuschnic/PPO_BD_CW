@@ -3,6 +3,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Types;
+using Domain.Models;
 
 [Table("events")]
 public class DBEvent
@@ -35,5 +36,20 @@ public class DBEvent
         Day = day;
         DBUserNameID = dBUserNameID;
         EDate = eDate;
+    }
+    public DBEvent(Event e)
+    {
+        Id = e.Id;
+        Name = e.Name;
+        Start = e.Start;
+        End = e.End;
+        Option = e.Option;
+        Day = e.Day;
+        DBUserNameID = e.UserNameID;
+        EDate = e.EDate;
+    }
+    public Event ToModel()
+    {
+        return new Event(Id, Name, Start, End, DBUserNameID, Option, Day, EDate);
     }
 }
