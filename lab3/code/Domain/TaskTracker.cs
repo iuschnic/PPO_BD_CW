@@ -3,9 +3,6 @@ using Domain.InPorts;
 using Domain.Models;
 using Types;
 using Microsoft.Extensions.Logging;
-using System.IO;
-using System.Xml.Linq;
-using static Dapper.SqlMapper;
 
 namespace Domain;
 
