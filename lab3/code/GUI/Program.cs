@@ -1,12 +1,13 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using Domain;
 using Domain.InPorts;
 using Domain.OutPorts;
 using LoadAdapters;
 using Microsoft.Extensions.DependencyInjection;
 using Storage.PostgresStorageAdapters;
 using Microsoft.EntityFrameworkCore;
-using Domain;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using Serilog;
 
 namespace HabitTrackerGUI
 {
@@ -15,22 +16,44 @@ namespace HabitTrackerGUI
         [STAThread]
         static void Main()
         {
-            Application.EnableVisualStyles();
-            Application.SetCompatibleTextRenderingDefault(false);
+            var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+            Log.Logger = new LoggerConfiguration()
+                .ReadFrom.Configuration(configuration)
+                .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
+                .CreateLogger();
+            try
+            {
+                var serviceProvider = new ServiceCollection()
+                    .AddSingleton<IConfiguration>(configuration)
+                    .AddLogging(loggingBuilder =>
+                    {
+                        loggingBuilder.ClearProviders();
+                        loggingBuilder.AddSerilog();
+                    })
+                    .AddSingleton<IEventRepo, PostgresEventRepo>()
+                    .AddSingleton<IHabitRepo, PostgresHabitRepo>()
+                    .AddSingleton<IUserRepo, PostgresUserRepo>()
+                    .AddDbContext<PostgresDBContext>(options =>
+                        options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")))
+                    .AddTransient<ISheduleLoad, ShedAdapter>()
+                    .AddTransient<ITaskTracker, TaskTracker>()
+                    .AddTransient<IHabitDistributor, HabitDistributor>()
+                    .BuildServiceProvider();
 
-            var serviceProvider = new ServiceCollection()
-                .AddSingleton<IEventRepo, PostgresEventRepo>()
-                .AddSingleton<IHabitRepo, PostgresHabitRepo>()
-                .AddSingleton<IUserRepo, PostgresUserRepo>()
-                .AddDbContext<PostgresDBContext>(options =>
-                    options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
-                .AddTransient<ISheduleLoad, ShedAdapter>()
-                .AddTransient<ITaskTracker, TaskTracker>()
-                .AddTransient<IHabitDistributor, HabitDistributor>()
-                .BuildServiceProvider();
-
-            var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
-            Application.Run(new MainForm(taskService));
+                var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
+                Application.Run(new MainForm(taskService));
+            }
+            catch (Exception ex)
+            {
+                Log.Fatal(ex, "Приложение завершилось с неизвестной ошибкой");
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
         }
     }
 }
