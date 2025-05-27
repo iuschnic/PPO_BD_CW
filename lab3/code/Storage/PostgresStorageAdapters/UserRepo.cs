@@ -58,7 +58,7 @@ public class PostgresUserRepo : IUserRepo
                 preffixedTimes.Add(new PrefFixedTime(pf.Id, pf.Start, pf.End, pf.DBHabitID));
             foreach (var a in h.ActualTimings)
                 actualTimes.Add(new ActualTime(a.DBHabitID, a.Start, a.End, a.Day, a.DBHabitID));
-            habits.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.DBUserNameID, actualTimes, preffixedTimes, h.NDays));
+            habits.Add(new Habit(h.Id, h.Name, h.MinsToComplete, h.Option, h.DBUserNameID, actualTimes, preffixedTimes, h.CountInWeek));
         }
         return new User(dbuser.NameID, dbuser.PasswordHash, new PhoneNumber(dbuser.Number), s, habits, events);
     }
