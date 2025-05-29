@@ -5,8 +5,6 @@ using System.Globalization;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Ical.Net;
-using Ical.Net.CalendarComponents;
-using Ical.Net.DataTypes;
 
 namespace LoadAdapters;
 

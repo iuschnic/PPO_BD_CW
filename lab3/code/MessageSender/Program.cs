@@ -206,7 +206,7 @@ public class SubscriptionBot
                         await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);
                     else
                     {
-                        var subscriber = new Subscriber(chatId, _tempLogins[chatId], text, 
+                        var subscriber = new Subscriber(chatId, _tempLogins[chatId], text,
                             message.From.Username ?? message.From.FirstName, DateTime.Now);
                         if (!_subscribersRepo.TryAdd(subscriber))
                             throw new Exception("Ошибка, пользователь существует");
