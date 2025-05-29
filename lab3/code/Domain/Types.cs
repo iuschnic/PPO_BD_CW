@@ -1,4 +1,4 @@
-﻿using System.Text.RegularExpressions;
+using System.Text.RegularExpressions;
 
 namespace Types;
 
@@ -41,6 +41,13 @@ public enum TimeOption
     NoMatter,
     Preffered,
     Fixed,
+}
+
+public enum EventOption
+{
+    Once,
+    EveryWeek,
+    EveryTwoWeeks,
 }
 
 public class TimeInterval

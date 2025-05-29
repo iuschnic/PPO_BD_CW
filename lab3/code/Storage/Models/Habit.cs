@@ -71,8 +71,8 @@ public class DBHabit
     public List<DBPrefFixedTime> PrefFixedTimings { get; set; } = [];
     [Column("option")]
     public TimeOption Option { get; set; }
-    [Column("user_name")]
     //Внешний ключ
+    [Column("user_name")]
     public string DBUserNameID { get; set; }
     public DBUser? DBUser { get; set; }
     [Column("ndays")]

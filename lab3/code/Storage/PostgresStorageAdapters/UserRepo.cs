@@ -34,8 +34,7 @@ public class PostgresUserRepo : IUserRepo
 
     public User? TryFullGet(string username)
     {
-        var dbuser = _dbContext.Users.Include(u => u.Events)
-            .Include(u => u.Events)
+        var dbuser = _dbContext.Users
             .Include(u => u.Habits).ThenInclude(h => h.ActualTimings)
             .Include(u => u.Habits).ThenInclude(h => h.PrefFixedTimings)
             .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
@@ -50,8 +49,6 @@ public class PostgresUserRepo : IUserRepo
         }
         UserSettings s = new UserSettings(dbuser.Settings.Id, dbuser.Settings.NotifyOn, dbuser.Settings.DBUserID, settingsTimes);
         List<Event> events = [];
-        foreach (var ev in dbuser.Events)
-            events.Add(new Event(ev.Id, ev.Name, ev.Start, ev.End, ev.Day, ev.DBUserNameID));
         List<Habit> habits = [];
         foreach (var h in dbuser.Habits)
         {

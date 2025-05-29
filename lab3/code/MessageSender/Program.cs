@@ -7,6 +7,7 @@ using Domain.OutPorts;
 using Microsoft.Extensions.DependencyInjection;
 using Storage.PostgresStorageAdapters;
 using Storage.StorageAdapters;
+using StorageSubscribers;
 
 public class Subscriber
 {
@@ -15,21 +16,23 @@ public class Subscriber
     public string Password { get; set; }
     public string Username { get; set; }
     public DateTime SubscriptionDate { get; set; }
+    public Subscriber(long chatId, string taskTrackerLogin, string password, string username, DateTime subscriptionDate)
+    {
+        ChatId = chatId;
+        TaskTrackerLogin = taskTrackerLogin;
+        Password = password;
+        Username = username;
+        SubscriptionDate = subscriptionDate;
+    }
 }
 
-public class SubscriberDbContext : DbContext
+public interface ISubscribersRepo
 {
-    public DbSet<Subscriber> Subscribers { get; set; }
-
-    public SubscriberDbContext(DbContextOptions<SubscriberDbContext> options) : base(options)
-    {
-        Database.EnsureCreated();
-    }
-
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<Subscriber>().HasKey(u => u.ChatId);
-    }
+    Subscriber? TryGetByChatID(long chat_id);
+    Subscriber? TryGetByTaskTrackerLogin(string task_tracker_login);
+    bool IfAnyChatID(long chat_id);
+    bool TryAdd(Subscriber subscriber);
+    bool TryRemoveByChatID(long chat_id);
 }
 
 public class SubscriptionBot
@@ -37,7 +40,7 @@ public class SubscriptionBot
     private readonly ITelegramBotClient _botClient;
     private readonly IMessageRepo _messageRepo;
     private readonly IUserRepo _userRepo;
-    private readonly SubscriberDbContext _dbContext;
+    private readonly ISubscribersRepo _subscribersRepo;
     private CancellationTokenSource _cts;
 
     private enum RegistrationState
@@ -54,15 +57,16 @@ public class SubscriptionBot
     private const string AskPasswordMessage = "Теперь введите ваш пароль в системе TaskTracker:";
     private const string RegistrationCompleteMessage = "Регистрация завершена! Вы подписаны на рассылку.";
     private const string GoodbyeMessage = "Вы отписались от рассылки";
-    private const int timeout = 1;
+    private const int timeout_send = 1;
+    private const int timeout_generate = 30;
     private const int timeout_err = 1;
 
-    public SubscriptionBot(string botToken, IMessageRepo messageRepo, IUserRepo userRepo, SubscriberDbContext dbContext)
+    public SubscriptionBot(string botToken, IMessageRepo messageRepo, IUserRepo userRepo, ISubscribersRepo subscriberRepo)
     {
         _botClient = new TelegramBotClient(botToken);
         _messageRepo = messageRepo;
         _userRepo = userRepo;
-        _dbContext = dbContext;
+        _subscribersRepo = subscriberRepo;
     }
 
     public async Task StartAsync()
@@ -82,6 +86,7 @@ public class SubscriptionBot
         );
 
         _ = Task.Run(StartBroadcasting, _cts.Token);
+        _ = Task.Run(StartCreatingMessages, _cts.Token);
 
         Console.WriteLine("Бот запущен. Нажмите Ctrl+C для остановки.");
         await Task.Delay(-1, _cts.Token);
@@ -92,37 +97,69 @@ public class SubscriptionBot
         while (!_cts.IsCancellationRequested)
         {
             var users_habits = _messageRepo.GetUsersToNotify();
-            List<Tuple<string, string>> user_message = [];
+            Console.WriteLine("StartBroadcasting");
+            List<Domain.Models.Message> messages = [];
             try
             {
                 int cnt = 0;
-                foreach (var user in users_habits)
+                var to_send = _messageRepo.GetMessagesToSend();
+                List<Domain.Models.Message> sent_messages = [];
+                foreach (var send in to_send)
                 {
-                    var subscriber = await _dbContext.Subscribers
-                        .FirstOrDefaultAsync(s => s.TaskTrackerLogin == user.UserName);
+                    var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(send.UserNameID);
 
                     if (subscriber != null)
                     {
-                        cnt++;
-                        var message = $"Привет, {subscriber.Username}!\n" +
-                                  $"Логин: {subscriber.TaskTrackerLogin}\n" +
-                                  $"В ближайшие 30 минут нужно будет выполнить привычку: " +
-                                  $"{user.HabitName ?? "не указана"} ({user.Start} - {user.End})\n";
-                        user_message.Add(new Tuple<string, string>(user.UserName, message));
                         await _botClient.SendMessage(
                             chatId: subscriber.ChatId,
-                            text: message
+                            text: send.Text
                         );
+                        cnt++;
+                        sent_messages.Add(new Domain.Models.Message(send.Id, send.Text, DateTime.Now, send.TimeOutdated, true, send.UserNameID));
                     }
                 }
-                _messageRepo.TryNotify(user_message);
-
-                Console.WriteLine($"{DateTime.Now}: Сообщение отправлено {cnt} подписчикам");
-                await Task.Delay(TimeSpan.FromMinutes(timeout), _cts.Token);
+                _messageRepo.MarkMessagesSent(sent_messages);
+                Console.WriteLine($"{DateTime.Now}: Отправлено {cnt} сообщений");
+                await Task.Delay(TimeSpan.FromMinutes(timeout_send), _cts.Token);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Ошибка при рассылке: {ex.Message}");
+                await Task.Delay(TimeSpan.FromMinutes(timeout_err), _cts.Token);
+            }
+        }
+    }
+
+    private async Task StartCreatingMessages()
+    {
+        while (!_cts.IsCancellationRequested)
+        {
+            Console.WriteLine("StartCreating");
+            var users_habits = _messageRepo.GetUsersToNotify();
+            List<Domain.Models.Message> messages = [];
+            try
+            {
+                foreach (var user_habit in users_habits)
+                {
+                    var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(user_habit.UserName);
+                    if (subscriber != null)
+                    {
+                        var text = $"Привет, {subscriber.Username}!\n" +
+                                  $"Логин: {subscriber.TaskTrackerLogin}\n" +
+                                  $"В ближайшие 30 минут нужно будет выполнить привычку: " +
+                                  $"{user_habit.HabitName ?? "не указана"} ({user_habit.Start} - {user_habit.End})\n";
+                        DateTime outdated = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
+                            user_habit.End.Hour, user_habit.End.Minute, user_habit.End.Second);
+
+                        messages.Add(new Domain.Models.Message(Guid.NewGuid(), text, null, outdated, false, user_habit.UserName));
+                    }
+                }
+                Console.WriteLine($"{DateTime.Now}: Создано {messages.Count} сообщений");
+                _messageRepo.TryCreateMessages(messages);
+                await Task.Delay(TimeSpan.FromMinutes(timeout_generate), _cts.Token);
+            }
+            catch (Exception ex)
+            {
                 await Task.Delay(TimeSpan.FromMinutes(timeout_err), _cts.Token);
             }
         }
@@ -169,16 +206,10 @@ public class SubscriptionBot
                         await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);
                     else
                     {
-                        var subscriber = new Subscriber
-                        {
-                            ChatId = chatId,
-                            TaskTrackerLogin = _tempLogins[chatId],
-                            Password = text,
-                            Username = message.From.Username ?? message.From.FirstName,
-                            SubscriptionDate = DateTime.Now
-                        };
-                        _dbContext.Subscribers.Add(subscriber);
-                        await _dbContext.SaveChangesAsync();
+                        var subscriber = new Subscriber(chatId, _tempLogins[chatId], text, 
+                            message.From.Username ?? message.From.FirstName, DateTime.Now);
+                        if (!_subscribersRepo.TryAdd(subscriber))
+                            throw new Exception("Ошибка, пользователь существует");
 
                         _registrationStates.Remove(chatId);
                         _tempLogins.Remove(chatId);
@@ -199,8 +230,7 @@ public class SubscriptionBot
     private async Task HandleStartCommand(ITelegramBotClient botClient, Message message)
     {
         var chatId = message.Chat.Id;
-
-        if (await _dbContext.Subscribers.AnyAsync(s => s.ChatId == chatId))
+        if (_subscribersRepo.IfAnyChatID(chatId))
         {
             await botClient.SendMessage(
                 chatId: chatId,
@@ -216,12 +246,11 @@ public class SubscriptionBot
     private async Task HandleStopCommand(ITelegramBotClient botClient, Message message)
     {
         var chatId = message.Chat.Id;
-        var subscriber = await _dbContext.Subscribers.FindAsync(chatId);
-
+        var subscriber = _subscribersRepo.TryGetByChatID(chatId);
         if (subscriber != null)
         {
-            _dbContext.Subscribers.Remove(subscriber);
-            await _dbContext.SaveChangesAsync();
+            if (!_subscribersRepo.TryRemoveByChatID(chatId))
+                throw new Exception("Ошибка, пользователь не существует");
 
             await botClient.SendMessage(
                 chatId: chatId,
@@ -248,12 +277,7 @@ public class SubscriptionBot
     public async Task StopAsync()
     {
         _cts?.Cancel();
-        Console.WriteLine("Бот остановлен. Список подписчиков:");
-        var subscribers = await _dbContext.Subscribers.ToListAsync();
-        foreach (var subscriber in subscribers)
-        {
-            Console.WriteLine($"- {subscriber.Username}: {subscriber.TaskTrackerLogin}/{subscriber.Password}");
-        }
+        Console.WriteLine("Бот остановлен.");
     }
 }
 
@@ -264,15 +288,16 @@ class Program
         var serviceProvider = new ServiceCollection()
             .AddSingleton<IMessageRepo, PostgresMessageRepo>()
             .AddSingleton<IUserRepo, PostgresUserRepo>()
+            .AddSingleton<ISubscribersRepo, SQLiteSubscribersRepo>()
             .AddDbContext<PostgresDBContext>(options =>
-                options.UseNpgsql("Host=localhost;Port=5432;Database=habits_db;Username=postgres;Password=postgres"))
-            .AddDbContext<SubscriberDbContext>(options =>
+                options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
+            .AddDbContext<SubscribersDBContext>(options =>
                 options.UseSqlite("Data Source=subscribers.db"))
             .BuildServiceProvider();
 
         using (var scope = serviceProvider.CreateScope())
         {
-            var db = scope.ServiceProvider.GetRequiredService<SubscriberDbContext>();
+            var db = scope.ServiceProvider.GetRequiredService<SubscribersDBContext>();
             await db.Database.EnsureCreatedAsync();
         }
 
@@ -280,7 +305,7 @@ class Program
             "7665679478:AAHtpesgjfWihplWtkBB7Iuwot-6gCElWVY",
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<IUserRepo>(),
-            serviceProvider.GetRequiredService<SubscriberDbContext>());
+            serviceProvider.GetRequiredService<ISubscribersRepo>());
 
         Console.CancelKeyPress += async (sender, e) =>
         {

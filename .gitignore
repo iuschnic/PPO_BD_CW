@@ -6,3 +6,5 @@
 [Oo]bj/
 *.csproj
 *.obj
+*.resx
+*.user

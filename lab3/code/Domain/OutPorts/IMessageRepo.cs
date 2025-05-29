@@ -1,13 +1,13 @@
-﻿using Domain.Models;
+using Domain.Models;
 namespace Domain.OutPorts;
 
 public class UserHabitInfo
 {
     public string UserName;
     public string HabitName;
-    public string Start;
-    public string End;
-    public UserHabitInfo(string user_name, string habit_name, string start, string end) 
+    public TimeOnly Start;
+    public TimeOnly End;
+    public UserHabitInfo(string user_name, string habit_name, TimeOnly start, TimeOnly end) 
     { 
         UserName = user_name;
         HabitName = habit_name;
@@ -17,7 +17,8 @@ public class UserHabitInfo
 }
 public interface IMessageRepo
 {
-    bool TryCreateMessage(Message message, List<string> users);
-    public bool TryNotify(List<Tuple<string, string>> users_messages);
-    List<UserHabitInfo> GetUsersToNotify();
+    public bool TryCreateMessages(List<Message> users_messages);
+    public List<Message> GetMessagesToSend();
+    public bool MarkMessagesSent(List<Message> messages);
+    public List<UserHabitInfo> GetUsersToNotify();
 }

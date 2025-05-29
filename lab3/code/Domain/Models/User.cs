@@ -1,8 +1,3 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Types;
 
 namespace Domain.Models;
@@ -42,7 +37,7 @@ public class User
         else
         {
             ans += "\n";
-            foreach (var e in Events) { ans += e; }
+            foreach (var e in Events.OrderBy(el => el.Day)) { ans += e; }
         }
         if (Settings == null)
             ans += "\nNo settings\n";
