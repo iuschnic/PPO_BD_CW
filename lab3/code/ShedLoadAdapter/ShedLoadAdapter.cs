@@ -9,7 +9,7 @@ using System.Globalization;
 
 namespace LoadAdapters;
 
-public class DummyShedAdapter : ISheduleLoad
+public class ShedAdapter : ISheduleLoad
 {
     public List<Event> LoadDummyShedule(string user_name, string path)
     {
