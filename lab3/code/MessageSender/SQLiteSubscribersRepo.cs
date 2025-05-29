@@ -42,7 +42,7 @@ public class SubscribersDBContext : DbContext
         modelBuilder.Entity<DBSubscriber>().HasKey(u => u.DBChatId);
     }
 }
-public class SQLiteSubscribersRepo: ISubscribersRepo
+public class SQLiteSubscribersRepo : ISubscribersRepo
 {
     private SubscribersDBContext _dbContext { get; }
     public SQLiteSubscribersRepo(SubscribersDBContext dbContext)
