@@ -1,7 +1,9 @@
 ﻿namespace Storage.Models;
 
+using Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Xml.Linq;
 using Types;
 
 [Table("actualtime")]
@@ -30,6 +32,18 @@ public class DBActualTime
         Day = day;
         DBHabitID = dBHabitID;
     }
+    public DBActualTime(ActualTime actual)
+    {
+        Id = actual.Id;
+        Start = actual.Start;
+        End = actual.End;
+        Day = actual.Day;
+        DBHabitID = actual.HabitID;
+    }
+    public ActualTime ToModel()
+    {
+        return new ActualTime(Id, Start, End, Day, DBHabitID);
+    }
 }
 
 [Table("preffixedtime")]
@@ -54,6 +68,17 @@ public class DBPrefFixedTime
         End = end;
         DBHabitID = dBHabitID;
     }
+    public DBPrefFixedTime(PrefFixedTime pref)
+    {
+        Id = pref.Id;
+        Start = pref.Start;
+        End = pref.End;
+        DBHabitID = pref.HabitID;
+    }
+    public PrefFixedTime ToModel()
+    {
+        return new PrefFixedTime(Id, Start, End, DBHabitID);
+    }
 }
 
 [Table("habits")]
@@ -76,14 +101,33 @@ public class DBHabit
     public string DBUserNameID { get; set; }
     public DBUser? DBUser { get; set; }
     [Column("ndays")]
-    public int NDays { get; set; }
-    public DBHabit(Guid id, string name, int minsToComplete, TimeOption option, string dBUserNameID, int nDays)
+    public int CountInWeek { get; set; }
+    public DBHabit(Guid id, string name, int minsToComplete, TimeOption option, string dBUserNameID, int countInWeek)
     {
         Id = id;
         Name = name;
         MinsToComplete = minsToComplete;
         Option = option;
         DBUserNameID = dBUserNameID;
-        NDays = nDays;
+        CountInWeek = countInWeek;
+    }
+    public DBHabit(Habit habit)
+    {
+        Id = habit.Id;
+        Name = habit.Name;
+        MinsToComplete = habit.MinsToComplete;
+        Option = habit.Option;
+        DBUserNameID = habit.UserNameID;
+        CountInWeek = habit.CountInWeek;
+    }
+    public Habit ToModel(List<DBPrefFixedTime> dbpref, List<DBActualTime> dbactual)
+    {
+        List<PrefFixedTime> pref = [];
+        List<ActualTime> actual = [];
+        foreach (var at in dbactual)
+            actual.Add(at.ToModel());
+        foreach (var pf in dbpref)
+            pref.Add(pf.ToModel());
+        return new Habit(Id, Name, MinsToComplete, Option, DBUserNameID, actual, pref, CountInWeek);
     }
 }

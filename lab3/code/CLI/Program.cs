@@ -79,7 +79,7 @@ class Program
             Console.WriteLine("Ошибка ввода");
             return null;
         }
-        Habit habit = new Habit(g, name, mins, (TimeOption) opt, user_name, [], timings, ndays);
+        Habit habit = new Habit(g, name, mins, (TimeOption)opt, user_name, [], timings, ndays);
         return habit;
     }
     private static void LoggedCycle(ITaskTracker task_service, User user)
@@ -87,7 +87,7 @@ class Program
         while (true)
         {
             Console.WriteLine("\n1) Импортировать новое расписание\n2) Добавить привычку\n3) Удалить привычку\n" +
-                "4) Удалить все привычки\n5) Разрешить уведомления\n6) Запретить уведомления\n" + 
+                "4) Удалить все привычки\n5) Разрешить уведомления\n6) Запретить уведомления\n" +
                 "7) Изменить запрещенное время посылки уведомлений\n8) Выйти из учетной записи\n9) Удалить учетную запись\n");
             List<Habit>? undistributed;
             if (!Int32.TryParse(Console.ReadLine(), out int opt) || opt < 1 || opt > 9)
@@ -126,7 +126,7 @@ class Program
                         Console.Write(user);
                         break;
                     }
-                    catch(Exception e)
+                    catch (Exception e)
                     {
                         Console.WriteLine(e.Message);
                     }

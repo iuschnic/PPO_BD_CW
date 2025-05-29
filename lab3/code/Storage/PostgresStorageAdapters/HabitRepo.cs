@@ -1,9 +1,7 @@
 ﻿using Domain.Models;
 using Domain.OutPorts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Storage.Models;
-using Types;
 
 namespace Storage.PostgresStorageAdapters;
 
@@ -26,16 +24,7 @@ public class PostgresHabitRepo : IHabitRepo
             return [];
         List<Habit> habits = new();
         foreach (var dbh in dbhabits)
-        {
-            List<ActualTime> actualTimes = new();
-            List<PrefFixedTime> prefFixedTimes = new();
-            foreach (var at in dbh.ActualTimings)
-                actualTimes.Add(new ActualTime(at.Id, at.Start, at.End, at.Day, at.DBHabitID));
-            foreach (var pf in dbh.PrefFixedTimings)
-                prefFixedTimes.Add(new PrefFixedTime(pf.Id, pf.Start, pf.End, pf.DBHabitID));
-            habits.Add(new Habit(dbh.Id, dbh.Name, dbh.MinsToComplete, dbh.Option, dbh.DBUserNameID,
-                actualTimes, prefFixedTimes, dbh.NDays));
-        }
+            habits.Add(dbh.ToModel(dbh.PrefFixedTimings, dbh.ActualTimings));
         return habits;
     }
 
@@ -47,15 +36,15 @@ public class PostgresHabitRepo : IHabitRepo
         List<DBPrefFixedTime> prefFixedTimes = new();
         foreach (var at in h.ActualTimings)
         {
-            DBActualTime dbat = new DBActualTime(at.Id, at.Start, at.End, at.Day, at.HabitID);
+            DBActualTime dbat = new DBActualTime(at);
             actualTimes.Add(dbat);
         }
         foreach (var pf in h.PrefFixedTimings)
         {
-            DBPrefFixedTime dbpf = new DBPrefFixedTime(pf.Id, pf.Start, pf.End, pf.HabitID);
+            DBPrefFixedTime dbpf = new DBPrefFixedTime(pf);
             prefFixedTimes.Add(dbpf);
         }
-        DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, h.CountInWeek);
+        DBHabit dbh = new DBHabit(h);
         _dbContext.Habits.Add(dbh);
         _dbContext.ActualTimes.AddRange(actualTimes);
         _dbContext.PrefFixedTimes.AddRange(prefFixedTimes);
@@ -75,15 +64,15 @@ public class PostgresHabitRepo : IHabitRepo
                 return false;
             foreach (var at in h.ActualTimings)
             {
-                DBActualTime dbat = new DBActualTime(at.Id, at.Start, at.End, at.Day, at.HabitID);
+                DBActualTime dbat = new DBActualTime(at);
                 actualTimes.Add(dbat);
             }
             foreach (var pf in h.PrefFixedTimings)
             {
-                DBPrefFixedTime dbpf = new DBPrefFixedTime(pf.Id, pf.Start, pf.End, pf.HabitID);
+                DBPrefFixedTime dbpf = new DBPrefFixedTime(pf);
                 prefFixedTimes.Add(dbpf);
             }
-            DBHabit dbh = new DBHabit(h.Id, h.Name, h.MinsToComplete, h.Option, h.UserNameID, h.CountInWeek);
+            DBHabit dbh = new DBHabit(h);
             dbhabits.Add(dbh);
         }
         _dbContext.Habits.AddRange(dbhabits);
@@ -111,7 +100,6 @@ public class PostgresHabitRepo : IHabitRepo
         return true;
     }
 
-    //Вроде ОК но написать тесты
     public bool TryDeleteHabits(string user_name)
     {
         var dbu = _dbContext.Users.Find(user_name);

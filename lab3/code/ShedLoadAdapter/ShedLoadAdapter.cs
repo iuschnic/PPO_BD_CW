@@ -197,16 +197,16 @@ public class ShedAdapter : ISheduleLoad
                     // Повторяющиеся события
                     var rrule = calendarEvent.RecurrenceRules.First();
 
-                    if (rrule.Frequency == FrequencyType.Weekly)
-                    {
-                        option = EventOption.EveryWeek;
-                        dayOfWeek = calendarEvent.DtStart.AsSystemLocal.DayOfWeek;
-                    }
                     if (rrule.Interval == 2 && rrule.Frequency == FrequencyType.Weekly)
                     {
                         option = EventOption.EveryTwoWeeks;
                         dayOfWeek = calendarEvent.DtStart.AsSystemLocal.DayOfWeek;
                         eventDate = DateOnly.FromDateTime(calendarEvent.DtStart.AsSystemLocal);
+                    }
+                    else if (rrule.Frequency == FrequencyType.Weekly)
+                    {
+                        option = EventOption.EveryWeek;
+                        dayOfWeek = calendarEvent.DtStart.AsSystemLocal.DayOfWeek;
                     }
                 }
                 else

@@ -1,5 +1,4 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Telegram.Bot.Types;
 
 namespace StorageSubscribers;
 
@@ -25,6 +24,10 @@ public class DBSubscriber
         DBPassword = subscriber.Password;
         DBUsername = subscriber.Username;
         DBSubscriptionDate = subscriber.SubscriptionDate;
+    }
+    public Subscriber ToModel()
+    {
+        return new Subscriber(DBChatId, DBTaskTrackerLogin, DBPassword, DBUsername, DBSubscriptionDate);
     }
 }
 
@@ -54,14 +57,14 @@ public class SQLiteSubscribersRepo : ISubscribersRepo
         var dbsub = _dbContext.Subscribers.Find(chat_id);
         if (dbsub == null)
             return null;
-        return new Subscriber(dbsub.DBChatId, dbsub.DBTaskTrackerLogin, dbsub.DBPassword, dbsub.DBUsername, dbsub.DBSubscriptionDate);
+        return dbsub.ToModel();
     }
     public Subscriber? TryGetByTaskTrackerLogin(string task_tracker_login)
     {
         var dbsub = _dbContext.Subscribers.FirstOrDefault(dbs => dbs.DBTaskTrackerLogin == task_tracker_login);
         if (dbsub == null)
             return null;
-        return new Subscriber(dbsub.DBChatId, dbsub.DBTaskTrackerLogin, dbsub.DBPassword, dbsub.DBUsername, dbsub.DBSubscriptionDate);
+        return dbsub.ToModel();
     }
     public bool IfAnyChatID(long chat_id)
     {

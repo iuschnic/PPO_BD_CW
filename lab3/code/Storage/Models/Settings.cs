@@ -1,5 +1,6 @@
 ﻿namespace Storage.Models;
 
+using Domain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -23,6 +24,17 @@ public class DBSTime
         End = end;
         DBUserSettingsID = dBUserSettingsID;
     }
+    public DBSTime(SettingsTime t)
+    {
+        Id = t.Id;
+        Start = t.Start;
+        End = t.End;
+        DBUserSettingsID = t.SettingsID;
+    }
+    public SettingsTime ToModel()
+    {
+        return new SettingsTime(Id, Start, End, DBUserSettingsID);
+    }
 }
 
 
@@ -43,5 +55,18 @@ public class DBUserSettings
         Id = id;
         NotifyOn = notifyOn;
         DBUserID = dBUserID;
+    }
+    public DBUserSettings(UserSettings userSettings)
+    {
+        Id = userSettings.Id;
+        NotifyOn = userSettings.NotifyOn;
+        DBUserID = userSettings.UserNameID;
+    }
+    public UserSettings ToModel(List<DBSTime> forbiddenTimings)
+    {
+        List<SettingsTime> times = [];
+        foreach (var t in forbiddenTimings)
+            times.Add(t.ToModel());
+        return new UserSettings(Id, NotifyOn, DBUserID, times);
     }
 }
