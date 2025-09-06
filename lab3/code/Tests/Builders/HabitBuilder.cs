@@ -9,7 +9,7 @@ public class HabitBuilder
     private List<ActualTime> _actualTimings = new();
     private List<PrefFixedTime> _prefFixedTimings = new();
     private TimeOption _option = TimeOption.NoMatter;
-    private string _userName = "egor";
+    private string _userName = "Test User";
     private int _countInWeek = 1;
 
     public HabitBuilder WithName(string name)
