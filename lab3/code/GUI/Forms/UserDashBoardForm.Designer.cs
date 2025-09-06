@@ -229,21 +229,27 @@ namespace HabitTrackerGUI
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
                 return;
             }
-
             var habitName = lstHabits.SelectedItem.ToString().Split(' ')[1];
-            var result = _taskService.DeleteHabit(_user.NameID, habitName);
+            try
+            {
+                var result = _taskService.DeleteHabit(_user.NameID, habitName);
+                if (result == null)
+                {
+                    MessageBox.Show("Ошибка при удалении привычки", "Ошибка",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
 
-            if (result == null)
+                _user = result.Item1;
+                LoadData();
+                MessageBox.Show("Привычка успешно удалена", "Успех",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch
             {
                 MessageBox.Show("Ошибка при удалении привычки", "Ошибка",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
-
-            _user = result.Item1;
-            LoadData();
-            MessageBox.Show("Привычка успешно удалена", "Успех",
-                MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         private void btnDeleteAllHabits_Click(object sender, EventArgs e)
@@ -251,19 +257,27 @@ namespace HabitTrackerGUI
             if (MessageBox.Show("Вы действительно хотите удалить все привычки?", "Подтверждение",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
-                var result = _taskService.DeleteHabits(_user.NameID);
+                try
+                {
+                    var result = _taskService.DeleteHabits(_user.NameID);
 
-                if (result == null)
+                    if (result == null)
+                    {
+                        MessageBox.Show("Ошибка при удалении привычек", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return;
+                    }
+
+                    _user = result.Item1;
+                    LoadData();
+                    MessageBox.Show("Все привычки успешно удалены", "Успех",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch
                 {
                     MessageBox.Show("Ошибка при удалении привычек", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    return;
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
-
-                _user = result.Item1;
-                LoadData();
-                MessageBox.Show("Все привычки успешно удалены", "Успех",
-                    MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -277,13 +291,22 @@ namespace HabitTrackerGUI
                 _user.Settings.UserNameID,
                 _user.Settings.SettingsTimes);
 
-            var user = _taskService.ChangeSettings(settings);
-
-            if (user != null)
+            try
             {
+                var user = _taskService.ChangeSettings(settings);
+                if (user == null)
+                {
+                    MessageBox.Show("Ошибка обновления настроек уведомлений", "Ошибка",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
                 _user = user;
                 MessageBox.Show("Настройки уведомлений обновлены", "Успех",
                     MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            catch
+            {
+                MessageBox.Show("Ошибка обновления настроек уведомлений", "Ошибка",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -298,13 +321,22 @@ namespace HabitTrackerGUI
                     _user.Settings.UserNameID,
                     form.GetTimes());
 
-                var user = _taskService.ChangeSettings(settings);
-
-                if (user != null)
+                try
                 {
+                    var user = _taskService.ChangeSettings(settings);
+                    if (user == null)
+                    {
+                        MessageBox.Show("Ошибка обновления временных интервалов", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
                     _user = user;
                     MessageBox.Show("Временные интервалы обновлены", "Успех",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                catch
+                {
+                    MessageBox.Show("Ошибка обновления временных интервалов", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }
@@ -314,16 +346,24 @@ namespace HabitTrackerGUI
             if (MessageBox.Show("Вы действительно хотите удалить свою учетную запись?", "Подтверждение",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
-                if (_taskService.DeleteUser(_user.NameID))
+                try
                 {
-                    MessageBox.Show("Учетная запись успешно удалена", "Успех",
-                        MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    this.Close();
+                    if (_taskService.DeleteUser(_user.NameID))
+                    {
+                        MessageBox.Show("Учетная запись успешно удалена", "Успех",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        this.Close();
+                    }
+                    else
+                    {
+                        MessageBox.Show("Ошибка при удалении учетной записи", "Ошибка",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
-                else
+                catch
                 {
                     MessageBox.Show("Ошибка при удалении учетной записи", "Ошибка",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
             }
         }
