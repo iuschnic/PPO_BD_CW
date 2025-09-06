@@ -95,7 +95,7 @@ public class TaskTracker : ITaskTracker
         catch (Exception ex)
         {
             _logger.LogWarning($"Ошибка загрузки расписания для пользователя {user_name}: {ex.Message}");
-            throw new Exception(ex.Message);
+            return null;
         }
         var habits = _habitRepo.TryGet(user_name);
         if (habits == null)
