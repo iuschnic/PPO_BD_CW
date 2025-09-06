@@ -348,17 +348,10 @@ namespace HabitTrackerGUI
             {
                 try
                 {
-                    if (_taskService.DeleteUser(_user.NameID))
-                    {
-                        MessageBox.Show("Учетная запись успешно удалена", "Успех",
-                            MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        this.Close();
-                    }
-                    else
-                    {
-                        MessageBox.Show("Ошибка при удалении учетной записи", "Ошибка",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
+                    _taskService.DeleteUser(_user.NameID);
+                    MessageBox.Show("Учетная запись успешно удалена", "Успех",
+                        MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.Close();
                 }
                 catch
                 {

@@ -14,7 +14,7 @@ namespace Tests
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
-            var h = new Habit(Guid.NewGuid(), "тест", 60, Types.TimeOption.NoMatter, user_name, [], [], 2);
+            var h = new Habit(Guid.NewGuid(), "тест", 60, TimeOption.NoMatter, user_name, [], [], 2);
             events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
                 user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
             events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),

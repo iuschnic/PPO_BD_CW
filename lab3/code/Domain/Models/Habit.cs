@@ -12,6 +12,8 @@ public class ActualTime
 
     public ActualTime(Guid id, TimeOnly start, TimeOnly end, DayOfWeek week_day, Guid habitID)
     {
+        if (start >= end)
+            throw new ArgumentException("start < end!");
         Id = id;
         Start = start;
         End = end;
@@ -34,6 +36,8 @@ public class PrefFixedTime
 
     public PrefFixedTime(Guid id, TimeOnly start, TimeOnly end, Guid habit_id)
     {
+        if (start >= end)
+            throw new ArgumentException("start < end!");
         Id = id;
         Start = start;
         End = end;
