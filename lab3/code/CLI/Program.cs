@@ -95,12 +95,12 @@ class Program
                 Console.WriteLine("\nВведите целое число от 1 до 8 включительно\n");
                 continue;
             }
+            Tuple<User, List<Habit>>? ret;
             switch (opt)
             {
                 case 1:
                     Console.WriteLine("\nВведите название файла\n");
                     var path = Console.ReadLine();
-                    Tuple<User, List<Habit>>? ret;
                     if (path == null)
                     {
                         Console.WriteLine("\nОшибка ввода\n");
@@ -124,7 +124,6 @@ class Program
                                 Console.Write(u);
                         Console.WriteLine();
                         Console.Write(user);
-                        break;
                     }
                     catch (Exception e)
                     {
@@ -135,22 +134,29 @@ class Program
                     var habit = ParseHabit(task_service, user.NameID);
                     if (habit == null)
                         break;
-                    ret = task_service.AddHabit(habit);
-                    if (ret == null)
+                    try
                     {
-                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                        return;
+                        ret = task_service.AddHabit(habit);
+                        if (ret == null)
+                        {
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            return;
+                        }
+                        user = ret.Item1;
+                        undistributed = ret.Item2;
+                        Console.WriteLine("\nПривычка была успешно добавлена, нераспределенные привычки:\n");
+                        if (undistributed.Count == 0)
+                            Console.WriteLine("\nВсе привычки были распределены успешно\n");
+                        else
+                            foreach (var u in undistributed)
+                                Console.Write(u);
+                        Console.WriteLine();
+                        Console.Write(user);
                     }
-                    user = ret.Item1;
-                    undistributed = ret.Item2;
-                    Console.WriteLine("\nПривычка была успешно добавлена, нераспределенные привычки:\n");
-                    if (undistributed.Count == 0)
-                        Console.WriteLine("\nВсе привычки были распределены успешно\n");
-                    else
-                        foreach (var u in undistributed)
-                            Console.Write(u);
-                    Console.WriteLine();
-                    Console.Write(user);
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     break;
                 case 3:
                     Console.WriteLine("\nВведите название удаляемой привычки:\n");
@@ -160,99 +166,138 @@ class Program
                         Console.WriteLine("\nОшибка ввода\n");
                         break;
                     }
-                    ret = task_service.DeleteHabit(user.NameID, name);
-                    if (ret == null)
+                    try
                     {
-                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                        return;
+                        ret = task_service.DeleteHabit(user.NameID, name);
+                        if (ret == null)
+                        {
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            return;
+                        }
+                        user = ret.Item1;
+                        undistributed = ret.Item2;
+                        Console.WriteLine("\nПривычка была удалена\n");
+                        if (undistributed.Count == 0)
+                            Console.WriteLine("\nВсе привычки были распределены успешно\n");
+                        else
+                            Console.Write(undistributed);
+                        Console.WriteLine();
+                        Console.Write(user);
                     }
-                    user = ret.Item1;
-                    undistributed = ret.Item2;
-                    Console.WriteLine("\nПривычка была удалена\n");
-                    if (undistributed.Count == 0)
-                        Console.WriteLine("\nВсе привычки были распределены успешно\n");
-                    else
-                        Console.Write(undistributed);
-                    Console.WriteLine();
-                    Console.Write(user);
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     break;
                 case 4:
-                    ret = task_service.DeleteHabits(user.NameID);
-                    if (ret == null)
+
+                    try
                     {
-                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                        return;
+                        ret = task_service.DeleteHabits(user.NameID);
+                        if (ret == null)
+                        {
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            return;
+                        }
+                        user = ret.Item1;
+                        Console.WriteLine("\nПривычки были успешно удалены\n");
+                        Console.WriteLine();
+                        Console.Write(user);
                     }
-                    user = ret.Item1;
-                    Console.WriteLine("\nПривычки были успешно удалены\n");
-                    Console.WriteLine();
-                    Console.Write(user);
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     break;
                 case 5:
-                    var settings = new UserSettings(user.Settings.Id, true, user.Settings.UserNameID, user.Settings.SettingsTimes);
-                    var tmpuser = task_service.ChangeSettings(settings);
-                    if (tmpuser == null)
+
+                    try
                     {
-                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                        return;
+                        var settings = new UserSettings(user.Settings.Id, true, user.Settings.UserNameID, user.Settings.SettingsTimes);
+                        var tmpuser = task_service.ChangeSettings(settings);
+                        if (tmpuser == null)
+                        {
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            return;
+                        }
+                        user = tmpuser;
+                        Console.WriteLine("\nУведомления разрешены\n");
+                        Console.WriteLine();
+                        Console.Write(user);
                     }
-                    user = tmpuser;
-                    Console.WriteLine("\nУведомления разрешены\n");
-                    Console.WriteLine();
-                    Console.Write(user);
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     break;
                 case 6:
-                    settings = new UserSettings(user.Settings.Id, false, user.Settings.UserNameID, user.Settings.SettingsTimes);
-                    tmpuser = task_service.ChangeSettings(settings);
-                    if (tmpuser == null)
+
+                    try
                     {
-                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                        return;
+                        var settings = new UserSettings(user.Settings.Id, false, user.Settings.UserNameID, user.Settings.SettingsTimes);
+                        var tmpuser = task_service.ChangeSettings(settings);
+                        if (tmpuser == null)
+                        {
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            return;
+                        }
+                        user = tmpuser;
+                        Console.WriteLine("\nУведомления запрещены\n");
+                        Console.WriteLine();
+                        Console.Write(user);
                     }
-                    user = tmpuser;
-                    Console.WriteLine("\nУведомления запрещены\n");
-                    Console.WriteLine();
-                    Console.Write(user);
+                    catch (Exception e)
+                    {
+                        Console.WriteLine(e.Message);
+                    }
                     break;
                 case 7:
-                    List<SettingsTime> timings = [];
-                    Console.WriteLine("\nВведите новые временные интервалы запрета уведомлений по одному в строке (hh:mm hh:mm):\n");
-                    while (true)
+
+                    try
                     {
-                        var input = Console.ReadLine();
-                        if (input == null)
+                        List<SettingsTime> timings = [];
+                        Console.WriteLine("\nВведите новые временные интервалы запрета уведомлений по одному в строке (hh:mm hh:mm):\n");
+                        while (true)
                         {
-                            Console.WriteLine("\nОшибка ввода\n");
-                            break;
+                            var input = Console.ReadLine();
+                            if (input == null)
+                            {
+                                Console.WriteLine("\nОшибка ввода\n");
+                                break;
+                            }
+                            string[] line = input.Split(" ");
+                            if (line.Length != 2)
+                            {
+                                break;
+                            }
+                            TimeOnly start, end;
+                            try
+                            {
+                                start = TimeOnly.Parse(line[0]);
+                                end = TimeOnly.Parse(line[1]);
+                            }
+                            catch (Exception)
+                            {
+                                break;
+                            }
+                            timings.Add(new SettingsTime(Guid.NewGuid(), start, end, user.Settings.Id));
                         }
-                        string[] line = input.Split(" ");
-                        if (line.Length != 2)
+                        var settings = new UserSettings(user.Settings.Id, user.Settings.NotifyOn, user.Settings.UserNameID, timings);
+                        var tmpuser = task_service.ChangeSettings(settings);
+                        if (tmpuser == null)
                         {
-                            break;
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            return;
                         }
-                        TimeOnly start, end;
-                        try
-                        {
-                            start = TimeOnly.Parse(line[0]);
-                            end = TimeOnly.Parse(line[1]);
-                        }
-                        catch (Exception)
-                        {
-                            break;
-                        }
-                        timings.Add(new SettingsTime(Guid.NewGuid(), start, end, user.Settings.Id));
+                        user = tmpuser;
+                        Console.WriteLine("\nЗапрещенное время посылки уведомлений изменено\n");
+                        Console.WriteLine();
+                        Console.Write(user);
                     }
-                    settings = new UserSettings(user.Settings.Id, user.Settings.NotifyOn, user.Settings.UserNameID, timings);
-                    tmpuser = task_service.ChangeSettings(settings);
-                    if (tmpuser == null)
+                    catch (Exception e)
                     {
-                        Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                        return;
+                        Console.WriteLine(e.Message);
                     }
-                    user = tmpuser;
-                    Console.WriteLine("\nЗапрещенное время посылки уведомлений изменено\n");
-                    Console.WriteLine();
-                    Console.Write(user);
                     break;
                 case 8:
                     return;
@@ -268,15 +313,22 @@ class Program
                         break;
                     else if (choice == "y")
                     {
-                        if (task_service.DeleteUser(user.NameID) == false)
+                        try
                         {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
+                            if (task_service.DeleteUser(user.NameID) == false)
+                            {
+                                Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                                return;
+                            }
+                            else
+                            {
+                                Console.WriteLine("\nУчетная запись успешно удалена\n");
+                                return;
+                            }
                         }
-                        else
+                        catch (Exception e)
                         {
-                            Console.WriteLine("\nУчетная запись успешно удалена\n");
-                            return;
+                            Console.WriteLine(e.Message);
                         }
                     }
                     else
