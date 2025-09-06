@@ -26,6 +26,7 @@ public class PostgresUserRepo : IUserRepo
         return new User(dbuser.NameID, dbuser.PasswordHash, new PhoneNumber(dbuser.Number), s);
     }
     //Не возвращаются event из за более сложной логики получения, добавляются в TaskTracker
+    //В одном запросе трудно отфильтровать привычки с разными опциями, поэтому используется отдельный запрос в EventRepo
     public User? TryFullGet(string username)
     {
         var dbuser = _dbContext.Users
