@@ -17,17 +17,25 @@ namespace HabitTrackerGUI
 
         private void btnLogin_Click(object sender, EventArgs e)
         {
-            var user = _taskService.LogIn(txtUsername.Text, txtPassword.Text);
-            if (user == null)
+            try
+            {
+                var user = _taskService.LogIn(txtUsername.Text, txtPassword.Text);
+                if (user == null)
+                {
+                    MessageBox.Show("Неверные логин или пароль", "Ошибка",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
+                this.Hide();
+                new UserDashboardForm(_taskService, user).ShowDialog();
+                this.Show();
+            }
+            catch
             {
                 MessageBox.Show("Неверные логин или пароль", "Ошибка",
                     MessageBoxButtons.OK, MessageBoxIcon.Error);
-                return;
             }
-
-            this.Hide();
-            new UserDashboardForm(_taskService, user).ShowDialog();
-            this.Show();
         }
 
         private void btnRegister_Click(object sender, EventArgs e)
