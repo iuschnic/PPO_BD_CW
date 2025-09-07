@@ -4,27 +4,27 @@ using Types;
 using Tests.ObjectMothers;
 using Allure.Xunit.Attributes;
 
-namespace Tests.HabitDistr;
+namespace Tests.UnitHabitDistr;
 
 public class UnitTestsHabitDistr
 {
+    private HabitDistributor _distr = new();
     [Fact]
     [AllureStory("Распределение привычек по известному расписанию")]
     [AllureFeature("Привычки с безразличным временем")]
     [AllureDescription("Тест распределения одной привычки с безразличным временем выполнения на два дня," +
         " только один из которых подходит")]
-    public void Test1()
+    public void NoMatterOrdinary()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var h = HabitDistrMother.Habit().WithUserName(userName).WithCountInWeek(2).Build();
         events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
         events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Single(undistr);
         Assert.Single(h.ActualTimings);
@@ -36,12 +36,11 @@ public class UnitTestsHabitDistr
     [AllureFeature("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с фиксированным временем выполнения на два дня," +
         " только один из которых подходит")]
-    public void Test2()
+    public void FixedOrdinary()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var guid = Guid.NewGuid();
         var h = HabitDistrMother.Habit()
             .WithId(guid)
@@ -55,7 +54,7 @@ public class UnitTestsHabitDistr
         events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Single(undistr);
         Assert.Single(h.ActualTimings);
@@ -67,12 +66,11 @@ public class UnitTestsHabitDistr
     [AllureFeature("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем выполнения на два дня," +
         " только один из которых подходит")]
-    public void Test3()
+    public void PrefferedOrdinary()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var guid = Guid.NewGuid();
         var h = HabitDistrMother.Habit()
             .WithId(guid)
@@ -86,7 +84,7 @@ public class UnitTestsHabitDistr
         events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Single(undistr);
         Assert.Single(h.ActualTimings);
@@ -97,12 +95,11 @@ public class UnitTestsHabitDistr
     [AllureStory("Распределение привычек по известному расписанию")]
     [AllureFeature("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем, которая не влезает в расписание")]
-    public void Test4()
+    public void PrefferedNotFits()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var guid = Guid.NewGuid();
         var h = HabitDistrMother.Habit()
             .WithId(guid)
@@ -115,7 +112,7 @@ public class UnitTestsHabitDistr
         events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Single(undistr);
         Assert.Empty(h.ActualTimings);
@@ -124,12 +121,11 @@ public class UnitTestsHabitDistr
     [AllureStory("Распределение привычек по известному расписанию")]
     [AllureFeature("Привычки с безразличным временем")]
     [AllureDescription("Тест распределения одной привычки с безразличным временем, которая не влезает в расписание")]
-    public void Test5()
+    public void NoMatterNotFits()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var guid = Guid.NewGuid();
         var h = HabitDistrMother.Habit()
             .WithId(guid)
@@ -142,7 +138,7 @@ public class UnitTestsHabitDistr
         events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Single(undistr);
         Assert.Empty(h.ActualTimings);
@@ -150,13 +146,13 @@ public class UnitTestsHabitDistr
     [Fact]
     [AllureStory("Распределение привычек по известному расписанию")]
     [AllureFeature("Привычки с фиксированным временем")]
-    [AllureDescription("Тест распределения одной привычки с фиксированным временем, которая влезает, но не по своему времени")]
-    public void Test6()
+    [AllureDescription("Тест распределения одной привычки с фиксированным временем," +
+        " которая влезает, но не по своему времени")]
+    public void FixedNotFitsInPrefTime()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var guid = Guid.NewGuid();
         var h = HabitDistrMother.Habit()
             .WithId(guid)
@@ -169,7 +165,7 @@ public class UnitTestsHabitDistr
         events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Single(undistr);
         Assert.Empty(h.ActualTimings);
@@ -177,13 +173,13 @@ public class UnitTestsHabitDistr
     [Fact]
     [AllureStory("Распределение привычек по известному расписанию")]
     [AllureFeature("Привычки с предпочтительным временем")]
-    [AllureDescription("Тест распределения одной привычки с предпочтительным временем, которая влезает, но не по своему времени")]
-    public void Test7()
+    [AllureDescription("Тест распределения одной привычки с предпочтительным временем," +
+        " которая влезает, но не по своему времени")]
+    public void PrefferedNotFitsInPrefTime()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var guid = Guid.NewGuid();
         var h = HabitDistrMother.Habit()
             .WithId(guid)
@@ -196,7 +192,7 @@ public class UnitTestsHabitDistr
         events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Empty(undistr);
         Assert.Single(h.ActualTimings);
@@ -208,12 +204,11 @@ public class UnitTestsHabitDistr
     [AllureFeature("Привычки с бфиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем," +
         " которая не влезает в первый день, но влезает во второй")]
-    public void Test8()
+    public void PrefferedFitsInSecondDay()
     {
         string userName = "egor";
         List<Habit> habits = [];
         List<Event> events = [];
-        HabitDistributor distr = new();
         var guid = Guid.NewGuid();
         var h = HabitDistrMother.Habit()
             .WithId(guid)
@@ -239,7 +234,7 @@ public class UnitTestsHabitDistr
         events.Add(HabitDistrMother.WeeklyFiller(userName, DayOfWeek.Sunday));
         habits.Add(h);
 
-        var undistr = distr.DistributeHabits(habits, events);
+        var undistr = _distr.DistributeHabits(habits, events);
 
         Assert.Empty(undistr);
         Assert.Single(h.ActualTimings);
