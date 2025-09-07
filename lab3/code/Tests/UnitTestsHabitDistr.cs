@@ -2,7 +2,6 @@ using Domain;
 using Domain.Models;
 using Types;
 using Tests.ObjectMothers;
-using Tests.Builders;
 namespace Tests
 {
     public class UnitTestsHabitDistr
@@ -19,30 +18,10 @@ namespace Tests
             var h = HabitDistrMother.Habit().WithUserName(userName).WithCountInWeek(2).Build();
             events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
             events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
-            /*var h = new Habit(Guid.NewGuid(), "тест", 60, TimeOption.NoMatter, user_name, [], [], 2);
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Wednesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Thursday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Friday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));*/
             habits.Add(h);
+
             var undistr = distr.DistributeHabits(habits, events);
+
             Assert.Single(undistr);
             Assert.Single(h.ActualTimings);
             Assert.Equal(new TimeOnly(18, 0, 0), h.ActualTimings[0].Start);
@@ -53,36 +32,24 @@ namespace Tests
         [Fact]
         public void Test2()
         {
-            string user_name = "egor";
+            string userName = "egor";
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
             var guid = Guid.NewGuid();
-            var h = new Habit(guid, "тест", 30, Types.TimeOption.Fixed, user_name, [], 
-                [new PrefFixedTime(Guid.NewGuid(), new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0), guid)], 1);
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Wednesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Thursday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Friday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));
+            var h = HabitDistrMother.Habit()
+                .WithId(guid)
+                .WithUserName(userName)
+                .WithOption(TimeOption.Fixed)
+                .WithMinsToComplete(30)
+                .WithPrefFixedTiming(new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0))
+                .Build();
+            events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+            events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
             habits.Add(h);
+
             var undistr = distr.DistributeHabits(habits, events);
+
             Assert.Empty(undistr);
             Assert.Single(h.ActualTimings);
             Assert.Equal(new TimeOnly(8, 0, 0), h.ActualTimings[0].Start);
@@ -93,36 +60,24 @@ namespace Tests
         [Fact]
         public void Test3()
         {
-            string user_name = "egor";
+            string userName = "egor";
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
             var guid = Guid.NewGuid();
-            var h = new Habit(guid, "тест", 30, Types.TimeOption.Preffered, user_name, [],
-                [new PrefFixedTime(Guid.NewGuid(), new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0), guid)], 1);
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Wednesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Thursday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Friday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));
+            var h = HabitDistrMother.Habit()
+                .WithId(guid)
+                .WithUserName(userName)
+                .WithOption(TimeOption.Preffered)
+                .WithMinsToComplete(30)
+                .WithPrefFixedTiming(new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0))
+                .Build();
+            events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+            events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
             habits.Add(h);
+
             var undistr = distr.DistributeHabits(habits, events);
+
             Assert.Empty(undistr);
             Assert.Single(h.ActualTimings);
             Assert.Equal(new TimeOnly(8, 0, 0), h.ActualTimings[0].Start);
@@ -132,36 +87,24 @@ namespace Tests
         [Fact]
         public void Test4()
         {
-            string user_name = "egor";
+            string userName = "egor";
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
             var guid = Guid.NewGuid();
-            var h = new Habit(guid, "тест", 500, Types.TimeOption.NoMatter, user_name, [],
-                [new PrefFixedTime(Guid.NewGuid(), new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0), guid)], 1);
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Wednesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Thursday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Friday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));
+            var h = HabitDistrMother.Habit()
+                .WithId(guid)
+                .WithUserName(userName)
+                .WithOption(TimeOption.Preffered)
+                .WithMinsToComplete(500)
+                .WithPrefFixedTiming(new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0))
+                .Build();
+            events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+            events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
             habits.Add(h);
+
             var undistr = distr.DistributeHabits(habits, events);
+
             Assert.Single(undistr);
             Assert.Empty(h.ActualTimings);
         }
@@ -169,36 +112,24 @@ namespace Tests
         [Fact]
         public void Test5()
         {
-            string user_name = "egor";
+            string userName = "egor";
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
             var guid = Guid.NewGuid();
-            var h = new Habit(guid, "тест", 10, Types.TimeOption.Fixed, user_name, [],
-                [new PrefFixedTime(Guid.NewGuid(), new TimeOnly(9, 0, 0), new TimeOnly(17, 0, 0), guid)], 1);
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Wednesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Thursday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Friday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));
+            var h = HabitDistrMother.Habit()
+                .WithId(guid)
+                .WithUserName(userName)
+                .WithOption(TimeOption.Fixed)
+                .WithMinsToComplete(10)
+                .WithPrefFixedTiming(new TimeOnly(9, 0, 0), new TimeOnly(17, 0, 0))
+                .Build();
+            events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+            events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
             habits.Add(h);
+
             var undistr = distr.DistributeHabits(habits, events);
+
             Assert.Single(undistr);
             Assert.Empty(h.ActualTimings);
         }
@@ -206,36 +137,24 @@ namespace Tests
         [Fact]
         public void Test6()
         {
-            string user_name = "egor";
+            string userName = "egor";
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
             var guid = Guid.NewGuid();
-            var h = new Habit(guid, "тест", 10, Types.TimeOption.Preffered, user_name, [],
-                [new PrefFixedTime(Guid.NewGuid(), new TimeOnly(9, 0, 0), new TimeOnly(17, 0, 0), guid)], 1);
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Wednesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Thursday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Friday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));
+            var h = HabitDistrMother.Habit()
+                .WithId(guid)
+                .WithUserName(userName)
+                .WithOption(TimeOption.Preffered)
+                .WithMinsToComplete(10)
+                .WithPrefFixedTiming(new TimeOnly(9, 0, 0), new TimeOnly(17, 0, 0))
+                .Build();
+            events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+            events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
             habits.Add(h);
+
             var undistr = distr.DistributeHabits(habits, events);
+
             Assert.Empty(undistr);
             Assert.Single(h.ActualTimings);
             Assert.Equal(new TimeOnly(8, 0, 0), h.ActualTimings[0].Start);
@@ -245,44 +164,37 @@ namespace Tests
         [Fact]
         public void Test7()
         {
-            string user_name = "egor";
+            string userName = "egor";
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
             var guid = Guid.NewGuid();
-            var h = new Habit(guid, "тест", 40, Types.TimeOption.Preffered, user_name, [],
-                [new PrefFixedTime(Guid.NewGuid(), new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0), guid)], 1);
-
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 50, 0), new TimeOnly(9, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Работа", new TimeOnly(9, 0, 0), new TimeOnly(18, 0, 0),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(23, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Tuesday, null));
-
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Wednesday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Thursday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Friday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
-            events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));
+            var h = HabitDistrMother.Habit()
+                .WithId(guid)
+                .WithUserName(userName)
+                .WithOption(TimeOption.Preffered)
+                .WithMinsToComplete(40)
+                .WithPrefFixedTiming(new TimeOnly(7, 0, 0), new TimeOnly(9, 0, 0))
+                .Build();
+            events.AddRange(HabitDistrMother.CustomDayShedule(userName, DayOfWeek.Monday, 
+                [new("00:00:00", "08:00:00"),
+                new("08:30:00", "09:00:00"),
+                new("09:00:00", "18:00:00"),
+                new("23:00:00", "23:59:59")]));
+            events.AddRange(HabitDistrMother.CustomDayShedule(userName, DayOfWeek.Tuesday,
+                [new("00:00:00", "08:00:00"),
+                new("08:50:00", "09:00:00"),
+                new("09:00:00", "18:00:00"),
+                new("23:00:00", "23:59:59")]));
+            events.Add(HabitDistrMother.WeeklyFiller(userName, DayOfWeek.Wednesday));
+            events.Add(HabitDistrMother.WeeklyFiller(userName, DayOfWeek.Thursday));
+            events.Add(HabitDistrMother.WeeklyFiller(userName, DayOfWeek.Friday));
+            events.Add(HabitDistrMother.WeeklyFiller(userName, DayOfWeek.Saturday));
+            events.Add(HabitDistrMother.WeeklyFiller(userName, DayOfWeek.Sunday));
             habits.Add(h);
+
             var undistr = distr.DistributeHabits(habits, events);
+
             Assert.Empty(undistr);
             Assert.Single(h.ActualTimings);
             Assert.Equal(DayOfWeek.Tuesday, h.ActualTimings[0].Day);

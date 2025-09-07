@@ -319,7 +319,7 @@ class Program
                             Console.WriteLine("\nУчетная запись успешно удалена\n");
                             return;
                         }
-                        catch (Exception e)
+                        catch
                         {
                             Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         }

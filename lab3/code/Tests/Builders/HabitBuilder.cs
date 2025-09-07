@@ -13,6 +13,11 @@ public class HabitBuilder
     private string _userName = "Test User";
     private int _countInWeek = 1;
 
+    public HabitBuilder WithId(Guid id)
+    {
+        _id = id;
+        return this;
+    }
     public HabitBuilder WithName(string name)
     {
         _name = name;
@@ -28,7 +33,7 @@ public class HabitBuilder
         _actualTimings.Add(new ActualTime(Guid.NewGuid(), start, end, day, _id));
         return this;
     }
-    public HabitBuilder WithPrefFixedTiming(TimeOnly start, TimeOnly end, DayOfWeek day)
+    public HabitBuilder WithPrefFixedTiming(TimeOnly start, TimeOnly end)
     {
         _prefFixedTimings.Add(new PrefFixedTime(Guid.NewGuid(), start, end, _id));
         return this;

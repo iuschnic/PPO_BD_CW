@@ -45,6 +45,14 @@ public static class HabitDistrMother
         return list;
     }
 
+    public static List<Event> CustomDayShedule(string userName, DayOfWeek day, List<Tuple<string, string>> timings)
+    {
+        var list = new List<Event>();
+        foreach (var item in timings)
+            list.Add(new EventBuilder().WithUserName(userName).WithTime(item.Item1, item.Item2).AsWeeklyEvent(day).Build());
+        return list;
+    }
+
     // Методы для Habit
     /*public static Habit CreateDefaultHabit() =>
         new HabitBuilder()
