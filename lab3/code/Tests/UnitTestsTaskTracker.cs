@@ -223,4 +223,94 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.Item1.NameID);
         Assert.Empty(result.Item2);
     }
+    [Fact]
+    public void DeleteHabitInvalidUser()
+    {
+        var notExistUserName = "not_exists";
+        var habitName = "Чтение";
+
+        _mockUserRepo.Setup(r => r.TryGet(notExistUserName)).Returns((User?)null);
+
+        var exception = Assert.Throws<Exception>(() =>
+            _taskTracker.DeleteHabit(notExistUserName, habitName));
+
+        Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
+    }
+    [Fact]
+    public void DeleteHabitsValidUser()
+    {
+        var userName = "testUser";
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        var habits = new List<Habit>
+        {
+            new Habit(Guid.NewGuid(), "Чтение", 60, TimeOption.NoMatter, userName, [], [], 2),
+            new Habit(Guid.NewGuid(), "Тренировка", 30, TimeOption.NoMatter, userName, [], [], 1)
+        };
+        _mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
+        _mockHabitRepo.Setup(r => r.TryGet(userName)).Returns(habits);
+        _mockHabitRepo.Setup(r => r.TryDeleteHabits(userName)).Returns(true);
+        _mockUserRepo.Setup(r => r.TryFullGet(userName)).Returns(user);
+        _mockEventRepo.Setup(r => r.TryGet(userName)).Returns(new List<Event>());
+
+        var result = _taskTracker.DeleteHabits(userName);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.Item1.NameID);
+        Assert.Empty(result.Item2);
+    }
+    [Fact]
+    public void DeleteHabitsInvalidUser()
+    {
+        var notExistUserName = "not_exists";
+        _mockUserRepo.Setup(r => r.TryGet(notExistUserName)).Returns((User?)null);
+
+        var exception = Assert.Throws<Exception>(() =>
+            _taskTracker.DeleteHabits(notExistUserName));
+
+        Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
+    }
+    [Fact]
+    public void ChangeSettingsValidUser()
+    {
+        var userName = "test";
+        var settings = new UserSettings(Guid.NewGuid(), true, userName, []);
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            settings, [], []);
+        var events = new List<Event>();
+        _mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
+        _mockUserRepo.Setup(r => r.TryUpdateSettings(settings)).Returns(true);
+        _mockUserRepo.Setup(r => r.TryFullGet(userName)).Returns(user);
+        _mockEventRepo.Setup(r => r.TryGet(userName)).Returns(events);
+
+        var result = _taskTracker.ChangeSettings(settings);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.NameID);
+        Assert.Equal(settings, result.Settings);
+    }
+    [Fact]
+    public void ChangeSettingsInvalidUser()
+    {
+        var notExistsUserName = "not_exists";
+        var settings = new UserSettings(Guid.NewGuid(), true, notExistsUserName, []);
+        _mockUserRepo.Setup(r => r.TryGet(notExistsUserName)).Returns((User?)null);
+
+        var exception = Assert.Throws<Exception>(() =>
+            _taskTracker.ChangeSettings(settings));
+
+        Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
+    }
+    [Fact]
+    public void DeleteValidUser()
+    {
+        var userName = "test";
+        _mockUserRepo.Setup(r => r.TryDelete(userName)).Returns(true);
+
+        _taskTracker.DeleteUser(userName);
+
+        // Assert - проверяем что не было исключений
+
+
+    }
 }
