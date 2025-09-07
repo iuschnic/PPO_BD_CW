@@ -3,7 +3,6 @@ using Domain.InPorts;
 using Domain.Models;
 using Types;
 using Microsoft.Extensions.Logging;
-using static Dapper.SqlMapper;
 
 namespace Domain;
 

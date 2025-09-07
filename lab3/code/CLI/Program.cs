@@ -315,20 +315,13 @@ class Program
                     {
                         try
                         {
-                            if (task_service.DeleteUser(user.NameID) == false)
-                            {
-                                Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                                return;
-                            }
-                            else
-                            {
-                                Console.WriteLine("\nУчетная запись успешно удалена\n");
-                                return;
-                            }
+                            task_service.DeleteUser(user.NameID);
+                            Console.WriteLine("\nУчетная запись успешно удалена\n");
+                            return;
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine(e.Message);
+                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
                         }
                     }
                     else

@@ -1,6 +1,8 @@
 using Domain;
 using Domain.Models;
 using Types;
+using Tests.ObjectMothers;
+using Tests.Builders;
 namespace Tests
 {
     public class UnitTestsHabitDistr
@@ -10,11 +12,14 @@ namespace Tests
         [Fact]
         public void Test1()
         {
-            string user_name = "egor";
+            string userName = "egor";
             List<Habit> habits = [];
             List<Event> events = [];
             HabitDistributor distr = new();
-            var h = new Habit(Guid.NewGuid(), "тест", 60, TimeOption.NoMatter, user_name, [], [], 2);
+            var h = HabitDistrMother.Habit().WithUserName(userName).WithCountInWeek(2).Build();
+            events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+            events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+            /*var h = new Habit(Guid.NewGuid(), "тест", 60, TimeOption.NoMatter, user_name, [], [], 2);
             events.Add(new Event(Guid.NewGuid(), "Сон", new TimeOnly(0, 0, 0), new TimeOnly(8, 0, 0),
                 user_name, EventOption.EveryWeek, DayOfWeek.Monday, null));
             events.Add(new Event(Guid.NewGuid(), "Завтрак", new TimeOnly(8, 30, 0), new TimeOnly(9, 0, 0),
@@ -35,7 +40,7 @@ namespace Tests
             events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
                 user_name, EventOption.EveryWeek, DayOfWeek.Saturday, null));
             events.Add(new Event(Guid.NewGuid(), "Заглушка", new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59),
-                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));
+                user_name, EventOption.EveryWeek, DayOfWeek.Sunday, null));*/
             habits.Add(h);
             var undistr = distr.DistributeHabits(habits, events);
             Assert.Single(undistr);

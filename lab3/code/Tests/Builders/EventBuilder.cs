@@ -1,12 +1,13 @@
 ﻿using Domain.Models;
 using Types;
+namespace Tests.Builders;
 
 public class EventBuilder
 {
     private Guid _id = Guid.NewGuid();
     private string _name = "Test Event";
-    private TimeOnly _start = new(9, 0);
-    private TimeOnly _end = new(10, 0);
+    private TimeOnly _start = new(9, 0, 0);
+    private TimeOnly _end = new(10, 0, 0);
     private DayOfWeek? _day = DayOfWeek.Monday;
     private string _userName = "Test User";
     private EventOption _option = EventOption.EveryWeek;

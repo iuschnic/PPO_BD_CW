@@ -1,5 +1,6 @@
 ﻿using Domain.Models;
 using Types;
+namespace Tests.Builders;
 
 public class HabitBuilder
 {
