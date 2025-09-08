@@ -10,8 +10,8 @@ public class UnitTestsHabitDistr
 {
     private HabitDistributor _distr = new();
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с безразличным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с безразличным временем")]
     [AllureDescription("Тест распределения одной привычки с безразличным временем выполнения на два дня," +
         " только один из которых подходит")]
     public void NoMatterOrdinary()
@@ -32,8 +32,8 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(19, 0, 0), h.ActualTimings[0].End);
     }
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с фиксированным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с фиксированным временем выполнения на два дня," +
         " только один из которых подходит")]
     public void FixedOrdinary()
@@ -62,8 +62,8 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(8, 30, 0), h.ActualTimings[0].End);
     }
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с предпочтительным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем выполнения на два дня," +
         " только один из которых подходит")]
     public void PrefferedOrdinary()
@@ -92,8 +92,8 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(8, 30, 0), h.ActualTimings[0].End);
     }
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с предпочтительным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем, которая не влезает в расписание")]
     public void PrefferedNotFits()
     {
@@ -118,8 +118,8 @@ public class UnitTestsHabitDistr
         Assert.Empty(h.ActualTimings);
     }
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с безразличным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с безразличным временем")]
     [AllureDescription("Тест распределения одной привычки с безразличным временем, которая не влезает в расписание")]
     public void NoMatterNotFits()
     {
@@ -144,8 +144,8 @@ public class UnitTestsHabitDistr
         Assert.Empty(h.ActualTimings);
     }
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с фиксированным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с фиксированным временем," +
         " которая влезает, но не по своему времени")]
     public void FixedNotFitsInPrefTime()
@@ -171,8 +171,8 @@ public class UnitTestsHabitDistr
         Assert.Empty(h.ActualTimings);
     }
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с предпочтительным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем," +
         " которая влезает, но не по своему времени")]
     public void PrefferedNotFitsInPrefTime()
@@ -200,8 +200,8 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(8, 10, 0), h.ActualTimings[0].End);
     }
     [Fact]
-    [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с фиксированным временем")]
+    [AllureFeature("HabitDistributor")]
+    [AllureStory("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем," +
         " которая не влезает в первый день, но влезает во второй")]
     public void PrefferedFitsInSecondDay()

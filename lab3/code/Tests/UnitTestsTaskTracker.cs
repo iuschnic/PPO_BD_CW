@@ -39,8 +39,8 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Создание пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Создание пользователя")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
     public void CreateUserWithValidData()
     {
@@ -63,8 +63,8 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Создание пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Создание пользователя")]
     [AllureDescription("Тест создания пользователя который уже существует")]
     public void CreateUserAlreadyExists()
     {
@@ -80,8 +80,8 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Авторизация пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Авторизация")]
     [AllureDescription("Тест авторизации с правильными данными")]
     public void LogInWithValidCredentials()
     {
@@ -100,8 +100,8 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Авторизация пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Авторизация")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
     public void LogInWithInvalidPassword()
     {
@@ -119,8 +119,8 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Загрузка нового расписания")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Загрузка нового расписания")]
     [AllureDescription("Тест загрузки расписания с правильным файлом")]
     public void ImportNewSheduleValidFile()
     {
@@ -150,8 +150,8 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Загрузка нового расписания")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Загрузка нового расписания")]
     [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
     public void ImportNewSheduleInvalidFile()
     {
@@ -169,8 +169,8 @@ public class UnitTestsTaskTracker
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Добавление привычки")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Добавление привычки")]
     [AllureDescription("Тест добавления валидной привычки")]
     public void AddValidHabit()
     {
@@ -200,8 +200,8 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Добавление привычки")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Добавление привычки")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
     public void AddHabitNoValidUser()
     {
@@ -214,8 +214,8 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Удаление привычки")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Удаление привычки")]
     [AllureDescription("Тест удаления существующей привычки")]
     public void DeleteValidHabit()
     {
@@ -252,8 +252,8 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Удаление привычки")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Удаление привычки")]
     [AllureDescription("Тест удаления несуществующей привычки")]
     public void DeleteHabitInvalidUser()
     {
@@ -268,8 +268,8 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Удаление всех привычек")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Удаление всех привычек")]
     [AllureDescription("Тест удаления всех привычек")]
     public void DeleteHabitsValidUser()
     {
@@ -294,8 +294,8 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Удаление всех привычек")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Удаление всех привычек")]
     [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
     public void DeleteHabitsInvalidUser()
     {
@@ -308,8 +308,8 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Изменение настроек пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Изменение настроек пользователя")]
     [AllureDescription("Тест изменения настроек существующего пользователя")]
     public void ChangeSettingsValidUser()
     {
@@ -330,8 +330,8 @@ public class UnitTestsTaskTracker
         Assert.Equal(settings, result.Settings);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Изменение настроек пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Изменение настроек пользователя")]
     [AllureDescription("Тест изменения настроек несуществующего пользователя")]
     public void ChangeSettingsInvalidUser()
     {
@@ -345,8 +345,8 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Удаление пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Удаление пользователя")]
     [AllureDescription("Тест удаления существующего пользователя")]
     public void DeleteValidUser()
     {
@@ -356,8 +356,8 @@ public class UnitTestsTaskTracker
         _taskTracker.DeleteUser(userName);
     }
     [Fact]
-    [AllureStory("Методы бизнес логики")]
-    [AllureFeature("Удаление пользователя")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Удаление пользователя")]
     [AllureDescription("Тест удаления несуществующего пользователя")]
     public void DeleteUser_WhenDeleteFails_ThrowsExceptionAndLogsError()
     {
