@@ -5,6 +5,7 @@ using Domain;
 using Domain.Models;
 using Types;
 using Tests.ObjectMothers;
+using Allure.Xunit.Attributes;
 
 namespace Tests.UnitTaskTracker;
 
@@ -38,6 +39,9 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Создание пользователя")]
+    [AllureDescription("Тест создания пользователя с корректными данными")]
     public void CreateUserWithValidData()
     {
         var userName = "test";
@@ -59,6 +63,9 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Создание пользователя")]
+    [AllureDescription("Тест создания пользователя который уже существует")]
     public void CreateUserAlreadyExists()
     {
         var userName = "existingtest";
@@ -73,6 +80,9 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Авторизация пользователя")]
+    [AllureDescription("Тест авторизации с правильными данными")]
     public void LogInWithValidCredentials()
     {
         var userName = "test";
@@ -90,6 +100,9 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Авторизация пользователя")]
+    [AllureDescription("Тест авторизации с неправильным паролем")]
     public void LogInWithInvalidPassword()
     {
         var userName = "test";
@@ -106,6 +119,9 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Загрузка нового расписания")]
+    [AllureDescription("Тест загрузки расписания с правильным файлом")]
     public void ImportNewSheduleValidFile()
     {
         var userName = "test";
@@ -134,22 +150,28 @@ public class UnitTestsTaskTracker
     }
 
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Загрузка нового расписания")]
+    [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
     public void ImportNewSheduleInvalidFile()
     {
         var userName = "test";
-        var malformedPath = "invalid_file.json";
+        var invalidFilePath = "invalid_file.json";
         var user = new User(userName, "password", new PhoneNumber("+79161648345"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         _mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
-        _mockShedLoader.Setup(s => s.LoadShedule(userName, malformedPath))
+        _mockShedLoader.Setup(s => s.LoadShedule(userName, invalidFilePath))
                       .Throws(new InvalidDataException($"Ошибка чтения файла"));
 
         var exception = Assert.Throws<Exception>(() =>
-            _taskTracker.ImportNewShedule(userName, malformedPath));
+            _taskTracker.ImportNewShedule(userName, invalidFilePath));
 
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Добавление привычки")]
+    [AllureDescription("Тест добавления валидной привычки")]
     public void AddValidHabit()
     {
         var userName = "test";
@@ -178,6 +200,9 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Добавление привычки")]
+    [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
     public void AddHabitNoValidUser()
     {
         var notExistUserName = "not_exists";
@@ -189,6 +214,9 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Удаление привычки")]
+    [AllureDescription("Тест удаления существующей привычки")]
     public void DeleteValidHabit()
     {
         var userName = "test";
@@ -224,6 +252,9 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Удаление привычки")]
+    [AllureDescription("Тест удаления несуществующей привычки")]
     public void DeleteHabitInvalidUser()
     {
         var notExistUserName = "not_exists";
@@ -237,6 +268,9 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Удаление всех привычек")]
+    [AllureDescription("Тест удаления всех привычек")]
     public void DeleteHabitsValidUser()
     {
         var userName = "testUser";
@@ -260,6 +294,9 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Удаление всех привычек")]
+    [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
     public void DeleteHabitsInvalidUser()
     {
         var notExistUserName = "not_exists";
@@ -271,6 +308,9 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Изменение настроек пользователя")]
+    [AllureDescription("Тест изменения настроек существующего пользователя")]
     public void ChangeSettingsValidUser()
     {
         var userName = "test";
@@ -290,6 +330,9 @@ public class UnitTestsTaskTracker
         Assert.Equal(settings, result.Settings);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Изменение настроек пользователя")]
+    [AllureDescription("Тест изменения настроек несуществующего пользователя")]
     public void ChangeSettingsInvalidUser()
     {
         var notExistsUserName = "not_exists";
@@ -302,15 +345,29 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
     }
     [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Удаление пользователя")]
+    [AllureDescription("Тест удаления существующего пользователя")]
     public void DeleteValidUser()
     {
         var userName = "test";
         _mockUserRepo.Setup(r => r.TryDelete(userName)).Returns(true);
 
         _taskTracker.DeleteUser(userName);
+    }
+    [Fact]
+    [AllureStory("Методы бизнес логики")]
+    [AllureFeature("Удаление пользователя")]
+    [AllureDescription("Тест удаления несуществующего пользователя")]
+    public void DeleteUser_WhenDeleteFails_ThrowsExceptionAndLogsError()
+    {
+        var userName = "test";
+        _mockUserRepo.Setup(r => r.TryDelete(userName)).Returns(false);
 
-        // Assert - проверяем что не было исключений
+        var exception = Assert.Throws<Exception>(() =>
+            _taskTracker.DeleteUser(userName));
 
-
+        Assert.Contains("Не удалось удалить пользователя", exception.Message);
+        Assert.Contains(userName, exception.Message);
     }
 }

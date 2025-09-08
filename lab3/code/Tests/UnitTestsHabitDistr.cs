@@ -201,7 +201,7 @@ public class UnitTestsHabitDistr
     }
     [Fact]
     [AllureStory("Распределение привычек по известному расписанию")]
-    [AllureFeature("Привычки с бфиксированным временем")]
+    [AllureFeature("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем," +
         " которая не влезает в первый день, но влезает во второй")]
     public void PrefferedFitsInSecondDay()
