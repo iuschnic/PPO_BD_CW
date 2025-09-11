@@ -7,8 +7,8 @@ namespace Storage.PostgresStorageAdapters;
 
 public class PostgresHabitRepo : IHabitRepo
 {
-    private PostgresDBContext _dbContext;
-    public PostgresHabitRepo(PostgresDBContext dbContext)
+    private ITaskTrackerContext _dbContext;
+    public PostgresHabitRepo(ITaskTrackerContext dbContext)
     {
         _dbContext = dbContext;
     }

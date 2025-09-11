@@ -8,9 +8,9 @@ namespace Storage.PostgresStorageAdapters;
 
 public class PostgresUserRepo : IUserRepo
 {
-    PostgresDBContext _dbContext;
+    ITaskTrackerContext _dbContext;
 
-    public PostgresUserRepo(PostgresDBContext dbContext)
+    public PostgresUserRepo(ITaskTrackerContext dbContext)
     {
         _dbContext = dbContext;
     }

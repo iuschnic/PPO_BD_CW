@@ -49,7 +49,7 @@ public class UnitTestsEventRepo
             .Returns(DBEvents.GetEnumerator());*/
 
         // Настройка контекста
-        mockDbContext.Setup(db => db.Users.Find(userName)).Returns(testUser);
+        mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.Events).Returns(mockEventsDbSet.Object);
 
         var repo = new PostgresEventRepo(mockDbContext.Object);

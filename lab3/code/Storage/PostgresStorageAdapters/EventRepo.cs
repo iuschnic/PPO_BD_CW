@@ -6,8 +6,8 @@ namespace Storage.PostgresStorageAdapters;
 
 public class PostgresEventRepo : IEventRepo
 {
-    private PostgresDBContext _dbContext { get; }
-    public PostgresEventRepo(PostgresDBContext dbContext)
+    private ITaskTrackerContext _dbContext { get; }
+    public PostgresEventRepo(ITaskTrackerContext dbContext)
     {
         _dbContext = dbContext;
     }
@@ -86,7 +86,7 @@ public class PostgresEventRepo : IEventRepo
     {
         var dbe = _dbContext.Events.Find(event_id);
         if (dbe == null) return false;
-        _dbContext.Remove(dbe);
+        _dbContext.Events.Remove(dbe);
         _dbContext.SaveChanges();
         return true;
     }

@@ -3,7 +3,21 @@ using Storage.Models;
 
 namespace Storage.PostgresStorageAdapters;
 
-public class PostgresDBContext : DbContext
+public interface ITaskTrackerContext
+{
+    public DbSet<DBUser> Users { get; }
+    public DbSet<DBEvent> Events { get; }
+    public DbSet<DBHabit> Habits { get; }
+    public DbSet<DBActualTime> ActualTimes { get; }
+    public DbSet<DBPrefFixedTime> PrefFixedTimes { get; }
+    public DbSet<DBSTime> SettingsTimes { get; }
+    public DbSet<DBUserSettings> USettings { get; }
+    public DbSet<DBMessage> Messages { get; }
+    public DbSet<DBUserMessage> UserMessages { get; }
+    int SaveChanges();
+}
+
+public class PostgresDBContext : DbContext, ITaskTrackerContext
 {
     public DbSet<DBUser> Users { get; set; }
     public DbSet<DBEvent> Events { get; set; }
