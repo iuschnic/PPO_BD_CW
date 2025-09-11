@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Domain.OutPorts;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Storage.Models;
 
 namespace Storage.PostgresStorageAdapters;
@@ -84,6 +85,12 @@ public class PostgresHabitRepo : IHabitRepo
 
     public bool TryUpdate(Habit h)
     {
+        var habit = _dbContext.Habits.Include(h => h.ActualTimings).Include(h => h.PrefFixedTimings)
+            .FirstOrDefault(h => h.Id == h.Id);
+        if (habit == null)
+            return false;
+
+
         return true;
     }
 
