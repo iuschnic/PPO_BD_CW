@@ -32,13 +32,13 @@ public class UnitTestsHabitRepo
         var dbHabit = new DBHabit(habitId, habitName, timeToComplete, TimeOption.Fixed, userName, 3);
         var actualTimings = new List<DBActualTime>
         {
-            new DBActualTime(Guid.NewGuid(), start1, end1, DayOfWeek.Monday, habitId),
-            new DBActualTime(Guid.NewGuid(), start2, end2, DayOfWeek.Wednesday, habitId)
+            new(Guid.NewGuid(), start1, end1, DayOfWeek.Monday, habitId),
+            new(Guid.NewGuid(), start2, end2, DayOfWeek.Wednesday, habitId)
         };
         var prefFixedTimings = new List<DBPrefFixedTime>
         {
-            new DBPrefFixedTime(Guid.NewGuid(), start1, end1, habitId),
-            new DBPrefFixedTime(Guid.NewGuid(), start2, end2, habitId)
+            new(Guid.NewGuid(), start1, end1, habitId),
+            new(Guid.NewGuid(), start2, end2, habitId)
         };
         dbHabit.ActualTimings = actualTimings;
         dbHabit.PrefFixedTimings = prefFixedTimings;
@@ -129,7 +129,6 @@ public class UnitTestsHabitRepo
         var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
         var habit = TaskTrackerMother.Habit().Build();
         mockHabitsDbSet.Setup(d => d.Find(habit.Id)).Returns(new DBHabit(habit));
-
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
@@ -180,6 +179,152 @@ public class UnitTestsHabitRepo
         var repo = new PostgresHabitRepo(mockDbContext.Object);
 
         var result = repo.TryCreateMany(habits);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void TryDeleteHabitExists()
+    {
+        var mockDbContext = new Mock<ITaskTrackerContext>();
+        var mockHabitsDbSet = new Mock<DbSet<DBHabit>>();
+        var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
+        var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
+        var habitId = Guid.NewGuid();
+        var dbHabit = new DBHabit(habitId, "test", 30, TimeOption.Fixed, "test", 3)
+        {
+            ActualTimings = [new DBActualTime(Guid.NewGuid(), new TimeOnly(9, 0),
+                new TimeOnly(9, 30), DayOfWeek.Monday, habitId)],
+            PrefFixedTimings = [ new DBPrefFixedTime(Guid.NewGuid(), new TimeOnly(8, 0),
+                new TimeOnly(8, 30), habitId) ]
+        };
+        var habitsList = new List<DBHabit> { dbHabit }.AsQueryable();
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Provider).Returns(habitsList.Provider);
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Expression).Returns(habitsList.Expression);
+        mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
+        mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
+        mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
+        var repo = new PostgresHabitRepo(mockDbContext.Object);
+
+        var result = repo.TryDelete(habitId);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void TryDeleteHabitNotExists()
+    {
+        var mockDbContext = new Mock<ITaskTrackerContext>();
+        var mockHabitsDbSet = new Mock<DbSet<DBHabit>>();
+        var habitId = Guid.NewGuid();
+        var emptyHabits = new List<DBHabit>().AsQueryable();
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Provider).Returns(emptyHabits.Provider);
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Expression).Returns(emptyHabits.Expression);
+        mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
+        var repo = new PostgresHabitRepo(mockDbContext.Object);
+
+        var result = repo.TryDelete(habitId);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void TryDeleteHabitsUserExists()
+    {
+        var mockDbContext = new Mock<ITaskTrackerContext>();
+        var mockUsersDbSet = new Mock<DbSet<DBUser>>();
+        var mockHabitsDbSet = new Mock<DbSet<DBHabit>>();
+        var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
+        var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
+        var userName = "test";
+        var testUser = new DBUser(userName, "+79161648345", "test");
+        var dbHabits = new List<DBHabit>
+        {
+            new(Guid.NewGuid(), "test", 30, TimeOption.Fixed, userName, 3)
+        }.AsQueryable();
+        mockUsersDbSet.Setup(d => d.Find(userName)).Returns(testUser);
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Provider).Returns(dbHabits.Provider);
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Expression).Returns(dbHabits.Expression);
+        mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
+        mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
+        mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
+        mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
+        var repo = new PostgresHabitRepo(mockDbContext.Object);
+
+        var result = repo.TryDeleteHabits(userName);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void TryDeleteHabitUserNotExist()
+    {
+        var mockDbContext = new Mock<ITaskTrackerContext>();
+        var mockUsersDbSet = new Mock<DbSet<DBUser>>();
+        var userName = "test";
+        mockUsersDbSet.Setup(d => d.Find(userName)).Returns((DBUser?)null);
+        mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
+        var repo = new PostgresHabitRepo(mockDbContext.Object);
+
+        var result = repo.TryDeleteHabits(userName);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public void TryReplaceValidHabits()
+    {
+        var mockDbContext = new Mock<ITaskTrackerContext>();
+        var mockUsersDbSet = new Mock<DbSet<DBUser>>();
+        var mockHabitsDbSet = new Mock<DbSet<DBHabit>>();
+        var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
+        var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
+        var userName = "test";
+        var testUser = new DBUser(userName, "+79161648345", "test");
+        var newHabits = new List<Habit>
+        {
+            new(Guid.NewGuid(), "test", 30, TimeOption.NoMatter, userName, [], [], 3)
+        };
+        mockUsersDbSet.Setup(d => d.Find(userName)).Returns(testUser);
+        // TryDeleteHabits
+        var emptyHabits = new List<DBHabit>().AsQueryable();
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Provider).Returns(emptyHabits.Provider);
+        mockHabitsDbSet.As<IQueryable<DBHabit>>()
+            .Setup(m => m.Expression).Returns(emptyHabits.Expression);
+        // TryCreateMany
+        mockHabitsDbSet.Setup(d => d.Find(It.IsAny<Guid>())).Returns((DBHabit?)null);
+        mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
+        mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
+        mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
+        mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
+        var repo = new PostgresHabitRepo(mockDbContext.Object);
+
+        var result = repo.TryReplaceHabits(newHabits, userName);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public void TryReplaceHabitsNotAllBelongToUser()
+    {
+        var mockDbContext = new Mock<ITaskTrackerContext>();
+        var userName = "test";
+        var otherUser = "other";
+        var habits = new List<Habit>
+        {
+            new(Guid.NewGuid(), "1", 30, TimeOption.NoMatter, userName, [], [], 3),
+            new(Guid.NewGuid(), "2", 45, TimeOption.NoMatter, otherUser, [], [], 5)
+        };
+        var repo = new PostgresHabitRepo(mockDbContext.Object);
+
+        var result = repo.TryReplaceHabits(habits, userName);
 
         Assert.False(result);
     }

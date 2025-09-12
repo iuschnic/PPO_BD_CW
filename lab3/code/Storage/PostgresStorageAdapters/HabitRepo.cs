@@ -88,8 +88,6 @@ public class PostgresHabitRepo : IHabitRepo
             .FirstOrDefault(h => h.Id == h.Id);
         if (habit == null)
             return false;
-
-
         return true;
     }
 
