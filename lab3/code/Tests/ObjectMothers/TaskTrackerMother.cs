@@ -1,13 +1,11 @@
 ﻿using Tests.Builders;
 using Domain.Models;
-using Microsoft.Extensions.Logging;
 using Types;
 namespace Tests.ObjectMothers;
 
-public static class HabitDistrMother
+public static class TaskTrackerMother
 {
     public static HabitBuilder Habit() => new();
-
     public static EventBuilder Event() => new();
     public static Event WeeklyFiller(string userName, DayOfWeek day) =>
         new EventBuilder()

@@ -12,26 +12,6 @@ namespace Tests.UnitTaskTracker;
 
 public class UnitTestsTaskTracker
 {
-
-    /*public UnitTestsTaskTracker()
-    {
-        _mockEventRepo = new Mock<IEventRepo>();
-        _mockHabitRepo = new Mock<IHabitRepo>();
-        _mockUserRepo = new Mock<IUserRepo>();
-        _mockShedLoader = new Mock<ISheduleLoad>();
-        _mockDistributor = new Mock<IHabitDistributor>();
-        _mockLogger = new Mock<ILogger<TaskTracker>>();
-
-        _taskTracker = new TaskTracker(
-            _mockEventRepo.Object,
-            _mockHabitRepo.Object,
-            _mockUserRepo.Object,
-            _mockShedLoader.Object,
-            _mockDistributor.Object,
-            _mockLogger.Object
-        );
-    }*/
-
     [Fact]
     [AllureFeature("TaskTracker")]
     [AllureStory("Создание пользователя")]
@@ -193,8 +173,8 @@ public class UnitTestsTaskTracker
         var user = new User(userName, "password", new PhoneNumber("+79161648345"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var events = new List<Event>();
-        events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
-        events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+        events.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+        events.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         var habits = new List<Habit> { new Habit(Guid.NewGuid(), "Тренировка", 30,
             TimeOption.NoMatter, userName, [], [], 1) };
         mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
@@ -271,8 +251,8 @@ public class UnitTestsTaskTracker
         var user = new User(userName, "password", new PhoneNumber("+79161648345"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var existingEvents = new List<Event>();
-        existingEvents.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
-        existingEvents.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+        existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+        existingEvents.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         var existingHabits = new List<Habit> { new Habit(Guid.NewGuid(), "Тренировка", 30,
             TimeOption.NoMatter, userName, [], [], 1) };
         mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
@@ -344,8 +324,8 @@ public class UnitTestsTaskTracker
         var user = new User(userName, "password", new PhoneNumber("+79161648345"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var existingEvents = new List<Event>();
-        existingEvents.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
-        existingEvents.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+        existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+        existingEvents.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         var habits = new List<Habit>
         {
             new Habit(Guid.NewGuid(), habitName, 60, TimeOption.NoMatter, userName, [], [], 1),

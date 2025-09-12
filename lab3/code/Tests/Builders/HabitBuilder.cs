@@ -7,8 +7,8 @@ public class HabitBuilder
     private Guid _id = Guid.NewGuid();
     private string _name = "Test Habit";
     private int _minsToComplete = 60;
-    private List<ActualTime> _actualTimings = new();
-    private List<PrefFixedTime> _prefFixedTimings = new();
+    private List<ActualTime> _actualTimings = [];
+    private List<PrefFixedTime> _prefFixedTimings = [];
     private TimeOption _option = TimeOption.NoMatter;
     private string _userName = "Test User";
     private int _countInWeek = 1;
@@ -55,6 +55,7 @@ public class HabitBuilder
     }
     public Habit Build()
     {
-        return new Habit(_id, _name, _minsToComplete, _option, _userName, _actualTimings, _prefFixedTimings, _countInWeek);
+        return new Habit(_id, _name, _minsToComplete, _option, _userName,
+            _actualTimings, _prefFixedTimings, _countInWeek);
     }
 }

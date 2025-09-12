@@ -54,9 +54,9 @@ public class PostgresHabitRepo : IHabitRepo
 
     public bool TryCreateMany(List<Habit> habits)
     {
-        List<DBActualTime> actualTimes = new();
-        List<DBPrefFixedTime> prefFixedTimes = new();
-        List<DBHabit> dbhabits = new();
+        List<DBActualTime> actualTimes = [];
+        List<DBPrefFixedTime> prefFixedTimes = [];
+        List<DBHabit> dbhabits = [];
         foreach (var h in habits)
         {
             var test = _dbContext.Habits.Find(h.Id);

@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Domain.OutPorts;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.EntityFrameworkCore;
 using Moq;
 using Storage.PostgresStorageAdapters;
 using Storage.Models;
@@ -29,8 +23,8 @@ public class UnitTestsEventRepo
         mockDbContext.Setup(db => db.Users)
                     .Returns(mockUsersDbSet.Object);
         List<Event> events = [];
-        events.AddRange(HabitDistrMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
-        events.AddRange(HabitDistrMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+        events.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+        events.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         var dbEvents = events.Select(el => new DBEvent(el)).ToList();
         //без этого не работает LINQ и тест падает!!
         var queryableEvents = dbEvents.AsQueryable();
