@@ -1,7 +1,6 @@
 ﻿using Domain.Models;
 using Domain.OutPorts;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using Storage.Models;
 
 namespace Storage.PostgresStorageAdapters;
