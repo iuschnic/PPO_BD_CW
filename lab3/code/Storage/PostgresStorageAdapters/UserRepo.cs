@@ -22,6 +22,8 @@ public class PostgresUserRepo : IUserRepo
             .FirstOrDefault(u => u.NameID == username);
         if (dbuser == null)
             return null;
+        if (dbuser.Settings == null)
+            return null;
         UserSettings s = dbuser.Settings.ToModel(dbuser.Settings.ForbiddenTimings);
         return new User(dbuser.NameID, dbuser.PasswordHash, new PhoneNumber(dbuser.Number), s);
     }
@@ -35,6 +37,8 @@ public class PostgresUserRepo : IUserRepo
             .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
             .FirstOrDefault(u => u.NameID == username);
         if (dbuser == null)
+            return null;
+        if (dbuser.Settings == null)
             return null;
         UserSettings s = dbuser.Settings.ToModel(dbuser.Settings.ForbiddenTimings);
         List<Event> events = [];
