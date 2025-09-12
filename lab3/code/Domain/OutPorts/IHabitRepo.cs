@@ -10,4 +10,11 @@ public interface IHabitRepo
     bool TryDelete(Guid habit_id);
     bool TryDeleteHabits(string user_name);
     bool TryReplaceHabits(List<Habit> habits, string user_name);
+    Task<List<Habit>?> TryGetAsync(string user_name);
+    Task<bool> TryCreateAsync(Habit habit);
+    Task<bool> TryCreateManyAsync(List<Habit> habits);
+    Task<bool> TryUpdateAsync(Habit habit);
+    Task<bool> TryDeleteAsync(Guid habit_id);
+    Task<bool> TryDeleteHabitsAsync(string user_name);
+    Task<bool> TryReplaceHabitsAsync(List<Habit> habits, string user_name);
 }

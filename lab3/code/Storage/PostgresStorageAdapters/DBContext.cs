@@ -15,6 +15,7 @@ public interface ITaskTrackerContext
     public DbSet<DBMessage> Messages { get; }
     public DbSet<DBUserMessage> UserMessages { get; }
     int SaveChanges();
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 
 public class PostgresDBContext : DbContext, ITaskTrackerContext
