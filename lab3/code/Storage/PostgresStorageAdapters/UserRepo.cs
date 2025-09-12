@@ -50,12 +50,12 @@ public class PostgresUserRepo : IUserRepo
             return false;
         if (_dbContext.USettings.Find(u.Settings.Id) != null)
             return false;
-        DBUser dbuser = new DBUser(u.NameID, u.Number.StringNumber, u.PasswordHash);
-        DBUserSettings dbus = new DBUserSettings(u.Settings);
+        DBUser dbuser = new(u.NameID, u.Number.StringNumber, u.PasswordHash);
+        DBUserSettings dbus = new(u.Settings);
         List<DBSTime> times = [];
         foreach (var time in u.Settings.SettingsTimes)
         {
-            DBSTime st = new DBSTime(time);
+            DBSTime st = new(time);
             times.Add(st);
         }
         _dbContext.Users.Add(dbuser);
@@ -84,7 +84,7 @@ public class PostgresUserRepo : IUserRepo
         List<DBSTime> times = [];
         foreach (var time in us.SettingsTimes)
         {
-            DBSTime st = new DBSTime(time.Id, time.Start, time.End, dbs.Id);
+            DBSTime st = new(time.Id, time.Start, time.End, dbs.Id);
             times.Add(st);
         }
         var prev_times = _dbContext.SettingsTimes.Where(el => el.DBUserSettingsID == us.Id);

@@ -16,7 +16,7 @@ public class DBUser
     //Навигационные свойства
     public List<DBHabit> Habits { get; set; } = [];
     public List<DBEvent> Events { get; set; } = [];
-    public DBUserSettings Settings { get; set; }
+    public DBUserSettings? Settings { get; set; }
     public DBUser(string nameID, string number, string passwordHash)
     {
         NameID = nameID;

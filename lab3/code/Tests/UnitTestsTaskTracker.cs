@@ -6,9 +6,8 @@ using Domain.Models;
 using Types;
 using Tests.ObjectMothers;
 using Allure.Xunit.Attributes;
-using Domain.InPorts;
 
-namespace Tests.UnitTaskTracker;
+namespace Tests;
 
 public class UnitTestsTaskTracker
 {

@@ -4,7 +4,7 @@ using Types;
 using Tests.ObjectMothers;
 using Allure.Xunit.Attributes;
 
-namespace Tests.UnitHabitDistr;
+namespace Tests;
 
 public class UnitTestsHabitDistr
 {

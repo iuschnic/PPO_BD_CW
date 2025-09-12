@@ -6,7 +6,7 @@ using Domain.Models;
 using Tests.ObjectMothers;
 using Types;
 
-namespace Tests.UnitEventRepo;
+namespace Tests;
 
 public class UnitTestsEventRepo
 {
@@ -26,7 +26,6 @@ public class UnitTestsEventRepo
         events.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
         events.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
         var dbEvents = events.Select(el => new DBEvent(el)).ToList();
-        //без этого не работает LINQ и тест падает!!
         var queryableEvents = dbEvents.AsQueryable();
         mockEventsDbSet.As<IQueryable<DBEvent>>()
             .Setup(m => m.Provider)
