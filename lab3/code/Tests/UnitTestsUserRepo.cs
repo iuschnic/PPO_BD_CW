@@ -3,47 +3,15 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Storage.Models;
 using Storage.PostgresStorageAdapters;
-using System.Linq.Expressions;
 using Types;
 
 namespace Tests;
-
 public class UnitTestsUserRepo
 {
-    /*[Fact]
-    public void TryGetUserExists()
-    {
-        var mockDbContext = new Mock<ITaskTrackerContext>();
-        var mockUsersDbSet = new Mock<DbSet<DBUser>>();
-        var mockSettingsDbSet = new Mock<DbSet<DBUserSettings>>();
-        var mockSettingsTimesDbSet = new Mock<DbSet<DBSTime>>();
-        var userName = "test";
-        var dbUser = new DBUser(userName, "+79161648345", "password_hash");
-        var usersList = new List<DBUser> { dbUser }.AsQueryable();
-        var settingsList = new List<DBUserSettings> { new(Guid.NewGuid(), true, userName) }.AsQueryable();
-        var timingsList = new List<DBSTime> { new(Guid.NewGuid(), new TimeOnly(9, 0),
-            new TimeOnly(10, 0), Guid.NewGuid()) }.AsQueryable();
-        SetupMockDbSet(mockUsersDbSet, usersList);
-        SetupMockDbSet(mockSettingsDbSet, settingsList);
-        SetupMockDbSet(mockSettingsTimesDbSet, timingsList);
-        mockUsersDbSet.Setup(d => d.Include(It.IsAny<string>())).Returns(mockUsersDbSet.Object);
-        mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
-        mockDbContext.Setup(db => db.SettingsTimes).Returns(mockSettingsTimesDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
-
-        var result = repo.TryGet(userName);
-
-        Assert.NotNull(result);
-        Assert.Equal(userName, result.NameID);
-        Assert.Equal("+79161648345", result.Number.StringNumber);
-        Assert.Equal("password_hash", result.PasswordHash);
-        Assert.NotNull(result.Settings);
-        Assert.Single(result.Settings.SettingsTimes);
-    }*/
     [Fact]
     public void TryGetUserExists()
     {
+        Console.WriteLine($"Test1 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
@@ -72,6 +40,7 @@ public class UnitTestsUserRepo
     [Fact]
     public void TryGetUserNotExist()
     {
+        Console.WriteLine($"Test2 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
@@ -88,6 +57,7 @@ public class UnitTestsUserRepo
     [Fact]
     public void TryFullGetUserExists()
     {
+        Console.WriteLine($"Test3 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
@@ -110,6 +80,7 @@ public class UnitTestsUserRepo
 
         Assert.NotNull(result);
         Assert.Equal(userName, result.NameID);
+        Assert.NotNull(result.Habits);
         Assert.Single(result.Habits);
         Assert.Equal("test", result.Habits[0].Name);
         Assert.NotNull(result.Settings);
@@ -118,6 +89,7 @@ public class UnitTestsUserRepo
     [Fact]
     public void TryFullGetUserNotExist()
     {
+        Console.WriteLine($"Test4 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
@@ -134,6 +106,7 @@ public class UnitTestsUserRepo
     [Fact]
     public void TryCreateUserNotExists()
     {
+        Console.WriteLine($"Test5 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockSettingsDbSet = new Mock<DbSet<DBUserSettings>>();
@@ -157,6 +130,7 @@ public class UnitTestsUserRepo
     [Fact]
     public void TryCreateUserAlreadyExists()
     {
+        Console.WriteLine($"Test6 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var user = new User("test", "test", new PhoneNumber("+79161648345"),

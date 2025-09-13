@@ -7,6 +7,12 @@
     <IsPackable>false</IsPackable>
   </PropertyGroup>
 
+  <PropertyGroup>
+	<XUnitMaxParallelThreads>4</XUnitMaxParallelThreads>
+	<XUnitParallelizeTestCollections>true</XUnitParallelizeTestCollections>
+	<XUnitDiagnosticMessages>false</XUnitDiagnosticMessages>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Allure.NUnit" Version="2.12.1" />
     <PackageReference Include="Allure.Xunit" Version="2.12.1" />
