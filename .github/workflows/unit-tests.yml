@@ -20,31 +20,14 @@ jobs:
     - name: Build test image with Allure
       run: docker build -t bd-unit-tests .
       
-    - name: Run tests with TRX output
+    - name: Run tests with HTML output
       run: |
         mkdir -p test-results
-        docker run --rm -v $(pwd)/test-results:/test-results bd-unit-tests
+        docker run --rm -v $(pwd)/test-results:/test-results bd-unit-tests --logger "html;LogFileName=report.html"
 
-    - name: Download TRX to Allure converter
-      run: |
-        curl -L -o trx2allure.jar https://github.com/gauss-project/trx2allure/releases/download/v1.0.0/trx2allure-1.0.0.jar
-
-    - name: Convert TRX to Allure
-      run: |
-        java -jar trx2allure.jar test-results/test_results.trx allure-results
-
-    - name: Generate Allure report
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y default-jre
-        curl -o allure-2.27.0.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
-        tar -zxvf allure-2.27.0.tgz
-        ./allure-2.27.0/bin/allure generate allure-results -o allure-report --clean
-
-    - name: Upload Allure report
+    - name: Upload HTML report
       uses: actions/upload-artifact@v4
       with:
-        name: allure-report
-        path: allure-report/
-        retention-days: 7
+        name: test-html-report
+        path: test-results/report.html
 
