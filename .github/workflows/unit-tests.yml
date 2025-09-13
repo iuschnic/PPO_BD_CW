@@ -25,10 +25,13 @@ jobs:
         mkdir -p test-results
         docker run --rm -v $(pwd)/test-results:/test-results bd-unit-tests
 
+    - name: Download TRX to Allure converter
+      run: |
+        curl -L -o trx2allure.jar https://github.com/gauss-project/trx2allure/releases/download/v1.0.0/trx2allure-1.0.0.jar
+
     - name: Convert TRX to Allure
       run: |
-        pip install trx2allure
-        trx2allure test-results/test_results.trx allure-results
+        java -jar trx2allure.jar test-results/test_results.trx allure-results
 
     - name: Generate Allure report
       run: |
