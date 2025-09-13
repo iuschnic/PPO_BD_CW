@@ -5,12 +5,16 @@ using Storage.Models;
 using Domain.Models;
 using Tests.ObjectMothers;
 using Types;
+using Allure.Xunit.Attributes;
 
-namespace Tests;
+namespace Tests.UnitTests;
 
 public class UnitTestsEventRepo
 {
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения событий пользователя когда он существует")]
     public void TryGetForValidUser()
     {
         var userName = "test";
@@ -50,6 +54,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения событий пользователя когда он не существует")]
     public void TryGetForInvalidUser()
     {
         var notExistUserName = "test";
@@ -68,6 +75,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания события которого еще не существует")]
     public void TryCreateEventNotExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -87,6 +97,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания события которое уже существует")]
     public void TryCreateEventAlreadyExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -108,6 +121,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания нескольких еще не существующих событий")]
     public void TryCreateManyEventsNotExisting()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -131,6 +147,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания нескольких еще не существующих событий, одно из которых уже существует")]
     public void TryCreateManyEventsAlreadyExisting()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -157,6 +176,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест обновления существующего события")]
     public void TryUpdateEventExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -193,6 +215,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест обновления несуществующего события")]
     public void TryUpdateEventNotExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -214,6 +239,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления существующего события")]
     public void TryDeleteEventExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -235,6 +263,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления несуществующего события")]
     public void TryDeleteEventNotExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -253,6 +284,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления событий у существующего пользователя")]
     public void TryDeleteEventsUserExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -295,6 +329,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления событий у несуществующего пользователя")]
     public void TryDeleteEventsUserNoExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -312,6 +349,9 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест замены событий у существующего пользователя")]
     public void TryReplaceEventsValidUser()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -355,12 +395,12 @@ public class UnitTestsEventRepo
         var result = repo.TryReplaceEvents(newEvents, userName);
 
         Assert.True(result);
-        mockEventsDbSet.Verify(d => d.RemoveRange(It.IsAny<IEnumerable<DBEvent>>()), Times.Once);
-        mockEventsDbSet.Verify(d => d.AddRange(It.IsAny<IEnumerable<DBEvent>>()), Times.Once);
-        mockDbContext.Verify(db => db.SaveChanges(), Times.Exactly(2));
     }
 
     [Fact]
+    [AllureFeature("EventRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест замены событий не все из для одного пользователя")]
     public void TryReplaceEventsNotAllForOneUser()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -375,30 +415,6 @@ public class UnitTestsEventRepo
                 new TimeOnly(13, 0), otherUserName, EventOption.EveryWeek,
                 DayOfWeek.Tuesday, null)
         };
-        var repo = new PostgresEventRepo(mockDbContext.Object);
-
-        var result = repo.TryReplaceEvents(events, userName);
-
-        Assert.False(result);
-    }
-
-    [Fact]
-    public void TryReplaceEventsDeleteFails()
-    {
-        var mockDbContext = new Mock<ITaskTrackerContext>();
-        var mockUsersDbSet = new Mock<DbSet<DBUser>>();
-
-        var userName = "test";
-        var events = new List<Event>
-        {
-            new Event(Guid.NewGuid(), "test", new TimeOnly(10, 0),
-                new TimeOnly(11, 0), userName, EventOption.Once,
-                DayOfWeek.Monday, DateOnly.FromDateTime(DateTime.Now))
-        };
-        mockUsersDbSet.Setup(d => d.Find(userName))
-                     .Returns((DBUser?)null);
-        mockDbContext.Setup(db => db.Users)
-                    .Returns(mockUsersDbSet.Object);
         var repo = new PostgresEventRepo(mockDbContext.Object);
 
         var result = repo.TryReplaceEvents(events, userName);

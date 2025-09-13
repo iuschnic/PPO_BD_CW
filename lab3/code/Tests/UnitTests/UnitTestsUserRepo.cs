@@ -3,12 +3,16 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using Storage.Models;
 using Storage.PostgresStorageAdapters;
+using Allure.Xunit.Attributes;
 using Types;
 
-namespace Tests;
+namespace Tests.UnitTests;
 public class UnitTestsUserRepo
 {
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения пользователя когда он существует")]
     public void TryGetUserExists()
     {
         Console.WriteLine($"Test1 executed at {DateTime.Now:HH:mm:ss.fff}");
@@ -38,6 +42,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения пользователя когда он не существует")]
     public void TryGetUserNotExist()
     {
         Console.WriteLine($"Test2 executed at {DateTime.Now:HH:mm:ss.fff}");
@@ -55,6 +62,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения пользователя со всей связанной информацией когда он существует")]
     public void TryFullGetUserExists()
     {
         Console.WriteLine($"Test3 executed at {DateTime.Now:HH:mm:ss.fff}");
@@ -87,6 +97,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения пользователя со всей связанной информацией когда он не существует")]
     public void TryFullGetUserNotExist()
     {
         Console.WriteLine($"Test4 executed at {DateTime.Now:HH:mm:ss.fff}");
@@ -104,6 +117,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создание пользователя когда он не существует")]
     public void TryCreateUserNotExists()
     {
         Console.WriteLine($"Test5 executed at {DateTime.Now:HH:mm:ss.fff}");
@@ -128,6 +144,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создание пользователя когда он уже существует")]
     public void TryCreateUserAlreadyExists()
     {
         Console.WriteLine($"Test6 executed at {DateTime.Now:HH:mm:ss.fff}");
@@ -146,6 +165,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест обновления информации о пользователе когда он существует")]
     public void TryUpdateUserExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -167,6 +189,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест обновления информации о пользователе когда он не существует")]
     public void TryUpdateUserNotExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -184,6 +209,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест обновления настроек пользователя когда они существует")]
     public void TryUpdateSettingsExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -206,6 +234,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест обновления настроек пользователя когда они не существуют")]
     public void TryUpdateSettingsNoExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -224,6 +255,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления пользователя когда он существует")]
     public void TryDeleteUserExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -248,6 +282,9 @@ public class UnitTestsUserRepo
     }
 
     [Fact]
+    [AllureFeature("UserRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления пользователя когда он не существует")]
     public void TryDeleteUserNoExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();

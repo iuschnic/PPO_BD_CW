@@ -7,7 +7,7 @@ using Types;
 using Tests.ObjectMothers;
 using Allure.Xunit.Attributes;
 
-namespace Tests;
+namespace Tests.UnitTests;
 
 public class UnitTestsTaskTracker
 {

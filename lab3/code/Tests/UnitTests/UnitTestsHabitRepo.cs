@@ -4,13 +4,17 @@ using Moq;
 using Storage.Models;
 using Storage.PostgresStorageAdapters;
 using Tests.ObjectMothers;
-using Types; 
+using Types;
+using Allure.Xunit.Attributes;
 
-namespace Tests;
+namespace Tests.UnitTests;
 
 public class UnitTestsHabitRepo
 {
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения привычек пользователя когда он существует")]
     public void TryGetUserExists()
     {
         var start1 = new TimeOnly(8, 0);
@@ -82,6 +86,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест получения привычек пользователя когда он не существует")]
     public void TryGetUserNotExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -97,6 +104,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания привычки пользователя которой еще не существует")]
     public void TryCreateHabitNotExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -121,6 +131,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания привычки пользователя которая уже существует")]
     public void TryCreateHabitAlreadyExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -140,6 +153,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания нескольких привычек пользователя которых еще не существует")]
     public void TryCreateManyNotExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -163,6 +179,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест создания нескольких привычек пользователя одна из которых уже существует")]
     public void TryCreateManyAlreadyExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -184,6 +203,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления существующей привычки")]
     public void TryDeleteHabitExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -214,6 +236,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления несуществующей привычки")]
     public void TryDeleteHabitNotExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -233,6 +258,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления привычек у существующего пользователя")]
     public void TryDeleteHabitsUserExists()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -263,6 +291,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест удаления привычек у несуществующего пользователя")]
     public void TryDeleteHabitUserNotExist()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -278,6 +309,9 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест замены привычек у существующего пользователя")]
     public void TryReplaceValidHabits()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
@@ -312,6 +346,10 @@ public class UnitTestsHabitRepo
     }
 
     [Fact]
+    [AllureFeature("HabitRepo")]
+    [AllureStory("Тесты репозитория")]
+    [AllureDescription("Тест замены привычек у существующего пользователя, но не все переданные привычки" +
+        "принадлежат одному пользователю")]
     public void TryReplaceHabitsNotAllBelongToUser()
     {
         var mockDbContext = new Mock<ITaskTrackerContext>();
