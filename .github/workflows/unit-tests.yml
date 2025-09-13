@@ -20,10 +20,15 @@ jobs:
     - name: Build test image with Allure
       run: docker build -t bd-unit-tests-allure .
 
-    - name: Run tests and generate Allure results
+    - name: Run tests with TRX output
       run: |
-        mkdir -p allure-results
-        docker run --rm -v $(pwd)/allure-results:/allure-results bd-unit-tests-allure
+        mkdir -p test-results
+        docker run --rm -v $(pwd)/test-results:/test-results bd-unit-tests
+
+    - name: Convert TRX to Allure
+      run: |
+        pip install trx2allure
+        trx2allure test-results/test_results.trx allure-results
 
     - name: Generate Allure report
       run: |
