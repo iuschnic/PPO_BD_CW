@@ -18,8 +18,8 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build test image with Allure
-      run: docker build -t bd-unit-tests-allure .
-
+      run: docker build -t bd-unit-tests .
+      
     - name: Run tests with TRX output
       run: |
         mkdir -p test-results
@@ -44,3 +44,4 @@ jobs:
         name: allure-report
         path: allure-report/
         retention-days: 7
+
