@@ -1,4 +1,4 @@
-name: Unit Tests
+name: Unit Tests with Allure Report
 
 on:
   pull_request:
@@ -7,7 +7,7 @@ on:
       - 'lab3/code/**'
 
 jobs:
-  run-unit-tests:
+  unit-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -17,8 +17,31 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build test image
-      run: docker build -t bd-unit-tests .
+    - name: Build test image with Allure
+      run: docker build -t bd-unit-tests-allure .
 
-    - name: Run tests
-      run: docker run --rm bd-unit-tests
+    - name: Run tests and generate Allure results
+      run: |
+        mkdir -p allure-results
+        docker run --rm -v $(pwd)/allure-results:/allure-results bd-unit-tests-allure
+
+    - name: Generate Allure report
+      run: |
+        sudo apt-get update
+        sudo apt-get install -y default-jre
+        curl -o allure-2.27.0.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
+        tar -zxvf allure-2.27.0.tgz
+        ./allure-2.27.0/bin/allure generate allure-results -o allure-report --clean
+
+    - name: Upload Allure report
+      uses: actions/upload-artifact@v4
+      with:
+        name: allure-report
+        path: allure-report/
+        retention-days: 7
+
+    - name: Deploy to GitHub Pages
+      uses: peaceiris/actions-gh-pages@v3
+      with:
+        github_token: ${{ secrets.GITHUB_TOKEN }}
+        publish_dir: ./allure-report
