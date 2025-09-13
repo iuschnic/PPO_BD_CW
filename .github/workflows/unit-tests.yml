@@ -17,13 +17,17 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build test image with Allure
+    - name: Build test image
       run: docker build -t bd-unit-tests .
       
     - name: Run tests with HTML output
       run: |
         mkdir -p test-results
-        docker run --rm -v $(pwd)/test-results:/test-results bd-unit-tests --logger "html;LogFileName=report.html"
+        # Use absolute path for volume mounting and ensure proper permissions
+        docker run --rm -v $(pwd)/test-results:/test-results bd-unit-tests --logger "html;LogFileName=/test-results/report.html"
+
+    - name: List test results directory (for debugging)
+      run: ls -la test-results/
 
     - name: Upload HTML report
       uses: actions/upload-artifact@v4
