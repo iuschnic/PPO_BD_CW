@@ -49,7 +49,7 @@ public class UnitTestsEventRepo
 
         var result = repo.TryGet(userName);
 
-        Assert.NotNull(result);
+        Assert.Null(result);
         Assert.Equal(events.Select(el => el.Id), result.Select(el => el.Id));
     }
 

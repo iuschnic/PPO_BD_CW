@@ -1,4 +1,4 @@
-name: Unit Tests with Allure Report
+name: Unit Tests
 
 on:
   pull_request:
@@ -14,72 +14,11 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
-    - name: Setup .NET
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: '9.0.x'
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-    - name: Setup Java and Allure
-      run: |
-        sudo apt-get update
-        sudo apt-get install -y default-jre
-        curl -o allure-2.27.0.tgz -Ls https://github.com/allure-framework/allure2/releases/download/2.27.0/allure-2.27.0.tgz
-        tar -zxvf allure-2.27.0.tgz
-        sudo mv allure-2.27.0 /opt/
-        sudo ln -s /opt/allure-2.27.0/bin/allure /usr/bin/allure
+    - name: Build test image
+      run: docker build -t bd-unit-tests .
 
-    - name: Restore and build
-      run: |
-        cd lab3/code
-        dotnet restore
-        dotnet build -c Release --no-restore
-
-    - name: Create allure-results directory
-      run: mkdir -p lab3/allure-results
-
-    - name: Run tests with TRX output
-      run: |
-        cd lab3/code
-        dotnet test Tests/Tests.csproj -c Release --no-build \
-          --logger "trx;LogFileName=test_results.trx" \
-          --results-directory ../allure-results
-
-    - name: Check if results exist
-      run: |
-        cd lab3
-        echo "Contents of allure-results directory:"
-        ls -la allure-results/
-        if [ -f allure-results/test_results.trx ]; then
-          echo "TRX file found!"
-        else
-          echo "TRX file not found!"
-          exit 1
-        fi
-
-    - name: Upload test results
-      uses: actions/upload-artifact@v4
-      with:
-        name: test-results
-        path: lab3/allure-results/test_results.trx
-        retention-days: 7
-
-    - name: Create test summary
-      run: |
-        cd lab3
-        if [ -f allure-results/test_results.trx ]; then
-          passed=$(grep -o 'passed="[0-9]*"' allure-results/test_results.trx | head -1 | cut -d'"' -f2)
-          failed=$(grep -o 'failed="[0-9]*"' allure-results/test_results.trx | head -1 | cut -d'"' -f2)
-          skipped=$(grep -o 'skipped="[0-9]*"' allure-results/test_results.trx | head -1 | cut -d'"' -f2)
-          total=$((passed + failed + skipped))
-          
-          echo "TEST_RESULTS<<EOF" >> $GITHUB_ENV
-          echo "✅ Passed: $passed" >> $GITHUB_ENV
-          echo "❌ Failed: $failed" >> $GITHUB_ENV
-          echo "⏩ Skipped: $skipped" >> $GITHUB_ENV
-          echo "📊 Total: $total" >> $GITHUB_ENV
-          echo "EOF" >> $GITHUB_ENV
-        fi
-
-    - name: Show test results
-      run: |
-        echo "$TEST_RESULTS"
+    - name: Run tests
+      run: docker run --rm bd-unit-tests
