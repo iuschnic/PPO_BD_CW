@@ -1,0 +1,29 @@
+name: Unit Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'lab3/code/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'lab3/code/**'
+
+jobs:
+  run-unit-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Build and run unit tests
+      run: |
+        docker build -t bd-unit-tests .
+        docker run --rm bd-unit-tests

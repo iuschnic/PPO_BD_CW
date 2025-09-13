@@ -124,7 +124,7 @@ public class TaskTracker : ITaskTracker
         List<Event> events;
         try
         {
-            events = await _shedLoader.LoadSheduleAsync(user_name, path);
+            events = _shedLoader.LoadShedule(user_name, path);
         }
         catch (Exception ex)
         {

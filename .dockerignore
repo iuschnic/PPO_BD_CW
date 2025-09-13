@@ -1,0 +1,15 @@
+**/.git/
+**/.github/
+**/bin/
+**/obj/
+**/node_modules/
+**/allure-report/
+**/test-results/
+*.ps1
+*.md
+.gitignore
+
+*
+!lab3/
+lab3/*
+!lab3/code/
