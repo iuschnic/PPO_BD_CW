@@ -71,7 +71,7 @@ public class PostgresEventRepo : IEventRepo
         var test = await _dbContext.Events.FindAsync(e.Id);
         if (test != null) 
             return false;
-        DBEvent dbe = new DBEvent(e);
+        var dbe = new DBEvent(e);
         _dbContext.Events.Add(dbe);
         await _dbContext.SaveChangesAsync();
         return true;
@@ -83,7 +83,7 @@ public class PostgresEventRepo : IEventRepo
             return false;
         DBEvent dbe = new DBEvent(e);
         _dbContext.Events.Add(dbe);
-        _dbContext.SaveChangesAsync();
+        _dbContext.SaveChanges();
         return true;
     }
     public async Task<bool> TryCreateManyAsync(List<Event> events)
