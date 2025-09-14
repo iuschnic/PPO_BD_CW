@@ -13,7 +13,7 @@ public class UnitTestsTaskTracker
 {
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Создание пользователя")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
     public void CreateUserWithValidData()
     {
@@ -48,10 +48,46 @@ public class UnitTestsTaskTracker
         Assert.True(result.Settings.NotifyOn);
         Assert.Equal(userName, result.Settings.UserNameID);
     }
-
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Создание пользователя")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест создания пользователя с корректными данными")]
+    public async Task CreateUserAsyncWithValidData()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var phoneNumber = new PhoneNumber("+79161648345");
+        var password = "123";
+        var expectedUser = new User(userName, password, phoneNumber,
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        mockUserRepo.Setup(r => r.TryCreateAsync(It.IsAny<User>())).ReturnsAsync(true);
+        mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(expectedUser);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync([]);
+
+        var result = await taskTracker.CreateUserAsync(userName, phoneNumber, password);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.NameID);
+        Assert.Equal(phoneNumber, result.Number);
+        Assert.True(result.Settings.NotifyOn);
+        Assert.Equal(userName, result.Settings.UserNameID);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания пользователя который уже существует")]
     public void CreateUserAlreadyExists()
     {
@@ -79,10 +115,39 @@ public class UnitTestsTaskTracker
 
         Assert.Contains(userName, exception.Message);
     }
-
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Авторизация")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест создания пользователя который уже существует")]
+    public async Task CreateUserAsyncAlreadyExists()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "existingtest";
+        var phoneNumber = new PhoneNumber("+79161648345");
+        var password = "123";
+        mockUserRepo.Setup(r => r.TryCreateAsync(It.IsAny<User>())).ReturnsAsync(false);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.CreateUserAsync(userName, phoneNumber, password));
+
+        Assert.Contains(userName, exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с правильными данными")]
     public void LogInWithValidCredentials()
     {
@@ -113,10 +178,42 @@ public class UnitTestsTaskTracker
         Assert.NotNull(result);
         Assert.Equal(userName, result.NameID);
     }
-
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Авторизация")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест авторизации с правильными данными")]
+    public async Task LogInAsyncWithValidCredentials()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var password = "correctPassword";
+        var user = new User(userName, password, new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+        mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync([]);
+
+        var result = await taskTracker.LogInAsync(userName, password);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.NameID);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
     public void LogInWithInvalidPassword()
     {
@@ -146,10 +243,41 @@ public class UnitTestsTaskTracker
 
         Assert.Contains("неправильный пароль", exception.Message);
     }
-
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Загрузка нового расписания")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест авторизации с неправильным паролем")]
+    public async Task LogInAsyncWithInvalidPassword()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var correctPassword = "correctPassword";
+        var wrongPassword = "wrongPassword";
+        var user = new User(userName, correctPassword, new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []));
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.LogInAsync(userName, wrongPassword));
+
+        Assert.Contains("неправильный пароль", exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест загрузки расписания с правильным файлом")]
     public void ImportNewSheduleValidFile()
     {
@@ -191,10 +319,53 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.Item1.NameID);
         Assert.Empty(result.Item2);
     }
-
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Загрузка нового расписания")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест загрузки расписания с правильным файлом")]
+    public async Task ImportNewSheduleAsyncValidFile()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var path = "valid_file.json";
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        var events = new List<Event>();
+        events.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+        events.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+        var habits = new List<Habit> { new Habit(Guid.NewGuid(), "Тренировка", 30,
+            TimeOption.NoMatter, userName, [], [], 1) };
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+        mockShedLoader.Setup(s => s.LoadShedule(userName, path)).Returns(events);
+        mockHabitRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(habits);
+        mockDistributor.Setup(d => d.DistributeHabits(habits, events)).Returns([]);
+        mockEventRepo.Setup(r => r.TryReplaceEventsAsync(events, userName)).ReturnsAsync(true);
+        mockHabitRepo.Setup(r => r.TryReplaceHabitsAsync(habits, userName)).ReturnsAsync(true);
+        mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(events);
+
+        var result = await taskTracker.ImportNewSheduleAsync(userName, path);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.Item1.NameID);
+        Assert.Empty(result.Item2);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
     public void ImportNewSheduleInvalidFile()
     {
@@ -227,9 +398,42 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Добавление привычки")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
+    public async Task ImportNewSheduleAsyncInvalidFile()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var invalidFilePath = "invalid_file.json";
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+        mockShedLoader.Setup(s => s.LoadShedule(userName, invalidFilePath))
+                      .Throws(new InvalidDataException($"Ошибка чтения файла"));
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.ImportNewSheduleAsync(userName, invalidFilePath));
+
+        Assert.Contains("Ошибка загрузки расписания", exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки")]
-    public void AddValidHabit()
+    public void AddHabitValid()
     {
         var mockEventRepo = new Mock<IEventRepo>();
         var mockHabitRepo = new Mock<IHabitRepo>();
@@ -272,7 +476,53 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Добавление привычки")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест добавления валидной привычки")]
+    public async Task AddHabitAsyncValid()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var habit = new Habit(Guid.NewGuid(), "Чтение", 30, TimeOption.NoMatter, userName, [], [], 1);
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        var existingEvents = new List<Event>();
+        existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+        existingEvents.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+        var existingHabits = new List<Habit> { new Habit(Guid.NewGuid(), "Тренировка", 30,
+            TimeOption.NoMatter, userName, [], [], 1) };
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(existingEvents);
+        mockHabitRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(existingHabits);
+        mockDistributor.Setup(d => d.DistributeHabits(It.Is<List<Habit>>(h => h.Contains(habit)), existingEvents))
+                       .Returns([]);
+        mockEventRepo.Setup(r => r.TryReplaceEventsAsync(existingEvents, userName)).ReturnsAsync(true);
+        mockHabitRepo.Setup(r => r.TryReplaceHabitsAsync
+            (It.Is<List<Habit>>(h => h.Contains(habit)), userName)).ReturnsAsync(true);
+        mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(existingEvents);
+
+        var result = await taskTracker.AddHabitAsync(habit);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.Item1.NameID);
+        Assert.Empty(result.Item2);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
     public void AddHabitNoValidUser()
     {
@@ -300,9 +550,37 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Удаление привычки")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
+    public async Task AddHabitAsyncNoValidUser()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var notExistUserName = "not_exists";
+        var habit = new Habit(Guid.NewGuid(), "Спорт", 30, TimeOption.NoMatter, notExistUserName, [], [], 1);
+        mockUserRepo.Setup(r => r.TryGetAsync(notExistUserName)).ReturnsAsync((User?)null);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() => taskTracker.AddHabitAsync(habit));
+
+        Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
-    public void DeleteValidHabit()
+    public void DeleteHabitValid()
     {
         var mockEventRepo = new Mock<IEventRepo>();
         var mockHabitRepo = new Mock<IHabitRepo>();
@@ -352,7 +630,59 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Удаление привычки")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления существующей привычки")]
+    public async Task DeleteHabitAsyncValid()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var habitName = "Чтение";
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        var existingEvents = new List<Event>();
+        existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
+        existingEvents.AddRange(TaskTrackerMother.DefaultDayShedule(userName, DayOfWeek.Monday));
+        var habits = new List<Habit>
+        {
+            new Habit(Guid.NewGuid(), habitName, 60, TimeOption.NoMatter, userName, [], [], 1),
+        };
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(existingEvents);
+        mockHabitRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(habits);
+        mockDistributor.Setup(d => d.DistributeHabits(
+                It.Is<List<Habit>>(h => !h.Any(habit => habit.Name == habitName)),
+                existingEvents))
+            .Returns([]);
+        mockEventRepo.Setup(r => r.TryReplaceEventsAsync(existingEvents, userName)).ReturnsAsync(true);
+        mockHabitRepo.Setup(r => r.TryReplaceHabitsAsync(
+                It.Is<List<Habit>>(h => !h.Any(habit => habit.Name == habitName)),
+                userName))
+            .ReturnsAsync(true);
+        mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(existingEvents);
+
+        var result = await taskTracker.DeleteHabitAsync(userName, habitName);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.Item1.NameID);
+        Assert.Empty(result.Item2);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
     public void DeleteHabitInvalidUser()
     {
@@ -382,7 +712,37 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Удаление всех привычек")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления несуществующей привычки")]
+    public async Task DeleteHabitAsyncInvalidUser()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var notExistUserName = "not_exists";
+        var habitName = "Чтение";
+
+        mockUserRepo.Setup(r => r.TryGetAsync(notExistUserName)).ReturnsAsync((User?)null);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.DeleteHabitAsync(notExistUserName, habitName));
+
+        Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления всех привычек")]
     public void DeleteHabitsValidUser()
     {
@@ -412,7 +772,7 @@ public class UnitTestsTaskTracker
         mockHabitRepo.Setup(r => r.TryGet(userName)).Returns(habits);
         mockHabitRepo.Setup(r => r.TryDeleteHabits(userName)).Returns(true);
         mockUserRepo.Setup(r => r.TryFullGet(userName)).Returns(user);
-        mockEventRepo.Setup(r => r.TryGet(userName)).Returns(new List<Event>());
+        mockEventRepo.Setup(r => r.TryGet(userName)).Returns([]);
 
         var result = taskTracker.DeleteHabits(userName);
 
@@ -422,7 +782,47 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Удаление всех привычек")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления всех привычек")]
+    public async Task DeleteHabitsAsyncValidUser()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "testUser";
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
+        var habits = new List<Habit>
+        {
+            new Habit(Guid.NewGuid(), "Чтение", 60, TimeOption.NoMatter, userName, [], [], 2),
+            new Habit(Guid.NewGuid(), "Тренировка", 30, TimeOption.NoMatter, userName, [], [], 1)
+        };
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+        mockHabitRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(habits);
+        mockHabitRepo.Setup(r => r.TryDeleteHabitsAsync(userName)).ReturnsAsync(true);
+        mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync([]);
+
+        var result = await taskTracker.DeleteHabitsAsync(userName);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.Item1.NameID);
+        Assert.Empty(result.Item2);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
     public void DeleteHabitsInvalidUser()
     {
@@ -450,7 +850,35 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Изменение настроек пользователя")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
+    public async Task DeleteHabitsAsyncInvalidUser()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var notExistUserName = "not_exists";
+        mockUserRepo.Setup(r => r.TryGetAsync(notExistUserName)).ReturnsAsync((User?)null);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.DeleteHabitsAsync(notExistUserName));
+
+        Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест изменения настроек существующего пользователя")]
     public void ChangeSettingsValidUser()
     {
@@ -486,7 +914,43 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Изменение настроек пользователя")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест изменения настроек существующего пользователя")]
+    public async Task ChangeSettingsAsyncValidUser()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        var settings = new UserSettings(Guid.NewGuid(), true, userName, []);
+        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+            settings, [], []);
+        var events = new List<Event>();
+        mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
+        mockUserRepo.Setup(r => r.TryUpdateSettingsAsync(settings)).ReturnsAsync(true);
+        mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(user);
+        mockEventRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(events);
+
+        var result = await taskTracker.ChangeSettingsAsync(settings);
+
+        Assert.NotNull(result);
+        Assert.Equal(userName, result.NameID);
+        Assert.Equal(settings, result.Settings);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест изменения настроек несуществующего пользователя")]
     public void ChangeSettingsInvalidUser()
     {
@@ -515,9 +979,38 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Удаление пользователя")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест изменения настроек несуществующего пользователя")]
+    public async Task ChangeSettingsAsyncInvalidUser()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var notExistsUserName = "not_exists";
+        var settings = new UserSettings(Guid.NewGuid(), true, notExistsUserName, []);
+        mockUserRepo.Setup(r => r.TryGetAsync(notExistsUserName)).ReturnsAsync((User?)null);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.ChangeSettingsAsync(settings));
+
+        Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующего пользователя")]
-    public void DeleteValidUser()
+    public void DeleteUserValid()
     {
         var mockEventRepo = new Mock<IEventRepo>();
         var mockHabitRepo = new Mock<IHabitRepo>();
@@ -540,9 +1033,34 @@ public class UnitTestsTaskTracker
     }
     [Fact]
     [AllureFeature("TaskTracker")]
-    [AllureStory("Удаление пользователя")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления существующего пользователя")]
+    public async Task DeleteUserAsyncValid()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        mockUserRepo.Setup(r => r.TryDeleteAsync(userName)).ReturnsAsync(true);
+
+        await taskTracker.DeleteUserAsync(userName);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующего пользователя")]
-    public void DeleteUser_WhenDeleteFails_ThrowsExceptionAndLogsError()
+    public void DeleteUserNotExists()
     {
         var mockEventRepo = new Mock<IEventRepo>();
         var mockHabitRepo = new Mock<IHabitRepo>();
@@ -563,6 +1081,35 @@ public class UnitTestsTaskTracker
 
         var exception = Assert.Throws<Exception>(() =>
             taskTracker.DeleteUser(userName));
+
+        Assert.Contains("Не удалось удалить пользователя", exception.Message);
+        Assert.Contains(userName, exception.Message);
+    }
+    [Fact]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления несуществующего пользователя")]
+    public async Task DeleteUserAsyncNotExists()
+    {
+        var mockEventRepo = new Mock<IEventRepo>();
+        var mockHabitRepo = new Mock<IHabitRepo>();
+        var mockUserRepo = new Mock<IUserRepo>();
+        var mockShedLoader = new Mock<ISheduleLoad>();
+        var mockDistributor = new Mock<IHabitDistributor>();
+        var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var taskTracker = new TaskTracker(
+            mockEventRepo.Object,
+            mockHabitRepo.Object,
+            mockUserRepo.Object,
+            mockShedLoader.Object,
+            mockDistributor.Object,
+            mockLogger.Object
+        );
+        var userName = "test";
+        mockUserRepo.Setup(r => r.TryDeleteAsync(userName)).ReturnsAsync(false);
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.DeleteUserAsync(userName));
 
         Assert.Contains("Не удалось удалить пользователя", exception.Message);
         Assert.Contains(userName, exception.Message);
