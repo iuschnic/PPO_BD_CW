@@ -7,7 +7,7 @@ using Allure.Xunit.Attributes;
 using Types;
 using Microsoft.EntityFrameworkCore.Query;
 using System.Linq.Expressions;
-
+[assembly: CollectionBehavior(MaxParallelThreads = 1)]
 namespace Tests.UnitTests;
 public class UnitTestsUserRepo
 {
@@ -21,7 +21,7 @@ public class UnitTestsUserRepo
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
-        var dbUser = new DBUser(userName, "+79161648345", "test")
+        var dbUser = new DBUser(userName, "+71111111111", "test")
         {
             Settings = new DBUserSettings(Guid.NewGuid(), true, userName)
             {
@@ -37,7 +37,7 @@ public class UnitTestsUserRepo
 
         Assert.NotNull(result);
         Assert.Equal(userName, result.NameID);
-        Assert.Equal("+79161648345", result.Number.StringNumber);
+        Assert.Equal("+71111111111", result.Number.StringNumber);
         Assert.Equal("test", result.PasswordHash);
         Assert.NotNull(result.Settings);
         Assert.Single(result.Settings.SettingsTimes);
@@ -48,11 +48,10 @@ public class UnitTestsUserRepo
     [AllureDescription("Тест получения пользователя когда он существует")]
     public async Task TryGetAsyncUserExists()
     {
-        Console.WriteLine($"Test1 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
-        var dbUser = new DBUser(userName, "+79161648345", "test")
+        var dbUser = new DBUser(userName, "+71111111111", "test")
         {
             Settings = new DBUserSettings(Guid.NewGuid(), true, userName)
             {
@@ -68,7 +67,7 @@ public class UnitTestsUserRepo
 
         Assert.NotNull(result);
         Assert.Equal(userName, result.NameID);
-        Assert.Equal("+79161648345", result.Number.StringNumber);
+        Assert.Equal("+71111111111", result.Number.StringNumber);
         Assert.Equal("test", result.PasswordHash);
         Assert.NotNull(result.Settings);
         Assert.Single(result.Settings.SettingsTimes);
@@ -98,7 +97,6 @@ public class UnitTestsUserRepo
     [AllureDescription("Тест получения пользователя когда он не существует")]
     public async Task TryGetAsyncUserNotExist()
     {
-        Console.WriteLine($"Test2 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
@@ -121,7 +119,7 @@ public class UnitTestsUserRepo
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
-        var dbUser = new DBUser(userName, "+79161648345", "test")
+        var dbUser = new DBUser(userName, "+71111111111", "test")
         {
             Settings = new DBUserSettings(Guid.NewGuid(), true, userName),
             Habits = 
@@ -151,11 +149,10 @@ public class UnitTestsUserRepo
     [AllureDescription("Тест получения пользователя со всей связанной информацией когда он существует")]
     public async Task TryFullGetAsyncUserExists()
     {
-        Console.WriteLine($"Test3 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
-        var dbUser = new DBUser(userName, "+79161648345", "test")
+        var dbUser = new DBUser(userName, "+71111111111", "test")
         {
             Settings = new DBUserSettings(Guid.NewGuid(), true, userName),
             Habits =
@@ -204,7 +201,6 @@ public class UnitTestsUserRepo
     [AllureDescription("Тест получения пользователя со всей связанной информацией когда он не существует")]
     public async Task TryFullGetAsyncUserNotExist()
     {
-        Console.WriteLine($"Test4 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
@@ -228,7 +224,7 @@ public class UnitTestsUserRepo
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockSettingsDbSet = new Mock<DbSet<DBUserSettings>>();
         var mockSettingsTimesDbSet = new Mock<DbSet<DBSTime>>();
-        var user = new User("test", "test", new PhoneNumber("+79161648345"),
+        var user = new User("test", "test", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, "test",
                [new(Guid.NewGuid(), new TimeOnly(9, 0), new TimeOnly(10, 0), Guid.NewGuid())]
             ));
@@ -249,12 +245,11 @@ public class UnitTestsUserRepo
     [AllureDescription("Тест создание пользователя когда он не существует")]
     public async Task TryCreateAsyncUserNotExists()
     {
-        Console.WriteLine($"Test5 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockSettingsDbSet = new Mock<DbSet<DBUserSettings>>();
         var mockSettingsTimesDbSet = new Mock<DbSet<DBSTime>>();
-        var user = new User("test", "test", new PhoneNumber("+79161648345"),
+        var user = new User("test", "test", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, "test",
                [new(Guid.NewGuid(), new TimeOnly(9, 0), new TimeOnly(10, 0), Guid.NewGuid())]
             ));
@@ -278,9 +273,9 @@ public class UnitTestsUserRepo
         Console.WriteLine($"Test6 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
-        var user = new User("test", "test", new PhoneNumber("+79161648345"),
+        var user = new User("test", "test", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, "test", new List<SettingsTime>()));
-        var existingUser = new DBUser("test", "+79161648345", "old");
+        var existingUser = new DBUser("test", "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.Find(user.NameID)).Returns(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         var repo = new PostgresUserRepo(mockDbContext.Object);
@@ -295,12 +290,11 @@ public class UnitTestsUserRepo
     [AllureDescription("Тест создание пользователя когда он уже существует")]
     public async Task TryCreateAsyncUserAlreadyExists()
     {
-        Console.WriteLine($"Test6 executed at {DateTime.Now:HH:mm:ss.fff}");
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
-        var user = new User("test", "test", new PhoneNumber("+79161648345"),
+        var user = new User("test", "test", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, "test", new List<SettingsTime>()));
-        var existingUser = new DBUser("test", "+79161648345", "old");
+        var existingUser = new DBUser("test", "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.FindAsync(user.NameID)).ReturnsAsync(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         var repo = new PostgresUserRepo(mockDbContext.Object);
@@ -318,7 +312,7 @@ public class UnitTestsUserRepo
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "old");
+        var existingUser = new DBUser(userName, "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.Find(userName)).Returns(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         var repo = new PostgresUserRepo(mockDbContext.Object);
@@ -340,7 +334,7 @@ public class UnitTestsUserRepo
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "old");
+        var existingUser = new DBUser(userName, "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.FindAsync(userName)).ReturnsAsync(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         var repo = new PostgresUserRepo(mockDbContext.Object);
@@ -490,7 +484,7 @@ public class UnitTestsUserRepo
         var mockSettingsDbSet = new Mock<DbSet<DBUserSettings>>();
         var mockSettingsTimesDbSet = new Mock<DbSet<DBSTime>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "test");
+        var existingUser = new DBUser(userName, "+71111111111", "test");
         var existingSettings = new DBUserSettings(Guid.NewGuid(), true, userName);
         var existingTimes = new List<DBSTime>().AsQueryable();
         mockUsersDbSet.Setup(d => d.Find(userName)).Returns(existingUser);
@@ -516,7 +510,7 @@ public class UnitTestsUserRepo
         var mockSettingsDbSet = new Mock<DbSet<DBUserSettings>>();
         var mockSettingsTimesDbSet = new Mock<DbSet<DBSTime>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "test");
+        var existingUser = new DBUser(userName, "+71111111111", "test");
         var existingSettings = new DBUserSettings(Guid.NewGuid(), true, userName);
         var existingTimes = new List<DBSTime>().AsQueryable();
         mockUsersDbSet.Setup(d => d.FindAsync(userName)).ReturnsAsync(existingUser);

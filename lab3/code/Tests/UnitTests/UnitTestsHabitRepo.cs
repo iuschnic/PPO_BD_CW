@@ -1,19 +1,21 @@
-﻿using Domain.Models;
+﻿using Allure.Xunit.Attributes;
+using Domain.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using Storage.Models;
 using Storage.PostgresStorageAdapters;
+using System.ComponentModel;
+using System.Linq.Expressions;
 using Tests.ObjectMothers;
 using Types;
-using Allure.Xunit.Attributes;
-using Microsoft.EntityFrameworkCore.Query;
-using System.Linq.Expressions;
 
 namespace Tests.UnitTests;
 
 public class UnitTestsHabitRepo
 {
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он существует")]
@@ -31,7 +33,7 @@ public class UnitTestsHabitRepo
         var mockHabitsDbSet = new Mock<DbSet<DBHabit>>();
         var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
         var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         mockUsersDbSet.Setup(d => d.Find(userName))
                      .Returns(testUser);
         var habitId = Guid.NewGuid();
@@ -76,6 +78,7 @@ public class UnitTestsHabitRepo
             pf.Start == start2 && pf.End == end2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он существует")]
@@ -93,7 +96,7 @@ public class UnitTestsHabitRepo
         var mockHabitsDbSet = new Mock<DbSet<DBHabit>>();
         var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
         var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         mockUsersDbSet.Setup(d => d.FindAsync(userName))
                      .ReturnsAsync(testUser);
         var habitId = Guid.NewGuid();
@@ -138,6 +141,7 @@ public class UnitTestsHabitRepo
             pf.Start == start2 && pf.End == end2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он не существует")]
@@ -155,6 +159,7 @@ public class UnitTestsHabitRepo
         Assert.Null(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он не существует")]
@@ -172,6 +177,7 @@ public class UnitTestsHabitRepo
         Assert.Null(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которой еще не существует")]
@@ -198,6 +204,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которой еще не существует")]
@@ -224,6 +231,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которая уже существует")]
@@ -245,6 +253,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которая уже существует")]
@@ -266,6 +275,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя которых еще не существует")]
@@ -291,6 +301,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя которых еще не существует")]
@@ -316,6 +327,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя одна из которых уже существует")]
@@ -339,6 +351,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя одна из которых уже существует")]
@@ -362,6 +375,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -391,6 +405,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -420,6 +435,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -438,6 +454,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -456,6 +473,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления привычек у существующего пользователя")]
@@ -467,7 +485,7 @@ public class UnitTestsHabitRepo
         var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
         var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
         var userName = "test";
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         var dbHabits = new List<DBHabit>
         {
             new(Guid.NewGuid(), "test", 30, TimeOption.Fixed, userName, 3)
@@ -485,6 +503,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления привычек у существующего пользователя")]
@@ -496,7 +515,7 @@ public class UnitTestsHabitRepo
         var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
         var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
         var userName = "test";
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         var dbHabits = new List<DBHabit>
         {
             new(Guid.NewGuid(), "test", 30, TimeOption.Fixed, userName, 3)
@@ -514,6 +533,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления привычек у несуществующего пользователя")]
@@ -531,6 +551,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления привычек у несуществующего пользователя")]
@@ -548,6 +569,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя")]
@@ -559,7 +581,7 @@ public class UnitTestsHabitRepo
         var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
         var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
         var userName = "test";
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         var newHabits = new List<Habit>
         {
             new(Guid.NewGuid(), "test", 30, TimeOption.NoMatter, userName, [], [], 3)
@@ -581,6 +603,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя")]
@@ -592,7 +615,7 @@ public class UnitTestsHabitRepo
         var mockActualTimesDbSet = new Mock<DbSet<DBActualTime>>();
         var mockPrefFixedTimesDbSet = new Mock<DbSet<DBPrefFixedTime>>();
         var userName = "test";
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         var newHabits = new List<Habit>
         {
             new(Guid.NewGuid(), "test", 30, TimeOption.NoMatter, userName, [], [], 3)
@@ -614,6 +637,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя, но не все переданные привычки" +
@@ -635,6 +659,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя, но не все переданные привычки" +

@@ -1,4 +1,4 @@
-name: Unit Tests with Allure Report
+name: Unit Tests with Report
 
 on:
   pull_request:
@@ -34,4 +34,5 @@ jobs:
       with:
         name: test-html-report
         path: test-results/report.html
+        retention-days: 2
 

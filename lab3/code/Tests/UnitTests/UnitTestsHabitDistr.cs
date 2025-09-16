@@ -1,14 +1,16 @@
+using Allure.Xunit.Attributes;
 using Domain;
 using Domain.Models;
-using Types;
+using System.ComponentModel;
 using Tests.ObjectMothers;
-using Allure.Xunit.Attributes;
+using Types;
 
 namespace Tests.UnitTests;
 
 public class UnitTestsHabitDistr
 {
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с безразличным временем")]
     [AllureDescription("Тест распределения одной привычки с безразличным временем выполнения на два дня," +
@@ -32,6 +34,7 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(19, 0, 0), h.ActualTimings[0].End);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с фиксированным временем выполнения на два дня," +
@@ -63,6 +66,7 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(8, 30, 0), h.ActualTimings[0].End);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем выполнения на два дня," +
@@ -94,6 +98,7 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(8, 30, 0), h.ActualTimings[0].End);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем, которая не влезает в расписание")]
@@ -121,6 +126,7 @@ public class UnitTestsHabitDistr
         Assert.Empty(h.ActualTimings);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с безразличным временем")]
     [AllureDescription("Тест распределения одной привычки с безразличным временем, которая не влезает в расписание")]
@@ -148,6 +154,7 @@ public class UnitTestsHabitDistr
         Assert.Empty(h.ActualTimings);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с фиксированным временем," +
@@ -176,6 +183,7 @@ public class UnitTestsHabitDistr
         Assert.Empty(h.ActualTimings);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с предпочтительным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем," +
@@ -206,6 +214,7 @@ public class UnitTestsHabitDistr
         Assert.Equal(new TimeOnly(8, 10, 0), h.ActualTimings[0].End);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("HabitDistributor")]
     [AllureStory("Привычки с фиксированным временем")]
     [AllureDescription("Тест распределения одной привычки с предпочтительным временем," +

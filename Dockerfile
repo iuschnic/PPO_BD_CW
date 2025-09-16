@@ -20,4 +20,4 @@ RUN dotnet build "Domain/Domain.csproj" -c Release --no-restore && \
     dotnet build "Tests/Tests.csproj" -c Release --no-restore
 
 # Запуск тестов
-ENTRYPOINT ["dotnet", "test", "Tests/Tests.csproj", "-c", "Release", "--no-build"]
+ENTRYPOINT ["dotnet", "test", "Tests/Tests.csproj", "-c", "Release", "--no-build", "--filter", "Category=Unit"]

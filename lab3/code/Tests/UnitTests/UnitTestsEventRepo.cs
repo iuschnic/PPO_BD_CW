@@ -8,12 +8,14 @@ using Types;
 using Allure.Xunit.Attributes;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
+using System.ComponentModel;
 
 namespace Tests.UnitTests;
 
 public class UnitTestsEventRepo
 {
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест получения событий пользователя когда он существует")]
@@ -23,7 +25,7 @@ public class UnitTestsEventRepo
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockEventsDbSet = new Mock<DbSet<DBEvent>>();
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         mockUsersDbSet.Setup(d => d.Find(userName))
                      .Returns(testUser);
         mockDbContext.Setup(db => db.Users)
@@ -45,6 +47,7 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест получения событий пользователя когда он существует")]
@@ -54,7 +57,7 @@ public class UnitTestsEventRepo
         var mockDbContext = new Mock<ITaskTrackerContext>();
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockEventsDbSet = new Mock<DbSet<DBEvent>>();
-        var testUser = new DBUser(userName, "+79161648345", "test");
+        var testUser = new DBUser(userName, "+71111111111", "test");
         mockUsersDbSet.Setup(d => d.FindAsync(userName))
                      .ReturnsAsync(testUser);
         mockDbContext.Setup(db => db.Users)
@@ -76,6 +79,7 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест получения событий пользователя когда он не существует")]
@@ -96,6 +100,7 @@ public class UnitTestsEventRepo
         Assert.Null(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест получения событий пользователя когда он не существует")]
@@ -118,6 +123,7 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания события которого еще не существует")]
@@ -139,6 +145,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания события которого еще не существует")]
@@ -163,6 +170,7 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания события которое уже существует")]
@@ -186,6 +194,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания события которое уже существует")]
@@ -209,6 +218,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания нескольких еще не существующих событий")]
@@ -234,6 +244,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания нескольких еще не существующих событий")]
@@ -259,6 +270,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания нескольких еще не существующих событий, одно из которых уже существует")]
@@ -287,6 +299,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания нескольких еще не существующих событий, одно из которых уже существует")]
@@ -315,6 +328,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест обновления существующего события")]
@@ -353,6 +367,7 @@ public class UnitTestsEventRepo
         Assert.Equal(userName, existingDbEvent.DBUserNameID);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест обновления существующего события")]
@@ -391,6 +406,7 @@ public class UnitTestsEventRepo
         Assert.Equal(userName, existingDbEvent.DBUserNameID);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест обновления несуществующего события")]
@@ -414,6 +430,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест обновления несуществующего события")]
@@ -437,6 +454,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующего события")]
@@ -460,6 +478,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления существующего события")]
@@ -483,6 +502,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующего события")]
@@ -502,6 +522,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления несуществующего события")]
@@ -522,6 +543,7 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления событий у существующего пользователя")]
@@ -531,7 +553,7 @@ public class UnitTestsEventRepo
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockEventsDbSet = new Mock<DbSet<DBEvent>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "test");
+        var existingUser = new DBUser(userName, "+71111111111", "test");
         var events = new List<Event>
         {
             new Event(Guid.NewGuid(), "1", new TimeOnly(10, 0), new TimeOnly(11, 0),
@@ -555,6 +577,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления событий у существующего пользователя")]
@@ -564,7 +587,7 @@ public class UnitTestsEventRepo
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockEventsDbSet = new Mock<DbSet<DBEvent>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "test");
+        var existingUser = new DBUser(userName, "+71111111111", "test");
         var events = new List<Event>
         {
             new Event(Guid.NewGuid(), "1", new TimeOnly(10, 0), new TimeOnly(11, 0),
@@ -588,6 +611,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления событий у несуществующего пользователя")]
@@ -607,6 +631,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления событий у несуществующего пользователя")]
@@ -626,6 +651,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест замены событий у существующего пользователя")]
@@ -635,7 +661,7 @@ public class UnitTestsEventRepo
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockEventsDbSet = new Mock<DbSet<DBEvent>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "test");
+        var existingUser = new DBUser(userName, "+71111111111", "test");
         var newEvents = new List<Event>
         {
             new Event(Guid.NewGuid(), "new1", new TimeOnly(10, 0),
@@ -666,6 +692,7 @@ public class UnitTestsEventRepo
         Assert.True(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест замены событий у существующего пользователя")]
@@ -675,7 +702,7 @@ public class UnitTestsEventRepo
         var mockUsersDbSet = new Mock<DbSet<DBUser>>();
         var mockEventsDbSet = new Mock<DbSet<DBEvent>>();
         var userName = "test";
-        var existingUser = new DBUser(userName, "+79161648345", "test");
+        var existingUser = new DBUser(userName, "+71111111111", "test");
         var newEvents = new List<Event>
         {
             new Event(Guid.NewGuid(), "new1", new TimeOnly(10, 0),
@@ -704,6 +731,7 @@ public class UnitTestsEventRepo
     }
 
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест замены событий не все из для одного пользователя")]
@@ -728,6 +756,7 @@ public class UnitTestsEventRepo
         Assert.False(result);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("EventRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест замены событий не все из для одного пользователя")]

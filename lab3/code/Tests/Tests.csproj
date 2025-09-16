@@ -25,6 +25,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\ShedLoadAdapter\ShedLoadAdapter.csproj" />
 	<ProjectReference Include="..\Storage\Storage.csproj" />
   </ItemGroup>
 

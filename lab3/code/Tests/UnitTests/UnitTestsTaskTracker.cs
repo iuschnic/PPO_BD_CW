@@ -1,17 +1,19 @@
-﻿using Moq;
-using Microsoft.Extensions.Logging;
-using Domain.OutPorts;
+﻿using Allure.Xunit.Attributes;
 using Domain;
 using Domain.Models;
-using Types;
+using Domain.OutPorts;
+using Microsoft.Extensions.Logging;
+using Moq;
+using System.ComponentModel;
 using Tests.ObjectMothers;
-using Allure.Xunit.Attributes;
+using Types;
 
 namespace Tests.UnitTests;
 
 public class UnitTestsTaskTracker
 {
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
@@ -32,7 +34,7 @@ public class UnitTestsTaskTracker
             mockLogger.Object
         );
         var userName = "test";
-        var phoneNumber = new PhoneNumber("+79161648345");
+        var phoneNumber = new PhoneNumber("+71111111111");
         var password = "123";
         var expectedUser = new User(userName, password, phoneNumber,
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
@@ -49,6 +51,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.Settings.UserNameID);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
@@ -69,7 +72,7 @@ public class UnitTestsTaskTracker
             mockLogger.Object
         );
         var userName = "test";
-        var phoneNumber = new PhoneNumber("+79161648345");
+        var phoneNumber = new PhoneNumber("+71111111111");
         var password = "123";
         var expectedUser = new User(userName, password, phoneNumber,
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
@@ -86,6 +89,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.Settings.UserNameID);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания пользователя который уже существует")]
@@ -106,7 +110,7 @@ public class UnitTestsTaskTracker
             mockLogger.Object
         );
         var userName = "existingtest";
-        var phoneNumber = new PhoneNumber("+79161648345");
+        var phoneNumber = new PhoneNumber("+71111111111");
         var password = "123";
         mockUserRepo.Setup(r => r.TryCreate(It.IsAny<User>())).Returns(false);
 
@@ -116,6 +120,7 @@ public class UnitTestsTaskTracker
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания пользователя который уже существует")]
@@ -136,7 +141,7 @@ public class UnitTestsTaskTracker
             mockLogger.Object
         );
         var userName = "existingtest";
-        var phoneNumber = new PhoneNumber("+79161648345");
+        var phoneNumber = new PhoneNumber("+71111111111");
         var password = "123";
         mockUserRepo.Setup(r => r.TryCreateAsync(It.IsAny<User>())).ReturnsAsync(false);
 
@@ -146,6 +151,7 @@ public class UnitTestsTaskTracker
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с правильными данными")]
@@ -167,7 +173,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var password = "correctPassword";
-        var user = new User(userName, password, new PhoneNumber("+79161648345"),
+        var user = new User(userName, password, new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
         mockUserRepo.Setup(r => r.TryFullGet(userName)).Returns(user);
@@ -179,6 +185,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.NameID);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест авторизации с правильными данными")]
@@ -200,7 +207,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var password = "correctPassword";
-        var user = new User(userName, password, new PhoneNumber("+79161648345"),
+        var user = new User(userName, password, new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
         mockUserRepo.Setup(r => r.TryFullGetAsync(userName)).ReturnsAsync(user);
@@ -212,6 +219,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.NameID);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
@@ -234,7 +242,7 @@ public class UnitTestsTaskTracker
         var userName = "test";
         var correctPassword = "correctPassword";
         var wrongPassword = "wrongPassword";
-        var user = new User(userName, correctPassword, new PhoneNumber("+79161648345"),
+        var user = new User(userName, correctPassword, new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []));
         mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
 
@@ -244,6 +252,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("неправильный пароль", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
@@ -266,7 +275,7 @@ public class UnitTestsTaskTracker
         var userName = "test";
         var correctPassword = "correctPassword";
         var wrongPassword = "wrongPassword";
-        var user = new User(userName, correctPassword, new PhoneNumber("+79161648345"),
+        var user = new User(userName, correctPassword, new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []));
         mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
 
@@ -276,6 +285,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("неправильный пароль", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест загрузки расписания с правильным файлом")]
@@ -297,7 +307,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var path = "valid_file.json";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var events = new List<Event>();
         events.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
@@ -320,6 +330,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест загрузки расписания с правильным файлом")]
@@ -341,7 +352,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var path = "valid_file.json";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var events = new List<Event>();
         events.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
@@ -364,6 +375,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
@@ -385,7 +397,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var invalidFilePath = "invalid_file.json";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
         mockShedLoader.Setup(s => s.LoadShedule(userName, invalidFilePath))
@@ -397,6 +409,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
@@ -418,7 +431,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var invalidFilePath = "invalid_file.json";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
         mockShedLoader.Setup(s => s.LoadShedule(userName, invalidFilePath))
@@ -430,6 +443,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки")]
@@ -451,7 +465,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var habit = new Habit(Guid.NewGuid(), "Чтение", 30, TimeOption.NoMatter, userName, [], [], 1);
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var existingEvents = new List<Event>();
         existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
@@ -475,6 +489,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест добавления валидной привычки")]
@@ -496,7 +511,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var habit = new Habit(Guid.NewGuid(), "Чтение", 30, TimeOption.NoMatter, userName, [], [], 1);
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var existingEvents = new List<Event>();
         existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
@@ -521,6 +536,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
@@ -549,6 +565,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
@@ -577,6 +594,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -598,7 +616,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var habitName = "Чтение";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var existingEvents = new List<Event>();
         existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
@@ -629,6 +647,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -650,7 +669,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var habitName = "Чтение";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var existingEvents = new List<Event>();
         existingEvents.AddRange(TaskTrackerMother.FullWeekFillerExceptDay(userName, DayOfWeek.Monday));
@@ -681,6 +700,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -711,6 +731,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -741,6 +762,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления всех привычек")]
@@ -761,7 +783,7 @@ public class UnitTestsTaskTracker
             mockLogger.Object
         );
         var userName = "testUser";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var habits = new List<Habit>
         {
@@ -781,6 +803,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления всех привычек")]
@@ -801,7 +824,7 @@ public class UnitTestsTaskTracker
             mockLogger.Object
         );
         var userName = "testUser";
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             new UserSettings(Guid.NewGuid(), true, userName, []), [], []);
         var habits = new List<Habit>
         {
@@ -821,6 +844,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
@@ -849,6 +873,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
@@ -877,6 +902,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест изменения настроек существующего пользователя")]
@@ -898,7 +924,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var settings = new UserSettings(Guid.NewGuid(), true, userName, []);
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             settings, [], []);
         var events = new List<Event>();
         mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
@@ -913,6 +939,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(settings, result.Settings);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест изменения настроек существующего пользователя")]
@@ -934,7 +961,7 @@ public class UnitTestsTaskTracker
         );
         var userName = "test";
         var settings = new UserSettings(Guid.NewGuid(), true, userName, []);
-        var user = new User(userName, "password", new PhoneNumber("+79161648345"),
+        var user = new User(userName, "password", new PhoneNumber("+71111111111"),
             settings, [], []);
         var events = new List<Event>();
         mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
@@ -949,6 +976,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(settings, result.Settings);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест изменения настроек несуществующего пользователя")]
@@ -978,6 +1006,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест изменения настроек несуществующего пользователя")]
@@ -1007,6 +1036,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующего пользователя")]
@@ -1032,6 +1062,7 @@ public class UnitTestsTaskTracker
         taskTracker.DeleteUser(userName);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления существующего пользователя")]
@@ -1057,6 +1088,7 @@ public class UnitTestsTaskTracker
         await taskTracker.DeleteUserAsync(userName);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующего пользователя")]
@@ -1086,6 +1118,7 @@ public class UnitTestsTaskTracker
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
+    [Category("Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления несуществующего пользователя")]
