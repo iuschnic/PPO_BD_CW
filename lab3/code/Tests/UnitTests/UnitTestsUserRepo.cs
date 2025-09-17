@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Moq;
 using Storage.Models;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using Allure.Xunit.Attributes;
 using Types;
 using Microsoft.EntityFrameworkCore.Query;
@@ -31,7 +31,7 @@ public class UnitTestsUserRepo
         var usersList = new List<DBUser> { dbUser }.AsQueryable();
         SetupMockDbSet(mockUsersDbSet, usersList);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryGet(userName);
 
@@ -61,7 +61,7 @@ public class UnitTestsUserRepo
         var usersList = new List<DBUser> { dbUser }.AsQueryable();
         SetupMockDbSetForAsync(mockUsersDbSet, usersList);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryGetAsync(userName);
 
@@ -85,7 +85,7 @@ public class UnitTestsUserRepo
         var emptyUsers = new List<DBUser>().AsQueryable();
         SetupMockDbSet(mockUsersDbSet, emptyUsers);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryGet(userName);
 
@@ -103,7 +103,7 @@ public class UnitTestsUserRepo
         var emptyUsers = new List<DBUser>().AsQueryable();
         SetupMockDbSetForAsync(mockUsersDbSet, emptyUsers);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryGetAsync(userName);
 
@@ -132,7 +132,7 @@ public class UnitTestsUserRepo
         var usersList = new List<DBUser> { dbUser }.AsQueryable();
         SetupMockDbSet(mockUsersDbSet, usersList);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryFullGet(userName);
 
@@ -165,7 +165,7 @@ public class UnitTestsUserRepo
         var usersList = new List<DBUser> { dbUser }.AsQueryable();
         SetupMockDbSetForAsync(mockUsersDbSet, usersList);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryFullGetAsync(userName);
 
@@ -189,7 +189,7 @@ public class UnitTestsUserRepo
         var emptyUsers = new List<DBUser>().AsQueryable();
         SetupMockDbSet(mockUsersDbSet, emptyUsers);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryFullGet(userName);
 
@@ -207,7 +207,7 @@ public class UnitTestsUserRepo
         var emptyUsers = new List<DBUser>().AsQueryable();
         SetupMockDbSetForAsync(mockUsersDbSet, emptyUsers);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryFullGetAsync(userName);
 
@@ -233,7 +233,7 @@ public class UnitTestsUserRepo
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
         mockDbContext.Setup(db => db.SettingsTimes).Returns(mockSettingsTimesDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryCreate(user);
 
@@ -258,7 +258,7 @@ public class UnitTestsUserRepo
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
         mockDbContext.Setup(db => db.SettingsTimes).Returns(mockSettingsTimesDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateAsync(user);
 
@@ -278,7 +278,7 @@ public class UnitTestsUserRepo
         var existingUser = new DBUser("test", "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.Find(user.NameID)).Returns(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryCreate(user);
 
@@ -297,7 +297,7 @@ public class UnitTestsUserRepo
         var existingUser = new DBUser("test", "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.FindAsync(user.NameID)).ReturnsAsync(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateAsync(user);
 
@@ -315,7 +315,7 @@ public class UnitTestsUserRepo
         var existingUser = new DBUser(userName, "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.Find(userName)).Returns(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var updatedUser = new User(userName, "new", new PhoneNumber("+79999999999"),
             new UserSettings(Guid.NewGuid(), true, userName, []));
 
@@ -337,7 +337,7 @@ public class UnitTestsUserRepo
         var existingUser = new DBUser(userName, "+71111111111", "old");
         mockUsersDbSet.Setup(d => d.FindAsync(userName)).ReturnsAsync(existingUser);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var updatedUser = new User(userName, "new", new PhoneNumber("+79999999999"),
             new UserSettings(Guid.NewGuid(), true, userName, []));
 
@@ -358,7 +358,7 @@ public class UnitTestsUserRepo
         var userName = "test";
         mockUsersDbSet.Setup(d => d.Find(userName)).Returns((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var updatedUser = new User(userName, "new", new PhoneNumber("+79999999999"),
             new UserSettings(Guid.NewGuid(), true, userName, []));
 
@@ -377,7 +377,7 @@ public class UnitTestsUserRepo
         var userName = "test";
         mockUsersDbSet.Setup(d => d.FindAsync(userName)).ReturnsAsync((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var updatedUser = new User(userName, "new", new PhoneNumber("+79999999999"),
             new UserSettings(Guid.NewGuid(), true, userName, []));
 
@@ -401,7 +401,7 @@ public class UnitTestsUserRepo
         SetupMockDbSet(mockSettingsTimesDbSet, existingTimes);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
         mockDbContext.Setup(db => db.SettingsTimes).Returns(mockSettingsTimesDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var newSettings = new UserSettings(settingsId, true, "test", []);
 
         var result = repo.TryUpdateSettings(newSettings);
@@ -425,7 +425,7 @@ public class UnitTestsUserRepo
         SetupMockDbSetForAsync(mockSettingsTimesDbSet, existingTimes);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
         mockDbContext.Setup(db => db.SettingsTimes).Returns(mockSettingsTimesDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var newSettings = new UserSettings(settingsId, true, "test", []);
 
         var result = await repo.TryUpdateSettingsAsync(newSettings);
@@ -446,7 +446,7 @@ public class UnitTestsUserRepo
         var existingSettings = new DBUserSettings(settingsId, false, "test");
         mockSettingsDbSet.Setup(d => d.Find(settingsId)).Returns((DBUserSettings?)null);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var newSettings = new UserSettings(settingsId, true, "test", []);
 
         var result = repo.TryUpdateSettings(newSettings);
@@ -466,7 +466,7 @@ public class UnitTestsUserRepo
         var existingSettings = new DBUserSettings(settingsId, false, "test");
         mockSettingsDbSet.Setup(d => d.FindAsync(settingsId)).ReturnsAsync((DBUserSettings?)null);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
         var newSettings = new UserSettings(settingsId, true, "test", []);
 
         var result = await repo.TryUpdateSettingsAsync(newSettings);
@@ -493,7 +493,7 @@ public class UnitTestsUserRepo
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
         mockDbContext.Setup(db => db.SettingsTimes).Returns(mockSettingsTimesDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryDelete(userName);
 
@@ -519,7 +519,7 @@ public class UnitTestsUserRepo
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.USettings).Returns(mockSettingsDbSet.Object);
         mockDbContext.Setup(db => db.SettingsTimes).Returns(mockSettingsTimesDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteAsync(userName);
 
@@ -538,7 +538,7 @@ public class UnitTestsUserRepo
         var userName = "test";
         mockUsersDbSet.Setup(d => d.Find(userName)).Returns((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = repo.TryDelete(userName);
 
@@ -557,7 +557,7 @@ public class UnitTestsUserRepo
         var userName = "test";
         mockUsersDbSet.Setup(d => d.FindAsync(userName)).ReturnsAsync((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresUserRepo(mockDbContext.Object);
+        var repo = new EfUserRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteAsync(userName);
 

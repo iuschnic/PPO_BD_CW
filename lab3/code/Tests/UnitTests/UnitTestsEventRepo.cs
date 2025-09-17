@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Moq;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using Storage.Models;
 using Domain.Models;
 using Tests.ObjectMothers;
@@ -38,7 +38,7 @@ public class UnitTestsEventRepo
         SetupMockDbSet(mockEventsDbSet, queryableEvents);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryGet(userName);
 
@@ -70,7 +70,7 @@ public class UnitTestsEventRepo
         SetupMockDbSetForAsync(mockEventsDbSet, queryableEvents);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryGetAsync(userName);
 
@@ -93,7 +93,7 @@ public class UnitTestsEventRepo
                      .Returns((DBUser?)null);
         mockDbContext.Setup(db => db.Users)
                     .Returns(mockUsersDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryGet(notExistUserName);
 
@@ -115,7 +115,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync((DBUser?)null);
         mockDbContext.Setup(db => db.Users)
                     .Returns(mockUsersDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryGetAsync(notExistUserName);
 
@@ -138,7 +138,7 @@ public class UnitTestsEventRepo
                      .Returns((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryCreate(newEvent);
 
@@ -162,7 +162,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateAsync(newEvent);
 
@@ -187,7 +187,7 @@ public class UnitTestsEventRepo
                      .Returns(existingDbEvent);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryCreate(existingEvent);
 
@@ -211,7 +211,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync(existingDbEvent);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateAsync(existingEvent);
 
@@ -237,7 +237,7 @@ public class UnitTestsEventRepo
                      .Returns((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryCreateMany(events);
 
@@ -263,7 +263,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateManyAsync(events);
 
@@ -292,7 +292,7 @@ public class UnitTestsEventRepo
                      .Returns((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryCreateMany(events);
 
@@ -321,7 +321,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateManyAsync(events);
 
@@ -353,7 +353,7 @@ public class UnitTestsEventRepo
                      .Returns(existingDbEvent);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryUpdate(updatedEvent);
 
@@ -392,7 +392,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync(existingDbEvent);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryUpdateAsync(updatedEvent);
 
@@ -423,7 +423,7 @@ public class UnitTestsEventRepo
                      .Returns((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryUpdate(ev);
 
@@ -447,7 +447,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryUpdateAsync(ev);
 
@@ -471,7 +471,7 @@ public class UnitTestsEventRepo
                      .Returns(existingDbEvent);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryDelete(eventId);
 
@@ -495,7 +495,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync(existingDbEvent);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteAsync(eventId);
 
@@ -515,7 +515,7 @@ public class UnitTestsEventRepo
                      .Returns((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryDelete(eventId);
 
@@ -535,7 +535,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync((DBEvent?)null);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteAsync(eventId);
 
@@ -570,7 +570,7 @@ public class UnitTestsEventRepo
                     .Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryDeleteEvents(userName);
 
@@ -604,7 +604,7 @@ public class UnitTestsEventRepo
                     .Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteEventsAsync(userName);
 
@@ -624,7 +624,7 @@ public class UnitTestsEventRepo
                      .Returns((DBUser?)null);
         mockDbContext.Setup(db => db.Users)
                     .Returns(mockUsersDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryDeleteEvents(userName);
 
@@ -644,7 +644,7 @@ public class UnitTestsEventRepo
                      .ReturnsAsync((DBUser?)null);
         mockDbContext.Setup(db => db.Users)
                     .Returns(mockUsersDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteEventsAsync(userName);
 
@@ -685,7 +685,7 @@ public class UnitTestsEventRepo
                     .Returns(mockEventsDbSet.Object);
         mockDbContext.Setup(db => db.SaveChanges())
                     .Returns(1);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryReplaceEvents(newEvents, userName);
 
@@ -723,7 +723,7 @@ public class UnitTestsEventRepo
                     .Returns(mockUsersDbSet.Object);
         mockDbContext.Setup(db => db.Events)
                     .Returns(mockEventsDbSet.Object);
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryReplaceEventsAsync(newEvents, userName);
 
@@ -749,7 +749,7 @@ public class UnitTestsEventRepo
                 new TimeOnly(13, 0), otherUserName, EventOption.EveryWeek,
                 DayOfWeek.Tuesday, null)
         };
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = repo.TryReplaceEvents(events, userName);
 
@@ -774,7 +774,7 @@ public class UnitTestsEventRepo
                 new TimeOnly(13, 0), otherUserName, EventOption.EveryWeek,
                 DayOfWeek.Tuesday, null)
         };
-        var repo = new PostgresEventRepo(mockDbContext.Object);
+        var repo = new EfEventRepo(mockDbContext.Object);
 
         var result = await repo.TryReplaceEventsAsync(events, userName);
 

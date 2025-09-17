@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using System.ComponentModel;
 using Tests.ObjectMothers;
 using Types;
@@ -37,9 +37,9 @@ public class IntegrationTestsTaskTracker
                     loggingBuilder.ClearProviders();
                     loggingBuilder.AddProvider(NullLoggerProvider.Instance);
                 })
-                .AddSingleton<IEventRepo, PostgresEventRepo>()
-                .AddSingleton<IHabitRepo, PostgresHabitRepo>()
-                .AddSingleton<IUserRepo, PostgresUserRepo>()
+                .AddSingleton<IEventRepo, EfEventRepo>()
+                .AddSingleton<IHabitRepo, EfHabitRepo>()
+                .AddSingleton<IUserRepo, EfUserRepo>()
                 .AddSingleton<ITaskTrackerContext, PostgresDBContext>()
                 .AddDbContext<PostgresDBContext>(options =>
                     options.UseInMemoryDatabase($"TestDb_{Guid.NewGuid()}"))

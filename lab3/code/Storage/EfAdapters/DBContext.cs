@@ -1,7 +1,7 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Storage.Models;
 
-namespace Storage.PostgresStorageAdapters;
+namespace Storage.EfAdapters;
 
 public interface ITaskTrackerContext
 {

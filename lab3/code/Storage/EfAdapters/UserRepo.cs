@@ -4,16 +4,12 @@ using Microsoft.EntityFrameworkCore;
 using Storage.Models;
 using Types;
 
-namespace Storage.PostgresStorageAdapters;
+namespace Storage.EfAdapters;
 
-public class PostgresUserRepo : IUserRepo
+public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
 {
-    ITaskTrackerContext _dbContext;
+    ITaskTrackerContext _dbContext = dbContext;
 
-    public PostgresUserRepo(ITaskTrackerContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
     public async Task<User?> TryGetAsync(string username)
     {
         var dbuser = await _dbContext.Users

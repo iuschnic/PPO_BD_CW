@@ -4,7 +4,7 @@ using Domain.OutPorts;
 using Domain.Models;
 using LoadAdapters;
 using Microsoft.Extensions.DependencyInjection;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using Types;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -452,9 +452,9 @@ class Program
                     loggingBuilder.ClearProviders();
                     loggingBuilder.AddSerilog();
                 })
-                .AddSingleton<IEventRepo, PostgresEventRepo>()
-                .AddSingleton<IHabitRepo, PostgresHabitRepo>()
-                .AddSingleton<IUserRepo, PostgresUserRepo>()
+                .AddSingleton<IEventRepo, EfEventRepo>()
+                .AddSingleton<IHabitRepo, EfHabitRepo>()
+                .AddSingleton<IUserRepo, EfUserRepo>()
                 .AddSingleton<ITaskTrackerContext, PostgresDBContext>()
                 .AddDbContext<PostgresDBContext>(options =>
                     options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")))

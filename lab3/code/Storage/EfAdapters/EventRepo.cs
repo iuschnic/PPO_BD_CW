@@ -3,15 +3,12 @@ using Domain.OutPorts;
 using Microsoft.EntityFrameworkCore;
 using Storage.Models;
 
-namespace Storage.PostgresStorageAdapters;
+namespace Storage.EfAdapters;
 
-public class PostgresEventRepo : IEventRepo
+public class EfEventRepo(ITaskTrackerContext dbContext) : IEventRepo
 {
-    private ITaskTrackerContext _dbContext { get; }
-    public PostgresEventRepo(ITaskTrackerContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private ITaskTrackerContext _dbContext { get; } = dbContext;
+
     public async Task<List<Event>?> TryGetAsync(string user_name)
     {
         if (await _dbContext.Users.FindAsync(user_name) == null)

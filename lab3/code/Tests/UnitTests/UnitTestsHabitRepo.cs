@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Query;
 using Moq;
 using Storage.Models;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using System.ComponentModel;
 using System.Linq.Expressions;
 using Tests.ObjectMothers;
@@ -60,7 +60,7 @@ public class UnitTestsHabitRepo
                     .Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes)
                     .Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryGet(userName);
 
@@ -123,7 +123,7 @@ public class UnitTestsHabitRepo
                     .Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes)
                     .Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryGetAsync(userName);
 
@@ -152,7 +152,7 @@ public class UnitTestsHabitRepo
         var userName = "еуые";
         mockUsersDbSet.Setup(d => d.Find(userName)).Returns((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryGet(userName);
 
@@ -170,7 +170,7 @@ public class UnitTestsHabitRepo
         var userName = "еуые";
         mockUsersDbSet.Setup(d => d.FindAsync(userName)).ReturnsAsync((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryGetAsync(userName);
 
@@ -197,7 +197,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryCreate(habit);
 
@@ -224,7 +224,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateAsync(habit);
 
@@ -246,7 +246,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryCreate(habit);
 
@@ -268,7 +268,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateAsync(habit);
 
@@ -294,7 +294,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryCreateMany(habits);
 
@@ -320,7 +320,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateManyAsync(habits);
 
@@ -344,7 +344,7 @@ public class UnitTestsHabitRepo
         mockHabitsDbSet.Setup(d => d.Find(habits[0].Id)).Returns(existingDbHabit);
         mockHabitsDbSet.Setup(d => d.Find(habits[1].Id)).Returns((DBHabit?)null);
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryCreateMany(habits);
 
@@ -368,7 +368,7 @@ public class UnitTestsHabitRepo
         mockHabitsDbSet.Setup(d => d.FindAsync(habits[0].Id)).ReturnsAsync(existingDbHabit);
         mockHabitsDbSet.Setup(d => d.FindAsync(habits[1].Id)).ReturnsAsync((DBHabit?)null);
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryCreateManyAsync(habits);
 
@@ -398,7 +398,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryDelete(habitId);
 
@@ -428,7 +428,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteAsync(habitId);
 
@@ -447,7 +447,7 @@ public class UnitTestsHabitRepo
         var emptyHabits = new List<DBHabit>().AsQueryable();
         SetupMockDbSet(mockHabitsDbSet, emptyHabits);
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryDelete(habitId);
 
@@ -466,7 +466,7 @@ public class UnitTestsHabitRepo
         var emptyHabits = new List<DBHabit>().AsQueryable();
         SetupMockDbSetForAsync(mockHabitsDbSet, emptyHabits);
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteAsync(habitId);
 
@@ -496,7 +496,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryDeleteHabits(userName);
 
@@ -526,7 +526,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteHabitsAsync(userName);
 
@@ -544,7 +544,7 @@ public class UnitTestsHabitRepo
         var userName = "test";
         mockUsersDbSet.Setup(d => d.Find(userName)).Returns((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryDeleteHabits(userName);
 
@@ -562,7 +562,7 @@ public class UnitTestsHabitRepo
         var userName = "test";
         mockUsersDbSet.Setup(d => d.FindAsync(userName)).ReturnsAsync((DBUser?)null);
         mockDbContext.Setup(db => db.Users).Returns(mockUsersDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryDeleteHabitsAsync(userName);
 
@@ -596,7 +596,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryReplaceHabits(newHabits, userName);
 
@@ -630,7 +630,7 @@ public class UnitTestsHabitRepo
         mockDbContext.Setup(db => db.Habits).Returns(mockHabitsDbSet.Object);
         mockDbContext.Setup(db => db.ActualTimes).Returns(mockActualTimesDbSet.Object);
         mockDbContext.Setup(db => db.PrefFixedTimes).Returns(mockPrefFixedTimesDbSet.Object);
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryReplaceHabitsAsync(newHabits, userName);
 
@@ -652,7 +652,7 @@ public class UnitTestsHabitRepo
             new(Guid.NewGuid(), "1", 30, TimeOption.NoMatter, userName, [], [], 3),
             new(Guid.NewGuid(), "2", 45, TimeOption.NoMatter, otherUser, [], [], 5)
         };
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = repo.TryReplaceHabits(habits, userName);
 
@@ -674,7 +674,7 @@ public class UnitTestsHabitRepo
             new(Guid.NewGuid(), "1", 30, TimeOption.NoMatter, userName, [], [], 3),
             new(Guid.NewGuid(), "2", 45, TimeOption.NoMatter, otherUser, [], [], 5)
         };
-        var repo = new PostgresHabitRepo(mockDbContext.Object);
+        var repo = new EfHabitRepo(mockDbContext.Object);
 
         var result = await repo.TryReplaceHabitsAsync(habits, userName);
 

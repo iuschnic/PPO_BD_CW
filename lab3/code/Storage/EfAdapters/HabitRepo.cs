@@ -3,15 +3,12 @@ using Domain.OutPorts;
 using Microsoft.EntityFrameworkCore;
 using Storage.Models;
 
-namespace Storage.PostgresStorageAdapters;
+namespace Storage.EfAdapters;
 
-public class PostgresHabitRepo : IHabitRepo
+public class EfHabitRepo(ITaskTrackerContext dbContext) : IHabitRepo
 {
-    private ITaskTrackerContext _dbContext;
-    public PostgresHabitRepo(ITaskTrackerContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
+    private ITaskTrackerContext _dbContext = dbContext;
+
     public async Task<List<Habit>?> TryGetAsync(string user_name)
     {
         var test = await _dbContext.Users.FindAsync(user_name);

@@ -3,7 +3,7 @@ using Domain.InPorts;
 using Domain.OutPorts;
 using LoadAdapters;
 using Microsoft.Extensions.DependencyInjection;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
@@ -33,9 +33,9 @@ namespace HabitTrackerGUI
                         loggingBuilder.ClearProviders();
                         loggingBuilder.AddSerilog();
                     })
-                    .AddSingleton<IEventRepo, PostgresEventRepo>()
-                    .AddSingleton<IHabitRepo, PostgresHabitRepo>()
-                    .AddSingleton<IUserRepo, PostgresUserRepo>()
+                    .AddSingleton<IEventRepo, EfEventRepo>()
+                    .AddSingleton<IHabitRepo, EfHabitRepo>()
+                    .AddSingleton<IUserRepo, EfUserRepo>()
                     .AddSingleton<ITaskTrackerContext, PostgresDBContext>()
                     .AddDbContext<PostgresDBContext>(options =>
                         options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")))

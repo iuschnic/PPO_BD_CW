@@ -5,7 +5,7 @@ using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 using Domain.OutPorts;
 using Microsoft.Extensions.DependencyInjection;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using Storage.StorageAdapters;
 using StorageSubscribers;
 
@@ -286,8 +286,8 @@ class Program
     static async Task Main(string[] args)
     {
         var serviceProvider = new ServiceCollection()
-            .AddSingleton<IMessageRepo, PostgresMessageRepo>()
-            .AddSingleton<IUserRepo, PostgresUserRepo>()
+            .AddSingleton<IMessageRepo, EfMessageRepo>()
+            .AddSingleton<IUserRepo, EfUserRepo>()
             .AddSingleton<ISubscribersRepo, SQLiteSubscribersRepo>()
             .AddDbContext<PostgresDBContext>(options =>
                 options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))

@@ -1,13 +1,13 @@
 ﻿using Domain.OutPorts;
 using Domain.Models;
 using Storage.Models;
-using Storage.PostgresStorageAdapters;
+using Storage.EfAdapters;
 using Microsoft.EntityFrameworkCore;
 using Dapper;
 
 namespace Storage.StorageAdapters;
 
-public class PostgresMessageRepo : IMessageRepo
+public class EfMessageRepo(ITaskTrackerContext dbContext) : IMessageRepo
 {
     public class HabitDueSoonResult
     {
@@ -16,7 +16,7 @@ public class PostgresMessageRepo : IMessageRepo
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
     }
-    private ITaskTrackerContext _dbContext { get; }
+    private ITaskTrackerContext _dbContext { get; } = dbContext;
     private object _locker = new object();
     private List<HabitDueSoonResult> GetHabitsDueSoon()
     {
@@ -70,11 +70,6 @@ public class PostgresMessageRepo : IMessageRepo
         return today == DayOfWeek.Saturday ? DayOfWeek.Sunday : today + 1;
     }
 
-
-    public PostgresMessageRepo(ITaskTrackerContext dbContext)
-    {
-        _dbContext = dbContext;
-    }
     public bool TryCreateMessages(List<Message> users_messages)
     {
         lock (_locker)
