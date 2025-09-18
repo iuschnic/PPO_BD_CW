@@ -89,7 +89,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
     }
 
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
@@ -119,7 +119,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
     }
 
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
@@ -149,7 +149,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
     }
 
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания пользователя который уже существует")]
@@ -174,7 +174,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
     }
 
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания пользователя который уже существует")]
@@ -198,7 +198,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с правильными данными")]
@@ -224,7 +224,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Equal(userName, returnedUser.Settings.UserNameID);
     }
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест авторизации с правильными данными")]
@@ -250,7 +250,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Equal(userName, returnedUser.Settings.UserNameID);
     }
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
@@ -275,7 +275,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Contains("неправильный пароль", exception.Message);
     }
     [Fact]
-    [Category("Integration")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
@@ -304,7 +304,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
 
 
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки")]
@@ -365,7 +365,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Equal(createdPrefFixed.End, prefFixedEnd);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест добавления валидной привычки")]
@@ -426,7 +426,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Equal(createdPrefFixed.End, prefFixedEnd);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
@@ -462,7 +462,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Null(notCreatedPrefFixed);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]

@@ -15,7 +15,7 @@ namespace Tests.UnitTests;
 public class UnitTestsHabitRepo
 {
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он существует")]
@@ -78,7 +78,7 @@ public class UnitTestsHabitRepo
             pf.Start == start2 && pf.End == end2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он существует")]
@@ -141,7 +141,7 @@ public class UnitTestsHabitRepo
             pf.Start == start2 && pf.End == end2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он не существует")]
@@ -159,7 +159,7 @@ public class UnitTestsHabitRepo
         Assert.Null(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест получения привычек пользователя когда он не существует")]
@@ -177,7 +177,7 @@ public class UnitTestsHabitRepo
         Assert.Null(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которой еще не существует")]
@@ -204,7 +204,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которой еще не существует")]
@@ -231,7 +231,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которая уже существует")]
@@ -253,7 +253,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания привычки пользователя которая уже существует")]
@@ -275,7 +275,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя которых еще не существует")]
@@ -301,7 +301,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя которых еще не существует")]
@@ -327,7 +327,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя одна из которых уже существует")]
@@ -351,7 +351,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания нескольких привычек пользователя одна из которых уже существует")]
@@ -375,7 +375,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -405,7 +405,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -435,7 +435,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -454,7 +454,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -473,7 +473,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления привычек у существующего пользователя")]
@@ -503,7 +503,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления привычек у существующего пользователя")]
@@ -533,7 +533,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления привычек у несуществующего пользователя")]
@@ -551,7 +551,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления привычек у несуществующего пользователя")]
@@ -569,7 +569,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя")]
@@ -603,7 +603,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя")]
@@ -637,7 +637,7 @@ public class UnitTestsHabitRepo
         Assert.True(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя, но не все переданные привычки" +
@@ -659,7 +659,7 @@ public class UnitTestsHabitRepo
         Assert.False(result);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("HabitRepo")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест замены привычек у существующего пользователя, но не все переданные привычки" +

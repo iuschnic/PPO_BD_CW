@@ -13,7 +13,7 @@ namespace Tests.UnitTests;
 public class UnitTestsTaskTracker
 {
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
@@ -51,7 +51,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.Settings.UserNameID);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания пользователя с корректными данными")]
@@ -89,7 +89,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.Settings.UserNameID);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест создания пользователя который уже существует")]
@@ -120,7 +120,7 @@ public class UnitTestsTaskTracker
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест создания пользователя который уже существует")]
@@ -151,7 +151,7 @@ public class UnitTestsTaskTracker
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с правильными данными")]
@@ -185,7 +185,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.NameID);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест авторизации с правильными данными")]
@@ -219,7 +219,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(userName, result.NameID);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
@@ -252,7 +252,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("неправильный пароль", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест авторизации с неправильным паролем")]
@@ -285,7 +285,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("неправильный пароль", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест загрузки расписания с правильным файлом")]
@@ -330,7 +330,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест загрузки расписания с правильным файлом")]
@@ -375,7 +375,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
@@ -409,7 +409,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест загрузки расписания с неправильным форматом файла")]
@@ -443,7 +443,7 @@ public class UnitTestsTaskTracker
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки")]
@@ -489,7 +489,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест добавления валидной привычки")]
@@ -536,7 +536,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
@@ -565,7 +565,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест добавления валидной привычки не существующему пользователю")]
@@ -594,7 +594,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -647,7 +647,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления существующей привычки")]
@@ -700,7 +700,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -731,7 +731,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления несуществующей привычки")]
@@ -762,7 +762,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления всех привычек")]
@@ -803,7 +803,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления всех привычек")]
@@ -844,7 +844,7 @@ public class UnitTestsTaskTracker
         Assert.Empty(result.Item2);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
@@ -873,7 +873,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления всех привычек у несуществующего пользователя")]
@@ -902,7 +902,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест изменения настроек существующего пользователя")]
@@ -939,7 +939,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(settings, result.Settings);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест изменения настроек существующего пользователя")]
@@ -976,7 +976,7 @@ public class UnitTestsTaskTracker
         Assert.Equal(settings, result.Settings);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест изменения настроек несуществующего пользователя")]
@@ -1006,7 +1006,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест изменения настроек несуществующего пользователя")]
@@ -1036,7 +1036,7 @@ public class UnitTestsTaskTracker
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления существующего пользователя")]
@@ -1062,7 +1062,7 @@ public class UnitTestsTaskTracker
         taskTracker.DeleteUser(userName);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления существующего пользователя")]
@@ -1088,7 +1088,7 @@ public class UnitTestsTaskTracker
         await taskTracker.DeleteUserAsync(userName);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
     [AllureDescription("Тест удаления несуществующего пользователя")]
@@ -1118,7 +1118,7 @@ public class UnitTestsTaskTracker
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
-    [Category("Unit")]
+    [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
     [AllureDescription("Тест удаления несуществующего пользователя")]
