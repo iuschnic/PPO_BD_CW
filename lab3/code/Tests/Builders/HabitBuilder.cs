@@ -38,6 +38,18 @@ public class HabitBuilder
         _prefFixedTimings.Add(new PrefFixedTime(Guid.NewGuid(), start, end, _id));
         return this;
     }
+    public HabitBuilder WithActualTiming(string start, string end, DayOfWeek day)
+    {
+        _actualTimings.Add(new ActualTime(Guid.NewGuid(), TimeOnly.Parse(start),
+            TimeOnly.Parse(end), day, _id));
+        return this;
+    }
+    public HabitBuilder WithPrefFixedTiming(string start, string end)
+    {
+        _prefFixedTimings.Add(new PrefFixedTime(Guid.NewGuid(), TimeOnly.Parse(start),
+            TimeOnly.Parse(end), _id));
+        return this;
+    }
     public HabitBuilder WithOption(TimeOption option)
     {
         _option = option;

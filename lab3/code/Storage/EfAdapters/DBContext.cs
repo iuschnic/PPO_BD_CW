@@ -18,7 +18,7 @@ public interface ITaskTrackerContext
     Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 
-public class PostgresDBContext : DbContext, ITaskTrackerContext
+public class EfDbContext : DbContext, ITaskTrackerContext
 {
     public DbSet<DBUser> Users { get; set; }
     public DbSet<DBEvent> Events { get; set; }
@@ -29,7 +29,7 @@ public class PostgresDBContext : DbContext, ITaskTrackerContext
     public DbSet<DBUserSettings> USettings { get; set; }
     public DbSet<DBMessage> Messages { get; set; }
     public DbSet<DBUserMessage> UserMessages { get; set; }
-    public PostgresDBContext(DbContextOptions<PostgresDBContext> options) : base(options)
+    public EfDbContext(DbContextOptions<EfDbContext> options) : base(options)
     {
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);

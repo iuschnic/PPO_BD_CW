@@ -289,7 +289,7 @@ class Program
             .AddSingleton<IMessageRepo, EfMessageRepo>()
             .AddSingleton<IUserRepo, EfUserRepo>()
             .AddSingleton<ISubscribersRepo, SQLiteSubscribersRepo>()
-            .AddDbContext<PostgresDBContext>(options =>
+            .AddDbContext<EfDbContext>(options =>
                 options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
             .AddDbContext<SubscribersDBContext>(options =>
                 options.UseSqlite("Data Source=subscribers.db"))

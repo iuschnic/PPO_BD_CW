@@ -36,8 +36,8 @@ namespace HabitTrackerGUI
                     .AddSingleton<IEventRepo, EfEventRepo>()
                     .AddSingleton<IHabitRepo, EfHabitRepo>()
                     .AddSingleton<IUserRepo, EfUserRepo>()
-                    .AddSingleton<ITaskTrackerContext, PostgresDBContext>()
-                    .AddDbContext<PostgresDBContext>(options =>
+                    .AddSingleton<ITaskTrackerContext, EfDbContext>()
+                    .AddDbContext<EfDbContext>(options =>
                         options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")))
                     .AddTransient<ISheduleLoad, ShedAdapter>()
                     .AddTransient<ITaskTracker, TaskTracker>()
