@@ -217,11 +217,6 @@ public class TaskTracker : ITaskTracker
         habits.Add(habit);
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!await _eventRepo.TryReplaceEventsAsync(events, habit.UserNameID))
-        {
-            _logger.LogError($"Ошибка при попытке перезаписи событий пользователя {habit.UserNameID} в базу данных");
-            throw new Exception($"Ошибка при попытке перезаписи событий пользователя {habit.UserNameID} в базу данных");
-        }
         if (!await _habitRepo.TryReplaceHabitsAsync(habits, habit.UserNameID))
         {
             _logger.LogError($"Ошибка при попытке перезаписи привычек пользователя {habit.UserNameID} в базу данных");
@@ -256,11 +251,6 @@ public class TaskTracker : ITaskTracker
         habits.Add(habit);
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!_eventRepo.TryReplaceEvents(events, habit.UserNameID))
-        {
-            _logger.LogError($"Ошибка при попытке перезаписи событий пользователя {habit.UserNameID} в базу данных");
-            throw new Exception($"Ошибка при попытке перезаписи событий пользователя {habit.UserNameID} в базу данных");
-        }
         if (!_habitRepo.TryReplaceHabits(habits, habit.UserNameID))
         {
             _logger.LogError($"Ошибка при попытке перезаписи привычек пользователя {habit.UserNameID} в базу данных");
@@ -294,11 +284,6 @@ public class TaskTracker : ITaskTracker
         habits.RemoveAll(h => h.Name == name);
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!await _eventRepo.TryReplaceEventsAsync(events, user_name))
-        {
-            _logger.LogError($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
-            throw new Exception($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
-        }
         if (!await _habitRepo.TryReplaceHabitsAsync(habits, user_name))
         {
             _logger.LogError($"Ошибка при попытке перезаписи привычек пользователя {user_name} в базу данных");
@@ -334,11 +319,6 @@ public class TaskTracker : ITaskTracker
         habits.RemoveAll(h => h.Name == name);
         List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
 
-        if (!_eventRepo.TryReplaceEvents(events, user_name))
-        {
-            _logger.LogError($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
-            throw new Exception($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
-        }
         if (!_habitRepo.TryReplaceHabits(habits, user_name))
         {
             _logger.LogError($"Ошибка при попытке перезаписи привычек пользователя {user_name} в базу данных");
