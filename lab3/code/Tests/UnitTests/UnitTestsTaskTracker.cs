@@ -703,7 +703,7 @@ public class UnitTestsTaskTracker
     [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Синхронные методы")]
-    [AllureDescription("Тест удаления несуществующей привычки")]
+    [AllureDescription("Тест удаления привычки несуществующего пользователя")]
     public void DeleteHabitInvalidUser()
     {
         var mockEventRepo = new Mock<IEventRepo>();
@@ -734,7 +734,7 @@ public class UnitTestsTaskTracker
     [Trait("Category", "Unit")]
     [AllureFeature("TaskTracker")]
     [AllureStory("Асинхронные методы")]
-    [AllureDescription("Тест удаления несуществующей привычки")]
+    [AllureDescription("Тест удаления привычки несуществующего пользователя")]
     public async Task DeleteHabitAsyncInvalidUser()
     {
         var mockEventRepo = new Mock<IEventRepo>();

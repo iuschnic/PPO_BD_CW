@@ -497,4 +497,144 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.Null(notCreatedHabit);
         Assert.Null(notCreatedPrefFixed);
     }
+
+
+
+
+    [Fact]
+    [Trait("Category", "Integration")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
+    [AllureDescription("Тест удаления существующей привычки")]
+    public async Task DeleteHabitValid()
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var taskTracker = scope.ServiceProvider.GetRequiredService<ITaskTracker>();
+        var context = scope.ServiceProvider.GetRequiredService<EfDbContext>();
+        var userName = "existing_" + Guid.NewGuid().ToString();
+        var phoneNumber = new PhoneNumber("+71111111111");
+        var password = "123";
+        var user = new DBUser(userName, phoneNumber.StringNumber, password);
+        var settings = new DBUserSettings(Guid.NewGuid(), true, userName);
+        var habitGuid = Guid.NewGuid();
+        var habitName = "habit";
+        var habitMinsToComplete = 30;
+        var habitOption = TimeOption.NoMatter;
+        var habitCountInWeek = 1;
+        var prefFixedStart = TimeOnly.Parse("00:00");
+        var prefFixedEnd = TimeOnly.Parse("23:59");
+        var habit = TaskTrackerMother.Habit()
+            .WithId(habitGuid)
+            .WithName(habitName)
+            .WithMinsToComplete(habitMinsToComplete)
+            .WithOption(habitOption)
+            .WithUserName(userName)
+            .WithCountInWeek(habitCountInWeek)
+            .WithPrefFixedTiming(prefFixedStart, prefFixedEnd)
+            .Build();
+        var dbhabit = new DBHabit(habit);
+        var dbPrefFixedTime = new DBPrefFixedTime(habit.PrefFixedTimings[0]);
+        await context.Users.AddAsync(user);
+        await context.USettings.AddAsync(settings);
+        await context.Habits.AddAsync(dbhabit);
+        await context.PrefFixedTimes.AddAsync(dbPrefFixedTime);
+        await context.SaveChangesAsync();
+
+        var returnedInfo = taskTracker.DeleteHabit(userName, habitName);
+
+        var returnedUser = returnedInfo.Item1;
+        var returnedUndistrHabits = returnedInfo.Item2;
+        var deletedHabit = await context.Habits.FindAsync(habitGuid);
+        var deletedPrefFixed = await context.PrefFixedTimes
+            .Where(pf => pf.DBHabitID == habitGuid).FirstOrDefaultAsync();
+        Assert.NotNull(returnedInfo);
+        Assert.NotNull(returnedUser);
+        Assert.NotNull(returnedUndistrHabits);
+        Assert.Null(deletedHabit);
+        Assert.Null(deletedPrefFixed);
+    }
+    [Fact]
+    [Trait("Category", "Integration")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления существующей привычки")]
+    public async Task DeleteHabitAsyncValid()
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var taskTracker = scope.ServiceProvider.GetRequiredService<ITaskTracker>();
+        var context = scope.ServiceProvider.GetRequiredService<EfDbContext>();
+        var userName = "existing_" + Guid.NewGuid().ToString();
+        var phoneNumber = new PhoneNumber("+71111111111");
+        var password = "123";
+        var user = new DBUser(userName, phoneNumber.StringNumber, password);
+        var settings = new DBUserSettings(Guid.NewGuid(), true, userName);
+        var habitGuid = Guid.NewGuid();
+        var habitName = "habit";
+        var habitMinsToComplete = 30;
+        var habitOption = TimeOption.NoMatter;
+        var habitCountInWeek = 1;
+        var prefFixedStart = TimeOnly.Parse("00:00");
+        var prefFixedEnd = TimeOnly.Parse("23:59");
+        var habit = TaskTrackerMother.Habit()
+            .WithId(habitGuid)
+            .WithName(habitName)
+            .WithMinsToComplete(habitMinsToComplete)
+            .WithOption(habitOption)
+            .WithUserName(userName)
+            .WithCountInWeek(habitCountInWeek)
+            .WithPrefFixedTiming(prefFixedStart, prefFixedEnd)
+            .Build();
+        var dbhabit = new DBHabit(habit);
+        var dbPrefFixedTime = new DBPrefFixedTime(habit.PrefFixedTimings[0]);
+        await context.Users.AddAsync(user);
+        await context.USettings.AddAsync(settings);
+        await context.Habits.AddAsync(dbhabit);
+        await context.PrefFixedTimes.AddAsync(dbPrefFixedTime);
+        await context.SaveChangesAsync();
+
+        var returnedInfo = await taskTracker.DeleteHabitAsync(userName, habitName);
+
+        var returnedUser = returnedInfo.Item1;
+        var returnedUndistrHabits = returnedInfo.Item2;
+        var deletedHabit = await context.Habits.FindAsync(habitGuid);
+        var deletedPrefFixed = await context.PrefFixedTimes
+            .Where(pf => pf.DBHabitID == habitGuid).FirstOrDefaultAsync();
+        Assert.NotNull(returnedInfo);
+        Assert.NotNull(returnedUser);
+        Assert.NotNull(returnedUndistrHabits);
+        Assert.Null(deletedHabit);
+        Assert.Null(deletedPrefFixed);
+    }
+    [Fact]
+    [Trait("Category", "Integration")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Синхронные методы")]
+    [AllureDescription("Тест удаления привычки несуществующего пользователя")]
+    public void DeleteHabitInvalidUser()
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var taskTracker = scope.ServiceProvider.GetRequiredService<ITaskTracker>();
+        var context = scope.ServiceProvider.GetRequiredService<EfDbContext>();
+        var notExistUserName = "existing_" + Guid.NewGuid().ToString();
+        var habitName = "habit";
+
+        var exception = Assert.Throws<Exception>(() =>
+            taskTracker.DeleteHabit(notExistUserName, habitName));
+    }
+    [Fact]
+    [Trait("Category", "Integration")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("Асинхронные методы")]
+    [AllureDescription("Тест удаления несуществующей привычки")]
+    public async Task DeleteHabitAsyncInvalidUser()
+    {
+        using var scope = _serviceProvider.CreateScope();
+        var taskTracker = scope.ServiceProvider.GetRequiredService<ITaskTracker>();
+        var context = scope.ServiceProvider.GetRequiredService<EfDbContext>();
+        var notExistUserName = "existing_" + Guid.NewGuid().ToString();
+        var habitName = "habit";
+
+        var exception = await Assert.ThrowsAsync<Exception>(() =>
+            taskTracker.DeleteHabitAsync(notExistUserName, habitName));
+    }
 }
