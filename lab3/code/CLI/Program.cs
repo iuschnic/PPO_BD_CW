@@ -457,17 +457,14 @@ class Program
                 .AddSingleton<IUserRepo, EfUserRepo>()
                 .AddSingleton<ITaskTrackerContext, EfDbContext>()
                 .AddDbContext<EfDbContext>(options =>
-                    options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")))
+                    options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+                          ?? configuration.GetConnectionString("PostgresConnection")))
                 .AddTransient<ISheduleLoad, ShedAdapter>()
                 .AddTransient<ITaskTracker, TaskTracker>()
                 .AddTransient<IHabitDistributor, HabitDistributor>()
                 .BuildServiceProvider();
-
-            //Log.Information("Приложение запущено");
             var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
             LogInCycle(taskService);
-            //Log.Information("Приложение остановлено");
-            //Log.CloseAndFlush();
         }
         catch (Exception ex)
         {
@@ -475,7 +472,6 @@ class Program
         }
         finally
         {
-            //Log.Information("Приложение остановлено");
             Log.CloseAndFlush();
         }
     }
