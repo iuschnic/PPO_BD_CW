@@ -19,7 +19,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
-    <ProjectReference Include="..\MessageSender\MessageSender.csproj" />
     <ProjectReference Include="..\ShedLoadAdapter\ShedLoadAdapter.csproj" />
     <ProjectReference Include="..\Storage\Storage.csproj" />
   </ItemGroup>
