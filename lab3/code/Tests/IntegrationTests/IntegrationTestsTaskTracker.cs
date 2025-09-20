@@ -9,10 +9,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using Moq;
 using Storage.EfAdapters;
 using Storage.Models;
-using System.ComponentModel;
 using Tests.ObjectMothers;
 using Types;
 
@@ -29,10 +27,10 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("integration_test_settings.json", optional: false, reloadOnChange: true)
+            .AddJsonFile("tests_settings.json", optional: false, reloadOnChange: true)
             .Build();
 
-        if ((_connString = configuration.GetConnectionString("TestDbConnection")) == null)
+        if ((_connString = configuration.GetConnectionString("IntegrationTestsConnection")) == null)
             throw new InvalidDataException("Не найдена строка подключения к тестовой базе данных");
         _serviceProvider = Setup();
         _dbContext = _serviceProvider.GetRequiredService<EfDbContext>();
@@ -550,7 +548,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         Assert.NotNull(returnedInfo);
         Assert.NotNull(returnedUser);
         Assert.NotNull(returnedUndistrHabits);
-        //Assert.Null(deletedHabit);
+        Assert.Null(deletedHabit);
         Assert.Null(deletedPrefFixed);
     }
     [Fact]

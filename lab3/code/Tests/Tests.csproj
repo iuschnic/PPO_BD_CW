@@ -15,6 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Allure.Xunit" Version="2.12.1" />
+    <PackageReference Include="CliWrap" Version="3.9.0" />
     <PackageReference Include="coverlet.collector" Version="6.0.2" />
     <PackageReference Include="EntityFrameworkCore.Testing.Moq" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
@@ -36,7 +37,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="integration_test_settings.json">
+    <None Update="tests_settings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
