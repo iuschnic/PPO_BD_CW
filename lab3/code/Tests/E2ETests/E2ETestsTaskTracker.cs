@@ -1,4 +1,5 @@
-﻿using CliWrap;
+﻿using Allure.Xunit.Attributes;
+using CliWrap;
 using CliWrap.Buffered;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -65,6 +66,10 @@ public class TaskTrackerE2ETests : IAsyncLifetime
     }
 
     [Fact]
+    [Trait("Category", "E2E")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("E2E тестирование")]
+    [AllureDescription("Тест создания аккаунта и входа в него")]
     public async Task TestApp()
     {
         /*
