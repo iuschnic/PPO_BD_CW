@@ -86,17 +86,10 @@ jobs:
           --logger "html;LogFileName=/test-results/integration-report.html"
 
     - name: Upload integration test results
-      uses: actions/upload-artifact@v4
-      with:
-        name: integration-test-report
-        path: test-results/integration-report.html
-        retention-days: 2
-
-    - name: Upload test results even on failure
       if: always()
       uses: actions/upload-artifact@v4
       with:
-        name: integration-test-report-on-failure
+        name: integration-test-report
         path: test-results/integration-report.html
         retention-days: 2
         
@@ -154,16 +147,9 @@ jobs:
           --logger "html;LogFileName=/test-results/e2e-report.html"
 
     - name: Upload E2E test results
+      if : always()
       uses: actions/upload-artifact@v4
       with:
         name: E2E-test-report
-        path: test-results/e2e-report.html
-        retention-days: 2
-
-    - name: Upload test results even on failure
-      if: always()
-      uses: actions/upload-artifact@v4
-      with:
-        name: E2E-test-report-on-failure
         path: test-results/e2e-report.html
         retention-days: 2
