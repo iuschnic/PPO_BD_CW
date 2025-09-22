@@ -81,7 +81,6 @@ jobs:
         mkdir -p test-results
         docker run --rm \
           --network host \
-          -e ConnectionStrings__TestDbConnection="Host=localhost;Port=5432;Database=testdb;Username=postgres;Password=postgres" \
           -v $(pwd)/test-results:/test-results \
           bd-integration-tests \
           --logger "html;LogFileName=/test-results/integration-report.html"
@@ -128,7 +127,7 @@ jobs:
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
 
-    - name: Build E2E test image
+    - name: Build e2e test image
       run: docker build -t bd-e2e-tests -f Dockerfile.e2e ./code
 
     - name: Wait for PostgreSQL to be ready
@@ -145,12 +144,11 @@ jobs:
         echo "PostgreSQL failed to start within 60 seconds"
         exit 1
 
-    - name: Run E2E tests with HTML output
+    - name: Run e2e tests with HTML output
       run: |
         mkdir -p test-results
         docker run --rm \
           --network host \
-          -e ConnectionStrings__TestDbConnection="Host=localhost;Port=5432;Database=testdb;Username=postgres;Password=postgres" \
           -v $(pwd)/test-results:/test-results \
           bd-e2e-tests \
           --logger "html;LogFileName=/test-results/e2e-report.html"
