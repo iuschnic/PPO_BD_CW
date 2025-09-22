@@ -98,7 +98,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         3
         """;
         var command = Cli.Wrap("dotnet")
-            .WithArguments($"run --project \"{_csprojPath}\"")
+            .WithArguments($"run --project \"{_csprojPath}\" -- --non-interactive")
             .WithEnvironmentVariables(env => env
                 .Set("DB_CONNECTION_STRING", _connString)
             )
