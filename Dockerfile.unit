@@ -3,10 +3,10 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /source
 
 # Копируем исходный код
-COPY ["code/Domain/", "Domain/"]
-COPY ["code/Storage/", "Storage/"]
-COPY ["code/ShedLoadAdapter/", "ShedLoadAdapter/"]
-COPY ["code/Tests/", "Tests/"]
+COPY ["Domain/", "Domain/"]
+COPY ["Storage/", "Storage/"]
+COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
+COPY ["Tests/", "Tests/"]
 
 # Восстанавливаем и строим только нужные проекты
 RUN dotnet restore "Domain/Domain.csproj" && \
