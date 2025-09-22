@@ -235,4 +235,5 @@ _Pvt_Extensions
 .fake/emoscan-frontend/
 
 allure-report/
+*.bkp
 
