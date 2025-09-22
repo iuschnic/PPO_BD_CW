@@ -5,6 +5,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Storage.EfAdapters;
+using System.Diagnostics;
+using System.Text;
 
 namespace Tests.E2ETests;
 
@@ -65,12 +67,40 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             throw new FileNotFoundException($"Project file not found: {_csprojPath}");
     }
 
-    [Fact]
+    /*[Fact]
     [Trait("Category", "E2E")]
     [AllureFeature("TaskTracker")]
     [AllureStory("E2E тестирование")]
     [AllureDescription("Тест создания аккаунта и входа в него")]
     public async Task TestApp()
+    {
+        var inputCommands = """
+        1
+        kulik
+        +71111111111
+        password
+        2
+        kulik
+        password
+        8
+        3
+        """ + Environment.NewLine;
+        var command = Cli.Wrap("dotnet")
+            .WithArguments($"run --project \"{_csprojPath}\" -- --non-interactive")
+            .WithEnvironmentVariables(env => env
+                .Set("DB_CONNECTION_STRING", _connString)
+            )
+            .WithWorkingDirectory(_projectDirectory)
+            .WithStandardInputPipe(PipeSource.FromString(inputCommands));
+        var result = await command.ExecuteBufferedAsync();
+        Assert.Equal(0, result.ExitCode);
+    }*/
+    [Fact]
+    [Trait("Category", "E2E")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("E2E тестирование")]
+    [AllureDescription("Тест создания аккаунта и входа в него")]
+    public async Task TestApp2()
     {
         /*
          Последовательность команд для E2E тестирования консольного интерфейса:
@@ -97,14 +127,69 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         8
         3
         """;
-        var command = Cli.Wrap("dotnet")
-            .WithArguments($"run --project \"{_csprojPath}\" -- --non-interactive")
-            .WithEnvironmentVariables(env => env
-                .Set("DB_CONNECTION_STRING", _connString)
-            )
-            .WithWorkingDirectory(_projectDirectory)
-            .WithStandardInputPipe(PipeSource.FromString(inputCommands));
-        var result = await command.ExecuteBufferedAsync();
-        Assert.Equal(0, result.ExitCode);
+
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"run --project \"{_csprojPath}\" -- --non-interactive",
+                WorkingDirectory = _projectDirectory,
+                EnvironmentVariables =
+            {
+                ["DB_CONNECTION_STRING"] = _connString
+            },
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            }
+        };
+
+        var outputBuilder = new StringBuilder();
+        var errorBuilder = new StringBuilder();
+
+        process.OutputDataReceived += (sender, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                outputBuilder.AppendLine(e.Data);
+                Console.WriteLine("OUT: " + e.Data);
+            }
+        };
+
+        process.ErrorDataReceived += (sender, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                errorBuilder.AppendLine(e.Data);
+                Console.WriteLine("ERR: " + e.Data);
+            }
+        };
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        await using (var writer = process.StandardInput)
+        {
+            if (writer.BaseStream.CanWrite)
+            {
+                await writer.WriteAsync(inputCommands);
+                await writer.FlushAsync();
+            }
+        }
+
+        var completed = process.WaitForExit(10000);
+
+        if (!completed)
+        {
+            process.Kill(entireProcessTree: true);
+            throw new TimeoutException("Process did not exit within 30 seconds");
+        }
+
+        await Task.Delay(1000);
+        Assert.Equal(0, process.ExitCode);
     }
 }
