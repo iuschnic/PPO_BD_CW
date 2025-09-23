@@ -16,6 +16,23 @@
 * далее распределяются привычки с предпочтительным временным интервалом выполнения
 * по остаточному принципу распределяются привычки без предпочтительного интервала выполнения
 ### Use-case диаграмма:
-![PNG Image](./docs/use_case.png)
+![SVG Image](./docs/use_case.svg)
 ### User-flow диаграмма:
-![PNG Image](./docs/user_flow.png)
+![SVG Image](./docs/user_flow.svg)
+### BPMN диаграмма:
+![SVG Image](./docs/bpmn.svg)
+### ER диаграмма сущностей:
+![SVG Image](./docs/ER.svg)
+### Диаграмма компонентов:
+![SVG Image](./docs/Components.svg)
+### Диаграмма БД:
+![SVG Image](./docs/DB.svg)
+### Технологический стек бекенда:
+* язык C#
+* Entity Framework для компонента доступа к данным
+* Serilog для логгирования
+* Telegram.Bot для отправки сообщений
+* PostgreSQL - СУБД
+* xUnit для модульного, интеграционного и e2e тестирования
+### Технологический стек фронтенда:
+* WinForms для GUI - пока что только desktop

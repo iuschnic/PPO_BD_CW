@@ -1,6 +1,6 @@
-<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.0.16 Chrome/132.0.6834.196 Electron/34.2.0 Safari/537.36" version="26.0.16">
+<mxfile host="Electron" agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) draw.io/26.1.1 Chrome/132.0.6834.210 Electron/34.3.3 Safari/537.36" version="26.1.1">
   <diagram id="C5RBs43oDa-KdzZeNtuy" name="Page-1">
-    <mxGraphModel dx="941" dy="644" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
+    <mxGraphModel dx="954" dy="657" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-0" />
         <mxCell id="WIyWlLk6GJQsqaUBKTNV-1" parent="WIyWlLk6GJQsqaUBKTNV-0" />
@@ -40,15 +40,13 @@
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-37" value="Бизнес логика предоставляет интерфейс со всеми операциями для user-interface" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=center;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="200" y="285" width="160" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="mfAyuJLMvUoI4f2xb2hn-38" value="Компонент доступа к данным&lt;div&gt;&amp;nbsp;абстрактной БД&lt;/div&gt;" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+        <mxCell id="mfAyuJLMvUoI4f2xb2hn-38" value="Компонент доступа к данным" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="650.01" y="385" width="229.99" height="60" as="geometry" />
         </mxCell>
-        <mxCell id="mfAyuJLMvUoI4f2xb2hn-39" value="" style="html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="640.01" y="400" width="30" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="mfAyuJLMvUoI4f2xb2hn-40" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="mfAyuJLMvUoI4f2xb2hn-39" edge="1">
+        <mxCell id="mfAyuJLMvUoI4f2xb2hn-40" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" parent="WIyWlLk6GJQsqaUBKTNV-1" edge="1">
           <mxGeometry relative="1" as="geometry">
             <mxPoint x="593.0048824543526" y="414.7977274706659" as="targetPoint" />
+            <mxPoint x="650" y="400" as="sourcePoint" />
           </mxGeometry>
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-41" value="" style="ellipse;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
@@ -57,31 +55,35 @@
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-42" value="Бизнес логика требует заданный интерфейс доступа к данным, не знает конкретной реализации" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=center;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="460" y="285" width="160" height="100" as="geometry" />
         </mxCell>
-        <mxCell id="mfAyuJLMvUoI4f2xb2hn-43" value="Компонент загрузки расписания со стороннего ресурса" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="650" y="472" width="230" height="60" as="geometry" />
+        <mxCell id="mfAyuJLMvUoI4f2xb2hn-43" value="Компонент отправки сообщений (телеграмм бот)" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+          <mxGeometry x="650" y="482" width="230" height="60" as="geometry" />
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-44" value="" style="html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="630" y="487" width="30" height="30" as="geometry" />
+          <mxGeometry x="630" y="497" width="30" height="30" as="geometry" />
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-45" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="mfAyuJLMvUoI4f2xb2hn-44" target="mfAyuJLMvUoI4f2xb2hn-46" edge="1">
           <mxGeometry relative="1" as="geometry" />
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-46" value="" style="ellipse;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="580" y="482" width="8" height="8" as="geometry" />
+          <mxGeometry x="580" y="492" width="8" height="8" as="geometry" />
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-56" value="" style="html=1;rounded=0;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="500" y="467" width="20" height="15" as="geometry" />
         </mxCell>
-        <mxCell id="mfAyuJLMvUoI4f2xb2hn-57" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="mfAyuJLMvUoI4f2xb2hn-56" target="mfAyuJLMvUoI4f2xb2hn-58" edge="1">
-          <mxGeometry relative="1" as="geometry" />
+        <mxCell id="mfAyuJLMvUoI4f2xb2hn-57" value="" style="endArrow=none;html=1;rounded=0;align=center;verticalAlign=top;endFill=0;labelBackgroundColor=none;endSize=2;" parent="WIyWlLk6GJQsqaUBKTNV-1" source="PJkOiyBwchoLqAn2fEJS-1" target="mfAyuJLMvUoI4f2xb2hn-58" edge="1">
+          <mxGeometry relative="1" as="geometry">
+            <Array as="points">
+              <mxPoint x="578" y="460" />
+            </Array>
+          </mxGeometry>
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-58" value="" style="shape=requiredInterface;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="575" y="480" width="5" height="10" as="geometry" />
+          <mxGeometry x="575" y="490" width="5" height="10" as="geometry" />
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-59" value="Бизнес логика требует заданный интерфейс загрузки расписания, не знает откуда конкретно это расписание загружается" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=center;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="460" y="517" width="160" height="108" as="geometry" />
+          <mxGeometry x="200" y="510" width="160" height="108" as="geometry" />
         </mxCell>
-        <mxCell id="mfAyuJLMvUoI4f2xb2hn-60" value="Компонент отправки сообщений" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
+        <mxCell id="mfAyuJLMvUoI4f2xb2hn-60" value="Компонент загрузки расписания" style="html=1;align=center;verticalAlign=middle;dashed=0;whiteSpace=wrap;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry y="467" width="180" height="60" as="geometry" />
         </mxCell>
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-61" value="" style="html=1;rounded=0;flipH=0;flipV=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
@@ -102,11 +104,14 @@
         <mxCell id="mfAyuJLMvUoI4f2xb2hn-66" value="" style="ellipse;html=1;fontSize=11;align=center;fillColor=none;points=[];aspect=fixed;resizable=0;verticalAlign=bottom;labelPosition=center;verticalLabelPosition=top;flipH=1;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
           <mxGeometry x="240" y="489" width="8" height="8" as="geometry" />
         </mxCell>
-        <mxCell id="mfAyuJLMvUoI4f2xb2hn-68" value="Бизнес логика требует заданный интерфейс для отправки сообщений" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=center;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry x="200" y="517" width="160" height="108" as="geometry" />
+        <mxCell id="PJkOiyBwchoLqAn2fEJS-0" value="" style="html=1;rounded=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="640" y="396" width="20" height="15" as="geometry" />
         </mxCell>
-        <mxCell id="zMHCoUE830m1x03lwi-0-0" value="Не понимаю как делать, по идее должен быть триггер в БД, который отправляет сообщения пользователю, иначе на приложение, в котором сейчас работает пользователь, возложена ответственность за обработку сообщений всех пользователей" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=center;" parent="WIyWlLk6GJQsqaUBKTNV-1" vertex="1">
-          <mxGeometry y="527" width="160" height="183" as="geometry" />
+        <mxCell id="PJkOiyBwchoLqAn2fEJS-1" value="" style="html=1;rounded=0;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="640" y="420" width="20" height="15" as="geometry" />
+        </mxCell>
+        <mxCell id="PJkOiyBwchoLqAn2fEJS-4" value="Компонент отправки сообщений требует заданный интерфейс доступа к данным о сообщениях" style="shape=note2;boundedLbl=1;whiteSpace=wrap;html=1;size=25;verticalAlign=top;align=center;" vertex="1" parent="WIyWlLk6GJQsqaUBKTNV-1">
+          <mxGeometry x="460" y="510" width="160" height="108" as="geometry" />
         </mxCell>
       </root>
     </mxGraphModel>
