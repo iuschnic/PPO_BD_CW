@@ -152,6 +152,45 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Импорт нового расписания для пользователя {user_name} из файла {path} произошел успешно");
         return new Tuple<User, List<Habit>>(await GetUserAsync(user_name), no_distributed);
     }
+    public async Task<Tuple<User, List<Habit>>> ImportNewSheduleAsync(string user_name, Stream stream, string extension)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил импорт нового расписания из переданного потока");
+        if (await _userRepo.TryGetAsync(user_name) == null)
+        {
+            _logger.LogError($"Пользователя с именем {user_name} не существует в базе данных");
+            throw new Exception($"Пользователя с именем {user_name} не существует в базе данных");
+        }
+        List<Event> events;
+        try
+        {
+            events = _shedLoader.LoadShedule(user_name, stream, extension);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Ошибка загрузки расписания для пользователя {user_name}: {ex.Message}");
+            throw new Exception($"Ошибка загрузки расписания для пользователя {user_name}: {ex.Message}");
+        }
+        var habits = await _habitRepo.TryGetAsync(user_name);
+        if (habits == null)
+        {
+            _logger.LogError($"Не удалось получить привычки для пользователя {user_name}");
+            throw new Exception($"Не удалось получить привычки для пользователя {user_name}");
+        }
+        List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
+
+        if (!await _eventRepo.TryReplaceEventsAsync(events, user_name))
+        {
+            _logger.LogError($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
+            throw new Exception($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
+        }
+        if (!await _habitRepo.TryReplaceHabitsAsync(habits, user_name))
+        {
+            _logger.LogError($"Ошибка при попытке перезаписи привычек пользователя {user_name} в базу данных");
+            throw new Exception($"Ошибка при попытке перезаписи привычек пользователя {user_name} в базу данных");
+        }
+        _logger.LogInformation($"Импорт нового расписания для пользователя {user_name} из переданного потока произошел успешно");
+        return new Tuple<User, List<Habit>>(await GetUserAsync(user_name), no_distributed);
+    }
     /*Функция импорта нового расписания для пользователя с именем-идентификатором user_name
      Возвращает кортеж из информации о пользователе и информации о нераспределенных привычках*/
     public Tuple<User, List<Habit>> ImportNewShedule(string user_name, string path)
@@ -191,6 +230,45 @@ public class TaskTracker : ITaskTracker
             throw new Exception($"Ошибка при попытке перезаписи привычек пользователя {user_name} в базу данных");
         }
         _logger.LogInformation($"Импорт нового расписания для пользователя {user_name} из файла {path} произошел успешно");
+        return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
+    }
+    public Tuple<User, List<Habit>> ImportNewShedule(string user_name, Stream stream, string extension)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил импорт нового расписания из переданного потока");
+        if (_userRepo.TryGet(user_name) == null)
+        {
+            _logger.LogError($"Пользователя с именем {user_name} не существует в базе данных");
+            throw new Exception($"Пользователя с именем {user_name} не существует в базе данных");
+        }
+        List<Event> events;
+        try
+        {
+            events = _shedLoader.LoadShedule(user_name, stream, extension);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning($"Ошибка загрузки расписания для пользователя {user_name}: {ex.Message}");
+            throw new Exception($"Ошибка загрузки расписания для пользователя {user_name}: {ex.Message}");
+        }
+        var habits = _habitRepo.TryGet(user_name);
+        if (habits == null)
+        {
+            _logger.LogError($"Не удалось получить привычки для пользователя {user_name}");
+            throw new Exception($"Не удалось получить привычки для пользователя {user_name}");
+        }
+        List<Habit> no_distributed = _distributer.DistributeHabits(habits, events);
+
+        if (!_eventRepo.TryReplaceEvents(events, user_name))
+        {
+            _logger.LogError($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
+            throw new Exception($"Ошибка при попытке перезаписи событий пользователя {user_name} в базу данных");
+        }
+        if (!_habitRepo.TryReplaceHabits(habits, user_name))
+        {
+            _logger.LogError($"Ошибка при попытке перезаписи привычек пользователя {user_name} в базу данных");
+            throw new Exception($"Ошибка при попытке перезаписи привычек пользователя {user_name} в базу данных");
+        }
+        _logger.LogInformation($"Импорт нового расписания для пользователя {user_name} из переданного потока произошел успешно");
         return new Tuple<User, List<Habit>>(GetUser(user_name), no_distributed);
     }
     public async Task<Tuple<User, List<Habit>>> AddHabitAsync(Habit habit)

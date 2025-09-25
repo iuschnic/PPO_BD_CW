@@ -7,6 +7,7 @@ public interface ITaskTracker
     Task<User> CreateUserAsync(string username, PhoneNumber phone_number, string password);
     Task<User> LogInAsync(string username, string password);
     Task<Tuple<User, List<Habit>>> ImportNewSheduleAsync(string user_name, string path);
+    Task<Tuple<User, List<Habit>>> ImportNewSheduleAsync(string user_name, Stream stream, string extension);
     Task<Tuple<User, List<Habit>>> AddHabitAsync(Habit habit);
     Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string user_name, string name);
     Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string name);
@@ -22,6 +23,7 @@ public interface ITaskTracker
     и словарь с нераспределенными привычками (которые распределились не на все указанное количество дней)
     */
     Tuple<User, List<Habit>> ImportNewShedule(string user_name, string path);
+    Tuple<User, List<Habit>> ImportNewShedule(string user_name, Stream stream, string extension);
     Tuple<User, List<Habit>> AddHabit(Habit habit);
     Tuple<User, List<Habit>> DeleteHabit(string user_name, string name);
     Tuple<User, List<Habit>> DeleteHabits(string name);
