@@ -179,17 +179,22 @@ public class TaskTrackerE2ETests : IAsyncLifetime
     [AllureDescription("Тест создания аккаунта и входа в него")]
     public async Task TestApp2()
     {
-        var commands = new[]
+        var commandResponse = new List<Tuple<string, string>>
         {
-            "1",            // зарегистрировать аккаунт
-            "kulik",        // логин нового аккаунта
-            "+71111111111", // номер телефона
-            "password",     // пароль
-            "2",            // войти в аккаунт
-            "kulik",        // логин
-            "password",     // пароль
-            "8",            // выйти из аккаунта
-            "3"             // выйти из приложения
+            new("1", "Введите имя пользователя"),                       // зарегистрировать аккаунт
+            new("kulik", "Введите номер телефона"),                     // логин нового аккаунта
+            new("+71111111111", "Введите пароль"),                      // номер телефона
+            new("password", "USER"),                                    // пароль
+            new("2", "Введите имя пользователя"),                       // войти в аккаунт
+            new("kulik", "Введите пароль"),                             // логин
+            new("password", "USER"),                                    // пароль
+            new("2", "Введите название привычки"),                      // добавить привычку
+            new("name", "сколько минут нужно тратить на привычку"),     // имя привычки
+            new("30", "тип привычки"),                                  // время на привычку
+            new("0", "сколько дней в неделю нужно выполнять привычку"), // безразличное время
+            new("6", "Привычка была успешно добавлена"),                // дней в неделю
+            new("8", "Создать аккаунт"),                                // выйти из аккаунта
+            new("3", "")                                                // выйти из приложения
         };
         var process = new Process
         {
@@ -206,7 +211,10 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
                 UseShellExecute = false,
-                CreateNoWindow = true
+                CreateNoWindow = true,
+                StandardErrorEncoding = Encoding.UTF8,
+                StandardInputEncoding = Encoding.UTF8,
+                StandardOutputEncoding = Encoding.UTF8
             }
         };
         var outputBuilder = new StringBuilder();
@@ -216,7 +224,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             {
                 outputBuilder.Clear();
                 outputBuilder.AppendLine(e.Data);
-                Console.WriteLine("OUT: " + e.Data);
+                //Console.WriteLine("OUT: " + e.Data);
             }
         };
 
@@ -231,15 +239,17 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         {
             await using (var writer = process.StandardInput)
             {
-                foreach (var command in commands)
+                foreach (var pair in commandResponse)
                 {
-                    await writer.WriteLineAsync(command);
+                    await writer.WriteLineAsync(pair.Item1);
                     await writer.FlushAsync();
-                    Console.WriteLine($"\n>>> Sent command: {command}");
+                    Console.WriteLine($">>> Sent command: {pair.Item1}");
                     var response = await WaitForResponse(outputBuilder, timeoutMs: 3000);
                     Console.WriteLine($"<<< Response: {response}");
-                    
-                    await Task.Delay(500);
+                    Console.WriteLine($"pair: {pair.Item2}");
+                    Assert.Contains(response, pair.Item2);
+                    Console.WriteLine("assertok");
+                    await Task.Delay(1000);
                 }
             }
 
@@ -256,9 +266,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         finally
         {
             if (!process.HasExited)
-            {
                 process.Kill(entireProcessTree: true);
-            }
         }
     }
 
@@ -270,7 +278,6 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         while ((DateTime.Now - startTime).TotalMilliseconds < timeoutMs)
         {
             await Task.Delay(100);
-
             // Если появился новый вывод - возвращаем его
             if (outputBuilder.Length > 0)
                 return outputBuilder.ToString().Trim();
