@@ -90,11 +90,30 @@ public class ShedAdapter : ISheduleLoad
         string extension = Path.GetExtension(file_path);
         if (extension == ".csv")
         {
-            return LoadCsv(user_name, file_path);
+            if (!File.Exists(file_path))
+            {
+                throw new Exception($"Файла {file_path} не существует");
+            }
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                MissingFieldFound = null,
+                HeaderValidated = null
+            };
+            using var reader = new StreamReader(file_path);
+            using var csv = new CsvReader(reader, config);
+
+            return LoadCsv(user_name, csv);
         }
         else if (extension == ".ics")
-        { 
-            return LoadIcs(user_name, file_path);
+        {
+            if (!File.Exists(file_path))
+                throw new FileNotFoundException("Файл не существует", file_path);
+
+            var events = new List<Event>();
+            var calendar = Ical.Net.Calendar.Load(File.ReadAllText(file_path));
+
+            return LoadIcs(user_name, calendar);
         }
         else
         {
@@ -102,22 +121,34 @@ public class ShedAdapter : ISheduleLoad
         }
     }
 
-    private List<Event> LoadCsv(string user_name, string file_path)
+    public List<Event> LoadShedule(string user_name, Stream stream, string extension)
     {
-        if (!File.Exists(file_path))
+
+        if (extension == ".csv")
         {
-            throw new Exception($"Файла {file_path} не существует");
+            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+            {
+                HasHeaderRecord = true,
+                MissingFieldFound = null,
+                HeaderValidated = null
+            };
+            using var reader = new StreamReader(stream);
+            using var csv = new CsvReader(reader, config);
+            return LoadCsv(user_name, csv);
         }
-        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
+        else if (extension == ".ics")
         {
-            HasHeaderRecord = true,
-            MissingFieldFound = null,
-            HeaderValidated = null
-        };
+            var calendar = Ical.Net.Calendar.Load(stream);
+            return LoadIcs(user_name, calendar);
+        }
+        else
+        {
+            throw new Exception($"Не поддерживаемый формат файла - {extension}");
+        }
+    }
 
-        using var reader = new StreamReader(file_path);
-        using var csv = new CsvReader(reader, config);
-
+    private List<Event> LoadCsv(string user_name, CsvReader csv)
+    {
         var records = new List<EventCsvRecord>();
         try
         {
@@ -139,15 +170,11 @@ public class ShedAdapter : ISheduleLoad
 
                 DayOfWeek? day = null;
                 if (!string.IsNullOrEmpty(record.Day))
-                {
                     day = (DayOfWeek)Enum.Parse(typeof(DayOfWeek), record.Day);
-                }
 
                 DateOnly? date = null;
                 if (!string.IsNullOrEmpty(record.Date))
-                {
                     date = DateOnly.Parse(record.Date);
-                }
 
                 var newEvent = new Event(
                     id: Guid.NewGuid(),
@@ -170,16 +197,9 @@ public class ShedAdapter : ISheduleLoad
 
         return events;
     }
-    public List<Event> LoadIcs(string user_name, string file_path)
+    public List<Event> LoadIcs(string user_name, Ical.Net.Calendar calendar)
     {
-        if (!File.Exists(file_path))
-        {
-            throw new FileNotFoundException("Файл не существует", file_path);
-        }
-
         var events = new List<Event>();
-        var calendar = Ical.Net.Calendar.Load(File.ReadAllText(file_path));
-
         foreach (var calendarEvent in calendar.Events)
         {
             try
@@ -236,7 +256,6 @@ public class ShedAdapter : ISheduleLoad
 
         return events;
     }
-
     private class EventCsvRecord
     {
         public string? Name { get; set; }

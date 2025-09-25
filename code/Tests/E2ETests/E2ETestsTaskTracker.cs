@@ -1,6 +1,4 @@
 ﻿using Allure.Xunit.Attributes;
-using CliWrap;
-using CliWrap.Buffered;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,6 +7,17 @@ using System.Diagnostics;
 using System.Text;
 
 namespace Tests.E2ETests;
+
+public class ResponseAnalyzer(Dictionary<string, string> requestResponse)
+{
+    private readonly Dictionary<string, string> _requestResponse = requestResponse;
+    public bool CheckResponse(string request, string response)
+    {
+        if (response.Contains(_requestResponse[request]))
+            return true;
+        return false;
+    }
+}
 
 public class TaskTrackerE2ETests : IAsyncLifetime
 {
@@ -66,36 +75,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         if (!File.Exists(_csprojPath))
             throw new FileNotFoundException($"Project file not found: {_csprojPath}");
     }
-
     /*[Fact]
-    [Trait("Category", "E2E")]
-    [AllureFeature("TaskTracker")]
-    [AllureStory("E2E тестирование")]
-    [AllureDescription("Тест создания аккаунта и входа в него")]
-    public async Task TestApp()
-    {
-        var inputCommands = """
-        1
-        kulik
-        +71111111111
-        password
-        2
-        kulik
-        password
-        8
-        3
-        """ + Environment.NewLine;
-        var command = Cli.Wrap("dotnet")
-            .WithArguments($"run --project \"{_csprojPath}\" -- --non-interactive")
-            .WithEnvironmentVariables(env => env
-                .Set("DB_CONNECTION_STRING", _connString)
-            )
-            .WithWorkingDirectory(_projectDirectory)
-            .WithStandardInputPipe(PipeSource.FromString(inputCommands));
-        var result = await command.ExecuteBufferedAsync();
-        Assert.Equal(0, result.ExitCode);
-    }*/
-    [Fact]
     [Trait("Category", "E2E")]
     [AllureFeature("TaskTracker")]
     [AllureStory("E2E тестирование")]
@@ -115,7 +95,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
          Аккаунт был создан -> успешный вход
          8 - выйти из аккаунта
          3 - выйти из приложения
-         */
+         
         var inputCommands = """
         1
         kulik
@@ -136,9 +116,9 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 Arguments = $"run --project \"{_csprojPath}\" -- --non-interactive",
                 WorkingDirectory = _projectDirectory,
                 EnvironmentVariables =
-            {
-                ["DB_CONNECTION_STRING"] = _connString
-            },
+                {
+                    ["DB_CONNECTION_STRING"] = _connString
+                },
                 RedirectStandardInput = true,
                 RedirectStandardOutput = true,
                 RedirectStandardError = true,
@@ -191,5 +171,134 @@ public class TaskTrackerE2ETests : IAsyncLifetime
 
         await Task.Delay(1000);
         Assert.Equal(0, process.ExitCode);
+    }*/
+    [Fact]
+    [Trait("Category", "E2E")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("E2E тестирование")]
+    [AllureDescription("Тест создания аккаунта и входа в него")]
+    public async Task TestApp2()
+    {
+        var commands = new[]
+        {
+            "1",            // зарегистрировать аккаунт
+            "kulik",        // логин нового аккаунта
+            "+71111111111", // номер телефона
+            "password",     // пароль
+            "2",            // войти в аккаунт
+            "kulik",        // логин
+            "password",     // пароль
+            "8",            // выйти из аккаунта
+            "3"             // выйти из приложения
+        };
+        var process = new Process
+        {
+            StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"run --project \"{_csprojPath}\" -- --non-interactive",
+                WorkingDirectory = _projectDirectory,
+                EnvironmentVariables =
+                {
+                    ["DB_CONNECTION_STRING"] = _connString
+                },
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            }
+        };
+        var outputBuilder = new StringBuilder();
+        process.OutputDataReceived += (sender, e) =>
+        {
+            if (!string.IsNullOrEmpty(e.Data))
+            {
+                outputBuilder.Clear();
+                outputBuilder.AppendLine(e.Data);
+                Console.WriteLine("OUT: " + e.Data);
+            }
+        };
+
+        process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
+
+        // Даем приложению время на запуск
+        await Task.Delay(5000);
+
+        try
+        {
+            await using (var writer = process.StandardInput)
+            {
+                foreach (var command in commands)
+                {
+                    await writer.WriteLineAsync(command);
+                    await writer.FlushAsync();
+                    Console.WriteLine($"\n>>> Sent command: {command}");
+                    var response = await WaitForResponse(outputBuilder, timeoutMs: 3000);
+                    Console.WriteLine($"<<< Response: {response}");
+                    
+                    await Task.Delay(500);
+                }
+            }
+
+            var completed = process.WaitForExit(5000);
+
+            if (!completed)
+            {
+                process.Kill(entireProcessTree: true);
+                throw new TimeoutException("Process did not exit within 5 seconds after commands");
+            }
+
+            Assert.Equal(0, process.ExitCode);
+        }
+        finally
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+            }
+        }
+    }
+
+    // Метод для ожидания ответа после команды
+    private async Task<string> WaitForResponse(StringBuilder outputBuilder, int timeoutMs)
+    {
+        var startTime = DateTime.Now;
+
+        while ((DateTime.Now - startTime).TotalMilliseconds < timeoutMs)
+        {
+            await Task.Delay(100);
+
+            // Если появился новый вывод - возвращаем его
+            if (outputBuilder.Length > 0)
+                return outputBuilder.ToString().Trim();
+        }
+        throw new TimeoutException($"No response received within {timeoutMs}ms");
+    }
+
+    // Метод для анализа ответа
+    private bool AnalyzeResponse(string command, string response)
+    {
+        // Пример анализа ответов
+        switch (command)
+        {
+            case "1":
+                if (response.Contains("имя пользователя"))
+                    return true;
+                return false;
+
+            case "2":
+                if (response.Contains("номер ") || response.Contains("success"))
+                    return true;
+                return false;
+
+            case "8":
+                if (response.Contains("успешно") || response.Contains("success"))
+                    return true;
+                return false;
+        }
+        return false;
     }
 }
