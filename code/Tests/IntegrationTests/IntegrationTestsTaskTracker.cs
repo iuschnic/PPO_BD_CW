@@ -29,9 +29,10 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("tests_settings.json", optional: false, reloadOnChange: true)
             .Build();
-
-        if ((_connString = configuration.GetConnectionString("IntegrationTestsConnection")) == null)
+        if ((_connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+                          ?? configuration.GetConnectionString("IntegrationTestsConnection")) == null)
             throw new InvalidDataException("Не найдена строка подключения к тестовой базе данных");
+        Console.WriteLine("CONN: " + _connString);
         _serviceProvider = Setup();
         _dbContext = _serviceProvider.GetRequiredService<EfDbContext>();
     }
@@ -63,8 +64,8 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
                 .AddDbContext<EfDbContext>(options =>
                     options.UseNpgsql(_connString))
                 .AddTransient<ISheduleLoad, ShedAdapter>()
-                .AddTransient<ITaskTracker, TaskTracker>()
                 .AddTransient<IHabitDistributor, HabitDistributor>()
+                .AddTransient<ITaskTracker, TaskTracker>()
                 .BuildServiceProvider();
     }
 
