@@ -408,10 +408,7 @@ class Program
         {
             Console.WriteLine("1) Создать аккаунт\n2) Войти в аккаунт\n3) Выйти из программы\n");
             if (!Int32.TryParse(Console.ReadLine(), out opt) || opt < 0 || opt > 3)
-            {
-                Console.WriteLine("Введите целое число от 1 до 3 включительно");
                 continue;
-            }
             switch (opt)
             {
                 case 1:

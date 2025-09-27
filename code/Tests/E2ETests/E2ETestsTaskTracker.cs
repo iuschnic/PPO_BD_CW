@@ -1,8 +1,11 @@
 ﻿using Allure.Xunit.Attributes;
+using CliWrap;
+using CliWrap.Buffered;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Storage.EfAdapters;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Text;
 
@@ -75,103 +78,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         if (!File.Exists(_csprojPath))
             throw new FileNotFoundException($"Project file not found: {_csprojPath}");
     }
-    /*[Fact]
-    [Trait("Category", "E2E")]
-    [AllureFeature("TaskTracker")]
-    [AllureStory("E2E тестирование")]
-    [AllureDescription("Тест создания аккаунта и входа в него")]
-    public async Task TestApp2()
-    {
-        /*
-         Последовательность команд для E2E тестирования консольного интерфейса:
-         1 - зарегистрировать аккаунт
-         kulik - логин нового аккаунта
-         +71111111111 - номер телефона
-         password - пароль
-         База данных чиста -> аккаунт создается
-         2 - войти в аккаунт
-         kulik - логин
-         password - пароль
-         Аккаунт был создан -> успешный вход
-         8 - выйти из аккаунта
-         3 - выйти из приложения
-         
-        var inputCommands = """
-        1
-        kulik
-        +71111111111
-        password
-        2
-        kulik
-        password
-        8
-        3
-        """;
-
-        var process = new Process
-        {
-            StartInfo = new ProcessStartInfo
-            {
-                FileName = "dotnet",
-                Arguments = $"run --project \"{_csprojPath}\" -- --non-interactive",
-                WorkingDirectory = _projectDirectory,
-                EnvironmentVariables =
-                {
-                    ["DB_CONNECTION_STRING"] = _connString
-                },
-                RedirectStandardInput = true,
-                RedirectStandardOutput = true,
-                RedirectStandardError = true,
-                UseShellExecute = false,
-                CreateNoWindow = true
-            }
-        };
-
-        var outputBuilder = new StringBuilder();
-        var errorBuilder = new StringBuilder();
-
-        process.OutputDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-            {
-                outputBuilder.AppendLine(e.Data);
-                Console.WriteLine("OUT: " + e.Data);
-            }
-        };
-
-        process.ErrorDataReceived += (sender, e) =>
-        {
-            if (!string.IsNullOrEmpty(e.Data))
-            {
-                errorBuilder.AppendLine(e.Data);
-                Console.WriteLine("ERR: " + e.Data);
-            }
-        };
-
-        process.Start();
-        process.BeginOutputReadLine();
-        process.BeginErrorReadLine();
-
-        await using (var writer = process.StandardInput)
-        {
-            if (writer.BaseStream.CanWrite)
-            {
-                await writer.WriteAsync(inputCommands);
-                await writer.FlushAsync();
-            }
-        }
-
-        var completed = process.WaitForExit(10000);
-
-        if (!completed)
-        {
-            process.Kill(entireProcessTree: true);
-            throw new TimeoutException("Process did not exit within 30 seconds");
-        }
-
-        await Task.Delay(1000);
-        Assert.Equal(0, process.ExitCode);
-    }*/
+    /*
     [Fact]
     [Trait("Category", "E2E")]
     [AllureFeature("TaskTracker")]
@@ -179,12 +86,13 @@ public class TaskTrackerE2ETests : IAsyncLifetime
     [AllureDescription("Тест создания аккаунта и входа в него")]
     public async Task TestApp2()
     {
+        Console.OutputEncoding = Encoding.UTF8;
         var commandResponse = new List<Tuple<string, string>>
         {
-            new("1", "Введите имя пользователя"),                       // зарегистрировать аккаунт
-            new("kulik", "Введите номер телефона"),                     // логин нового аккаунта
-            new("+71111111111", "Введите пароль"),                      // номер телефона
-            new("password", "USER"),                                    // пароль
+            new("1", "Введите имя пользователя"),                     // зарегистрировать аккаунт
+            new("kulik", "Введите номер телефона"),                   // логин нового аккаунта
+            new("+71111111111", "Введите пароль"),                    // номер телефона
+            new("password", "USER"),                                  // пароль
             new("2", "Введите имя пользователя"),                       // войти в аккаунт
             new("kulik", "Введите пароль"),                             // логин
             new("password", "USER"),                                    // пароль
@@ -222,9 +130,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         {
             if (!string.IsNullOrEmpty(e.Data))
             {
-                outputBuilder.Clear();
                 outputBuilder.AppendLine(e.Data);
-                //Console.WriteLine("OUT: " + e.Data);
             }
         };
 
@@ -233,23 +139,27 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         process.BeginErrorReadLine();
 
         // Даем приложению время на запуск
-        await Task.Delay(5000);
+        await Task.Delay(10000);
 
         try
         {
             await using (var writer = process.StandardInput)
             {
+                await WaitForResponse(outputBuilder, timeoutMs: 5000);
+                outputBuilder.Clear();
                 foreach (var pair in commandResponse)
                 {
                     await writer.WriteLineAsync(pair.Item1);
                     await writer.FlushAsync();
                     Console.WriteLine($">>> Sent command: {pair.Item1}");
-                    var response = await WaitForResponse(outputBuilder, timeoutMs: 3000);
+                    var response = await WaitForResponse(outputBuilder, timeoutMs: 5000);
                     Console.WriteLine($"<<< Response: {response}");
+                    outputBuilder.Clear();
+                    
                     Console.WriteLine($"pair: {pair.Item2}");
-                    Assert.Contains(response, pair.Item2);
+                    //Assert.Contains(response, pair.Item2);
                     Console.WriteLine("assertok");
-                    await Task.Delay(1000);
+                    await Task.Delay(3000);
                 }
             }
 
@@ -283,29 +193,226 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 return outputBuilder.ToString().Trim();
         }
         throw new TimeoutException($"No response received within {timeoutMs}ms");
-    }
+    }*/
 
-    // Метод для анализа ответа
-    private bool AnalyzeResponse(string command, string response)
+    /*[Fact]
+    [Trait("Category", "E2E")]
+    [AllureFeature("TaskTracker")]
+    [AllureStory("E2E тестирование")]
+    [AllureDescription("Тест создания аккаунта и входа в него")]
+    public async Task TestApp2_WithCliWrap()
     {
-        // Пример анализа ответов
-        switch (command)
+        Console.OutputEncoding = Encoding.UTF8;
+
+        // Создаем последовательность ввода для приложения
+        var inputCommands = new[]
         {
-            case "1":
-                if (response.Contains("имя пользователя"))
-                    return true;
-                return false;
+            "1\n",           // Создать аккаунт
+            "1\n",           // Создать аккаунт
+            "1\n",           // Создать аккаунт
+            "1\n",           // Создать аккаунт
+            "1\n",           // Создать аккаунт
+            "kulik\n",       // Имя пользователя
+            "+71111111111\n", // Номер телефона
+            "password",    // Пароль
+            "2",           // Войти в аккаунт (или добавить привычку - уточните логику)
+            "kulik",       // Логин
+            "password",    // Пароль
+            "2",           // Добавить привычку
+            "name",        // Название привычки
+            "30",          // Минуты
+            "0",           // Тип привычки
+            "6",           // Дней в неделю
+            "8",           // Выйти из аккаунта
+            "3"            // Выйти из приложения
+        };
 
-            case "2":
-                if (response.Contains("номер ") || response.Contains("success"))
-                    return true;
-                return false;
+        // Создаем входной поток с командами
+        var inputStream = new MemoryStream();
+        var inputWriter = new StreamWriter(inputStream, Encoding.UTF8);
 
-            case "8":
-                if (response.Contains("успешно") || response.Contains("success"))
-                    return true;
-                return false;
+        foreach (var command in inputCommands)
+        {
+            await inputWriter.WriteLineAsync(command);
+        }
+        await inputWriter.FlushAsync();
+        inputStream.Position = 0;
+
+        try
+        {
+            StringBuilder errorBuilder = new();
+            StringBuilder outputBuilder = new();
+            var command = Cli.Wrap("dotnet")
+                .WithArguments(["run", "--project", _csprojPath, "--", "--non-interactive"])
+                .WithWorkingDirectory(_projectDirectory)
+                .WithEnvironmentVariables(new Dictionary<string, string?>
+                {
+                    ["DB_CONNECTION_STRING"] = _connString
+                })
+                .WithStandardInputPipe(PipeSource.FromStream(inputStream))
+                .WithStandardOutputPipe(PipeTarget.ToStringBuilder(outputBuilder, Encoding.UTF8))
+                .WithStandardErrorPipe(PipeTarget.ToStringBuilder(errorBuilder, Encoding.UTF8));
+                //.WithValidation(CommandResultValidation.None); // Отключаем проверку кода выхода
+
+            Console.WriteLine("Starting application...");
+
+            // Выполняем команду с таймаутом
+            var result = await command.ExecuteBufferedAsync(Encoding.UTF8, new CancellationToken(true));
+
+            Console.WriteLine("=== APPLICATION OUTPUT ===");
+            Console.WriteLine(outputBuilder.ToString());
+
+            if (errorBuilder.Length > 0)
+            {
+                Console.WriteLine("=== APPLICATION ERRORS ===");
+                Console.WriteLine(errorBuilder.ToString());
+            }
+
+            Console.WriteLine($"=== EXIT CODE: {result.ExitCode} ===");
+
+            // Проверяем ожидаемые результаты в выводе
+            var output = outputBuilder.ToString();
+
+            // Проверяем ключевые точки выполнения
+            Assert.Contains("Введите имя пользователя", output);
+            Assert.Contains("Введите номер телефона", output);
+            Assert.Contains("Введите пароль", output);
+            Assert.Contains("USER", output);
+            Assert.Contains("Введите название привычки", output);
+            Assert.Contains("Привычка была успешно добавлена", output);
+
+            // Проверяем код выхода (0 - успешное завершение)
+            Assert.Equal(0, result.ExitCode);
+        }
+        finally
+        {
+            await inputStream.DisposeAsync();
+        }
+    }*/
+
+
+    [Fact]
+    [Trait("Category", "E2E")]
+    public async Task AddHabitE2ETest()
+    {
+        Console.OutputEncoding = Encoding.UTF8;
+        var process = new Process();
+        var globalCts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
+
+        try
+        {
+            process.StartInfo = new ProcessStartInfo
+            {
+                FileName = "dotnet",
+                Arguments = $"run --project \"{_csprojPath}\" -- --non-interactive",
+                WorkingDirectory = _projectDirectory,
+                RedirectStandardInput = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                StandardOutputEncoding = Encoding.UTF8,
+            };
+            process.StartInfo.EnvironmentVariables["DB_CONNECTION_STRING"] = _connString;
+            var output = new StringBuilder();
+            var outputCompleted = new TaskCompletionSource<bool>();
+            process.OutputDataReceived += (sender, e) =>
+            {
+                if (e.Data == null)
+                    outputCompleted.TrySetResult(true);
+                else
+                    output.AppendLine(e.Data);
+            };
+            process.Start();
+            process.BeginOutputReadLine();
+            process.BeginErrorReadLine();
+            /*
+            1               Опция создания аккаунта
+            kulik           Ввести имя пользователя
+            +71111111111    Ввести номер телефона
+            password        Ввести пароль
+            2               Опция входа в аккаунт
+            kulik           Ввести логин
+            password        Ввести пароль
+            2               Опция добавления привычки
+            name            Ввести название привычки
+            30              Ввести количество минут на привычку
+            0               Ввести тип привычки
+            6               Ввести сколько дней в неделю надо выполнять
+            8               Выйти из аккаунта
+            3               Выйти из приложения
+            */
+            var commands = new[]
+            {
+                new { Command = "1", Timeout = 5000, Expected = "Введите имя пользователя" },
+                new { Command = "kulik", Timeout = 5000, Expected = "Введите номер телефона" },
+                new { Command = "+71111111111", Timeout = 5000, Expected = "Введите пароль" },
+                new { Command = "password", Timeout = 5000, Expected = "USER" },
+                new { Command = "2", Timeout = 5000, Expected = "Введите имя пользователя" },
+                new { Command = "kulik", Timeout = 5000, Expected = "Введите пароль" },
+                new { Command = "password", Timeout = 5000, Expected = "USER" },
+                new { Command = "2", Timeout = 5000, Expected = "Введите название привычки" },
+                new { Command = "name", Timeout = 5000, Expected = "сколько минут нужно тратить на привычку" },
+                new { Command = "30", Timeout = 5000, Expected = "тип привычки" },
+                new { Command = "0", Timeout = 5000, Expected = "сколько дней в неделю нужно выполнять привычку" },
+                new { Command = "6", Timeout = 5000, Expected = "Привычка была успешно добавлена" },
+                new { Command = "8", Timeout = 5000, Expected = "Создать аккаунт" },
+                new { Command = "3", Timeout = 5000, Expected = "" }
+            };
+
+            foreach (var step in commands)
+            {
+                var stepCts = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token);
+                stepCts.CancelAfter(step.Timeout);
+                await process.StandardInput.WriteLineAsync(step.Command);
+                await process.StandardInput.FlushAsync();
+                Assert.True(await WaitForOutput(output, step.Expected, stepCts.Token));
+            }
+            process.StandardInput.Close();
+            await process.WaitForExitAsync(globalCts.Token);
+            await outputCompleted.Task.WaitAsync(TimeSpan.FromSeconds(5), globalCts.Token);
+            Assert.Equal(0, process.ExitCode);
+        }
+        finally
+        {
+            await KillProcessAndChildrenSafeAsync(process);
+            globalCts.Dispose();
+        }
+    }
+    private async Task<bool> WaitForOutput(StringBuilder output, string expected, CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrEmpty(expected)) return true;
+
+        var start = DateTime.Now;
+        while (DateTime.Now - start < TimeSpan.FromSeconds(10))
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            if (output.ToString().Contains(expected))
+                return true;
+            await Task.Delay(100, cancellationToken);
         }
         return false;
+    }
+    private static async Task KillProcessAndChildrenSafeAsync(Process process)
+    {
+        try
+        {
+            if (process == null) return;
+
+            if (!process.HasExited)
+            {
+                Console.WriteLine("Force killing process tree...");
+                process.Kill(entireProcessTree: true);
+                for (int i = 0; i < 10; i++)
+                {
+                    if (process.HasExited) break;
+                    await Task.Delay(100);
+                }
+            }
+            process.Dispose();
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error during process cleanup: {ex.Message}");
+        }
     }
 }
