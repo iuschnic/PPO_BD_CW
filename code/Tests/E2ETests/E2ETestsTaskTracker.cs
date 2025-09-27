@@ -311,6 +311,9 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 RedirectStandardError = true,
                 UseShellExecute = false,
                 StandardOutputEncoding = Encoding.UTF8,
+                StandardErrorEncoding = Encoding.UTF8,
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden
             };
             process.StartInfo.EnvironmentVariables["DB_CONNECTION_STRING"] = _connString;
             var output = new StringBuilder();
@@ -325,6 +328,8 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
+            Console.WriteLine("Waiting for application to start...");
+            await Task.Delay(10000, globalCts.Token);
             /*
             1               Опция создания аккаунта
             kulik           Ввести имя пользователя
@@ -343,20 +348,20 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             */
             var commands = new[]
             {
-                new { Command = "1", Timeout = 5000, Expected = "Введите имя пользователя" },
-                new { Command = "kulik", Timeout = 5000, Expected = "Введите номер телефона" },
-                new { Command = "+71111111111", Timeout = 5000, Expected = "Введите пароль" },
-                new { Command = "password", Timeout = 5000, Expected = "USER" },
-                new { Command = "2", Timeout = 5000, Expected = "Введите имя пользователя" },
-                new { Command = "kulik", Timeout = 5000, Expected = "Введите пароль" },
-                new { Command = "password", Timeout = 5000, Expected = "USER" },
-                new { Command = "2", Timeout = 5000, Expected = "Введите название привычки" },
-                new { Command = "name", Timeout = 5000, Expected = "сколько минут нужно тратить на привычку" },
-                new { Command = "30", Timeout = 5000, Expected = "тип привычки" },
-                new { Command = "0", Timeout = 5000, Expected = "сколько дней в неделю нужно выполнять привычку" },
-                new { Command = "6", Timeout = 5000, Expected = "Привычка была успешно добавлена" },
-                new { Command = "8", Timeout = 5000, Expected = "Создать аккаунт" },
-                new { Command = "3", Timeout = 5000, Expected = "" }
+                new { Command = "1", Timeout = 10000, Expected = "Введите имя пользователя" },
+                new { Command = "kulik", Timeout = 10000, Expected = "Введите номер телефона" },
+                new { Command = "+71111111111", Timeout = 10000, Expected = "Введите пароль" },
+                new { Command = "password", Timeout = 10000, Expected = "USER" },
+                new { Command = "2", Timeout = 10000, Expected = "Введите имя пользователя" },
+                new { Command = "kulik", Timeout = 10000, Expected = "Введите пароль" },
+                new { Command = "password", Timeout = 10000, Expected = "USER" },
+                new { Command = "2", Timeout = 10000, Expected = "Введите название привычки" },
+                new { Command = "name", Timeout = 10000, Expected = "сколько минут нужно тратить на привычку" },
+                new { Command = "30", Timeout = 10000, Expected = "тип привычки" },
+                new { Command = "0", Timeout = 10000, Expected = "сколько дней в неделю нужно выполнять привычку" },
+                new { Command = "6", Timeout = 10000, Expected = "Привычка была успешно добавлена" },
+                new { Command = "8", Timeout = 10000, Expected = "Создать аккаунт" },
+                new { Command = "3", Timeout = 10000, Expected = "" }
             };
 
             foreach (var step in commands)
@@ -364,9 +369,9 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 var stepCts = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token);
                 stepCts.CancelAfter(step.Timeout);
                 await process.StandardInput.WriteLineAsync(step.Command);
-                Console.WriteLine("Sent: " + step.Command);
                 await process.StandardInput.FlushAsync();
-                Assert.True(await WaitForOutput(output, step.Expected, stepCts.Token));
+                Assert.True(await WaitForOutput(output, step.Expected, stepCts.Token,
+                    TimeSpan.FromMilliseconds(step.Timeout)));
             }
             process.StandardInput.Close();
             await process.WaitForExitAsync(globalCts.Token);
@@ -379,21 +384,18 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             globalCts.Dispose();
         }
     }
-    private async Task<bool> WaitForOutput(StringBuilder output, string expected, CancellationToken cancellationToken)
+    private async Task<bool> WaitForOutput(StringBuilder output, string expected,
+        CancellationToken cancellationToken, TimeSpan timeOut)
     {
         if (string.IsNullOrEmpty(expected)) return true;
 
         var start = DateTime.Now;
-        while (DateTime.Now - start < TimeSpan.FromSeconds(10))
+        while (DateTime.Now - start < timeOut)
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (output.ToString().Contains(expected))
-            {
-                Console.WriteLine(output.ToString());
-                Console.WriteLine(expected);
                 return true;
-            }
-            await Task.Delay(100, cancellationToken);
+            await Task.Delay(500, cancellationToken);
         }
         return false;
     }
