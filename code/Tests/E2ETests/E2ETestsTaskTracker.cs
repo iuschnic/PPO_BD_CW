@@ -318,13 +318,18 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             process.StartInfo.EnvironmentVariables["DB_CONNECTION_STRING"] = _connString;
             var output = new StringBuilder();
             var outputCompleted = new TaskCompletionSource<bool>();
+
             process.OutputDataReceived += (sender, e) =>
             {
                 if (e.Data == null)
                     outputCompleted.TrySetResult(true);
                 else
+                {
                     output.AppendLine(e.Data);
+                    Console.WriteLine($"[APP] {e.Data}");
+                }
             };
+
             process.Start();
             process.BeginOutputReadLine();
             process.BeginErrorReadLine();
