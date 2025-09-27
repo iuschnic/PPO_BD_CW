@@ -1,0 +1,97 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: integrationdb  # Добавляем базу по умолчанию
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - my_persistent_network  # Добавляем постгрес в сеть
+
+  unit-tests:
+    build:
+      context: ./code
+      dockerfile: ../Dockerfile.unit
+    volumes:
+      - ./test-results:/test-results
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - my_persistent_network  # Добавляем unit-тесты в сеть
+
+  integration-tests:
+    build:
+      context: ./code
+      dockerfile: ../Dockerfile.integration
+    volumes:
+      - ./test-results:/test-results
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=integrationdb;Username=postgres;Password=postgres"
+      ASPNETCORE_ENVIRONMENT: Docker
+      DOTNET_ENVIRONMENT: Docker
+    networks:
+      - my_persistent_network
+    command: >
+      sh -c "
+        echo 'DB_CONNECTION_STRING: $$DB_CONNECTION_STRING' &&
+        until pg_isready -h postgres -p 5432 -U postgres; do
+          echo 'Waiting for PostgreSQL...'
+          sleep 2
+        done &&
+        echo 'Running tests...' &&
+        dotnet test Tests/Tests.csproj -c Release --no-build \
+          --filter 'Category=Integration' \
+          --logger 'html;LogFileName=/test-results/integration-report.html' \
+          --verbosity detailed \
+          --environment DB_CONNECTION_STRING='Host=postgres;Port=5432;Database=integrationdb;Username=postgres;Password=postgres' \
+          --environment ASPNETCORE_ENVIRONMENT='Docker' \
+          --environment DOTNET_ENVIRONMENT='Docker'
+      "
+
+  e2e-tests:
+    build:
+      context: ./code
+      dockerfile: ../Dockerfile.e2e
+    volumes:
+      - ./test-results:/test-results
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=E2Edb;Username=postgres;Password=postgres"
+    networks:
+      - my_persistent_network
+    command: >
+      sh -c "
+        echo 'DB_CONNECTION_STRING: $$DB_CONNECTION_STRING' &&
+        until pg_isready -h postgres -p 5432 -U postgres; do
+          echo 'Waiting for PostgreSQL...'
+          sleep 2
+        done &&
+        echo 'Running tests...' &&
+        dotnet test Tests/Tests.csproj -c Release --no-build \
+          --filter 'Category=E2E' \
+          --logger 'html;LogFileName=/test-results/e2e-report.html' \
+          --verbosity detailed \    
+          --logger 'console;verbosity=detailed'
+          --environment DB_CONNECTION_STRING='Host=postgres;Port=5432;Database=e2edb;Username=postgres;Password=postgres' \
+          --environment ASPNETCORE_ENVIRONMENT='Docker' \
+          --environment DOTNET_ENVIRONMENT='Docker'
+      "
+
+networks:
+  my_persistent_network:
+    driver: bridge
