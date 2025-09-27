@@ -318,7 +318,6 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             process.StartInfo.EnvironmentVariables["DB_CONNECTION_STRING"] = _connString;
             var output = new StringBuilder();
             var outputCompleted = new TaskCompletionSource<bool>();
-
             process.OutputDataReceived += (sender, e) =>
             {
                 if (e.Data == null)
@@ -373,6 +372,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             {
                 var stepCts = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token);
                 stepCts.CancelAfter(step.Timeout);
+                Console.WriteLine("command: " + step.Command);
                 await process.StandardInput.WriteLineAsync(step.Command);
                 await process.StandardInput.FlushAsync();
                 Assert.True(await WaitForOutput(output, step.Expected, stepCts.Token,
