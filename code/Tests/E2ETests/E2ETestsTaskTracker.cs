@@ -364,6 +364,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 var stepCts = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token);
                 stepCts.CancelAfter(step.Timeout);
                 await process.StandardInput.WriteLineAsync(step.Command);
+                Console.WriteLine("Sent: " + step.Command);
                 await process.StandardInput.FlushAsync();
                 Assert.True(await WaitForOutput(output, step.Expected, stepCts.Token));
             }
@@ -387,7 +388,11 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         {
             cancellationToken.ThrowIfCancellationRequested();
             if (output.ToString().Contains(expected))
+            {
+                Console.WriteLine(output.ToString());
+                Console.WriteLine(expected);
                 return true;
+            }
             await Task.Delay(100, cancellationToken);
         }
         return false;
