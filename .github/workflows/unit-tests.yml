@@ -18,7 +18,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build test image
-      run: docker build -t bd-unit-tests -f Dockerfile.unit .
+      run: docker build -t bd-unit-tests -f Dockerfile.unit ./code
       
     - name: Run unit tests with HTML output
       run: |

@@ -3,13 +3,12 @@ FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
 # Копируем исходный код
-#COPY ["BD.sln", "BD.sln"]
-#COPY ["Domain/", "Domain/"]
-#COPY ["Storage/", "Storage/"]
-#COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
-#COPY ["CLI/", "CLI/"]
-#COPY ["Tests/", "Tests/"]
-COPY . .
+COPY ["BD.sln", "BD.sln"]
+COPY ["Domain/", "Domain/"]
+COPY ["Storage/", "Storage/"]
+COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
+COPY ["CLI/", "CLI/"]
+COPY ["Tests/", "Tests/"]
 
 # Восстанавливаем и строим
 RUN dotnet restore "Domain/Domain.csproj" && \
