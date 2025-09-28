@@ -13,12 +13,14 @@ public class Event
     public EventOption Option { get; }
     public DateOnly? EDate { get; }
 
-    public Event(Guid id, string name, TimeOnly start, TimeOnly end, string userNameID, EventOption option, DayOfWeek? day, DateOnly? eDate)
+    public Event(Guid id, string name, TimeOnly start, TimeOnly end, string userNameID,
+        EventOption option, DayOfWeek? day, DateOnly? eDate)
     {
         if (option == EventOption.Once && eDate == null)
             throw new ArgumentException($"Event {name} with option 'Once' should have specified date");
         if (option == EventOption.EveryTwoWeeks && eDate == null)
-            throw new ArgumentException($"Event {name} with option 'EveryTwoWeeks' should have specified date from which the two-week intervals start");
+            throw new ArgumentException($"Event {name} with option 'EveryTwoWeeks' " +
+                $"should have specified date from which the two-week intervals start");
         if (option == EventOption.EveryWeek && day == null)
             throw new ArgumentException($"Event {name} with option 'EveryWeek' should have specified day");
         if (option == EventOption.EveryWeek && day != null)

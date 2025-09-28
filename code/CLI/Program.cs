@@ -213,7 +213,8 @@ class Program
 
                     try
                     {
-                        var settings = new UserSettings(user.Settings.Id, true, user.Settings.UserNameID, user.Settings.SettingsTimes);
+                        var settings = new UserSettings(user.Settings.Id, true, user.Settings.UserNameID,
+                            user.Settings.SettingsTimes);
                         var tmpuser = task_service.ChangeSettings(settings);
                         if (tmpuser == null)
                         {
@@ -234,7 +235,8 @@ class Program
 
                     try
                     {
-                        var settings = new UserSettings(user.Settings.Id, false, user.Settings.UserNameID, user.Settings.SettingsTimes);
+                        var settings = new UserSettings(user.Settings.Id, false, user.Settings.UserNameID,
+                            user.Settings.SettingsTimes);
                         var tmpuser = task_service.ChangeSettings(settings);
                         if (tmpuser == null)
                         {

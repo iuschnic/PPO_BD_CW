@@ -168,6 +168,102 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         _dbContext.SaveChanges();
         return true;
     }
+    public async Task<bool> TryUpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
+    {
+        var dbuser = await _dbContext.Users
+            .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
+            .FirstOrDefaultAsync(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+
+        List<DBSTime> times = [];
+        foreach (var time in newTimings)
+        {
+            DBSTime st = new(Guid.NewGuid(), time.Item1, time.Item2, dbuser.Settings.Id);
+            times.Add(st);
+        }
+        _dbContext.SettingsTimes.RemoveRange(dbuser.Settings.ForbiddenTimings);
+        _dbContext.SettingsTimes.AddRange(times);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    public bool TryUpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
+    {
+        var dbuser = _dbContext.Users
+            .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
+            .FirstOrDefault(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+
+        List<DBSTime> times = [];
+        foreach (var time in newTimings)
+        {
+            DBSTime st = new(Guid.NewGuid(), time.Item1, time.Item2, dbuser.Settings.Id);
+            times.Add(st);
+        }
+        _dbContext.SettingsTimes.RemoveRange(dbuser.Settings.ForbiddenTimings);
+        _dbContext.SettingsTimes.AddRange(times);
+        _dbContext.SaveChanges();
+        return true;
+    }
+
+    public async Task<bool> TryNotificationsOnAsync(string user_name)
+    {
+        var dbuser = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+        dbuser.Settings.NotifyOn = true;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    public bool TryNotificationsOn(string user_name)
+    {
+        var dbuser = _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefault(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+        dbuser.Settings.NotifyOn = true;
+        _dbContext.SaveChanges();
+        return true;
+    }
+    public async Task<bool> TryNotificationsOffAsync(string user_name)
+    {
+        var dbuser = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+        dbuser.Settings.NotifyOn = false;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    public bool TryNotificationsOff(string user_name)
+    {
+        var dbuser = _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefault(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+        dbuser.Settings.NotifyOn = false;
+        _dbContext.SaveChanges();
+        return true;
+    }
+
     public async Task<bool> TryDeleteAsync(string user_name)
     {
         var dbu = await _dbContext.Users.FindAsync(user_name);
