@@ -1,0 +1,100 @@
+﻿using Types;
+
+namespace Domain.Models;
+
+public class ActualTime
+{
+    public Guid Id { get; }
+    public TimeOnly Start { get; }
+    public TimeOnly End { get; }
+    public DayOfWeek Day { get; }
+    public Guid HabitID { get; }
+
+    public ActualTime(Guid id, TimeOnly start, TimeOnly end, DayOfWeek week_day, Guid habitID)
+    {
+        if (start >= end)
+            throw new ArgumentException("start < end!");
+        Id = id;
+        Start = start;
+        End = end;
+        Day = week_day;
+        HabitID = habitID;
+    }
+
+    public override string ToString()
+    {
+        return $"ACTUAL TIME: Weekday: {Day}, Start: {Start}, End: {End}\n";
+    }
+}
+
+public class PrefFixedTime
+{
+    public Guid Id { get; }
+    public TimeOnly Start { get; }
+    public TimeOnly End { get; }
+    public Guid HabitID { get; }
+
+    public PrefFixedTime(Guid id, TimeOnly start, TimeOnly end, Guid habit_id)
+    {
+        if (start >= end)
+            throw new ArgumentException("start < end!");
+        Id = id;
+        Start = start;
+        End = end;
+        HabitID = habit_id;
+    }
+    public override string ToString()
+    {
+        return $"PREFFERED OR FIXED TIME: Start: {Start}, End: {End}\n";
+    }
+}
+
+public class Habit
+{
+    public Guid Id { get; }
+    public string Name { get; }
+    public int MinsToComplete { get; }
+    public List<ActualTime> ActualTimings { get; }  //хотелось бы readonly list
+    public List<PrefFixedTime> PrefFixedTimings { get; }
+    public TimeOption Option { get; }
+    public string UserNameID { get; }
+    public int CountInWeek { get; set; }
+
+    public Habit(Guid id, string name, int mins_to_complete,
+        TimeOption option, string user_name, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int countInWeek)
+    {
+        if (pref_fixed_timings.Count() == 0 && (option == TimeOption.Preffered || option == TimeOption.Fixed))
+            throw new ArgumentException("Preffered or fixed time habit should have at least one time interval");
+        Id = id;
+        Name = name;
+        MinsToComplete = mins_to_complete;
+        ActualTimings = actual_timings;
+        PrefFixedTimings = pref_fixed_timings;
+        Option = option;
+        UserNameID = user_name;
+        CountInWeek = countInWeek;
+    }
+    public override string ToString()
+    {
+        string ans = $"HABIT: Name = {Name}, Mins to complete = {MinsToComplete}, CountInWeek = {CountInWeek}, TimeOpt = {Option}\n";
+        foreach (var t in PrefFixedTimings) { ans += "    " + t; }
+        if (ActualTimings.Count == 0)
+            ans += "    NOT DISTRIBUTED\n";
+        else
+            foreach (var t in ActualTimings) { ans += "    " + t; }
+        return ans;
+    }
+
+    public List<TimeInterval> ToPrefFixedTimeIntervals()
+    {
+        List<TimeInterval> timings = [];
+        if (PrefFixedTimings == null || PrefFixedTimings.Count == 0)
+        {
+            timings.Add(new TimeInterval(new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59)));
+            return timings;
+        }
+        foreach (var t in PrefFixedTimings)
+            timings.Add(new TimeInterval(t.Start, t.End));
+        return timings;
+    }
+}

@@ -1,0 +1,28 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+WORKDIR /src
+
+# Копируем исходный код
+COPY ["Domain/", "Domain/"]
+COPY ["Storage/", "Storage/"]
+COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
+COPY ["Tests/", "Tests/"]
+
+# Восстанавливаем и строим
+RUN dotnet restore "Domain/Domain.csproj" && \
+    dotnet restore "Storage/Storage.csproj" && \
+    dotnet restore "ShedLoadAdapter/ShedLoadAdapter.csproj" && \
+    dotnet restore "Tests/Tests.csproj"
+
+RUN dotnet build "Domain/Domain.csproj" -c Release --no-restore && \
+    dotnet build "Storage/Storage.csproj" -c Release --no-restore && \
+    dotnet build "ShedLoadAdapter/ShedLoadAdapter.csproj" -c Release --no-restore && \
+    dotnet build "Tests/Tests.csproj" -c Release --no-restore
+
+# Устанавливаем инструменты для работы с PostgreSQL
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+
+# Запуск интеграционных тестов
+ENTRYPOINT ["sh", "-c", \
+  "echo 'Running integration tests...' && \
+   dotnet test Tests/Tests.csproj -c Release --no-build --filter \"Category=Integration\" --logger \"html;LogFileName=/test-results/integration-report.html\""]

@@ -1,0 +1,6 @@
+﻿{
+  "ConnectionStrings": {
+    "IntegrationTestsConnection": "Host=localhost;Port=5432;Database=integrationdb;Username=postgres;Password=postgres",
+    "E2ETestsConnection": "Host=localhost;Port=5432;Database=E2Edb;Username=postgres;Password=postgres"
+  }
+}
