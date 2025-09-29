@@ -545,6 +545,38 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Выключение уведомлений для пользователя {user_name} произведено успешно");
         return GetUser(user_name);
     }
+    public async Task<User> UpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил обновление времени запрета уведомлений");
+        if (await _userRepo.TryGetAsync(user_name) == null)
+        {
+            _logger.LogError($"Пользователя с именем {user_name} не существует в базе данных");
+            throw new Exception($"Пользователя с именем {user_name} не существует в базе данных");
+        }
+        if (!await _userRepo.TryUpdateNotificationTimingsAsync(newTimings, user_name))
+        {
+            _logger.LogError($"Не удалось обновить время запрета уведомлений для пользователя {user_name}");
+            throw new Exception($"Не удалось обновить время запрета уведомлений для пользователя {user_name}");
+        }
+        _logger.LogInformation($"Обновление времени запрета уведомлений для пользователя {user_name} произведено успешно");
+        return await GetUserAsync(user_name);
+    }
+    public User UpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил обновление времени запрета уведомлений");
+        if (_userRepo.TryGet(user_name) == null)
+        {
+            _logger.LogError($"Пользователя с именем {user_name} не существует в базе данных");
+            throw new Exception($"Пользователя с именем {user_name} не существует в базе данных");
+        }
+        if (!_userRepo.TryUpdateNotificationTimings(newTimings, user_name))
+        {
+            _logger.LogError($"Не удалось обновить время запрета уведомлений для пользователя {user_name}");
+            throw new Exception($"Не удалось обновить время запрета уведомлений для пользователя {user_name}");
+        }
+        _logger.LogInformation($"Обновление времени запрета уведомлений для пользователя {user_name} произведено успешно");
+        return GetUser(user_name);
+    }
     public async Task DeleteUserAsync(string user_name)
     {
         _logger.LogInformation($"Пользователь с именем {user_name} запросил удаление своей учетной записи");

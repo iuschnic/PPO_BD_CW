@@ -14,6 +14,7 @@ public interface ITaskTracker
     Task<User> ChangeSettingsAsync(UserSettings settings);
     Task<User> NotificationsOnAsync(string user_name);
     Task<User> NotificationsOffAsync(string user_name);
+    Task<User> UpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);
     Task DeleteUserAsync(string username);
 
     //По имени пользователя, телефону и паролю создает нового пользователя
@@ -32,5 +33,6 @@ public interface ITaskTracker
     User ChangeSettings(UserSettings settings);
     User NotificationsOn(string user_name);
     User NotificationsOff(string user_name);
+    User UpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);
     void DeleteUser(string username);
 }

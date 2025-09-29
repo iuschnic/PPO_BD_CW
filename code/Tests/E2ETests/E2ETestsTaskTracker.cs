@@ -61,7 +61,6 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         if ((_connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                           ?? configuration.GetConnectionString("E2ETestsConnection")) == null)
             throw new InvalidDataException("Не найдена строка подключения к тестовой базе данных");
-        Console.WriteLine("CONN: " + _connString);
         var serviceProvider = new ServiceCollection()
                 .AddDbContext<EfDbContext>(options =>
                     options.UseNpgsql(_connString))
@@ -76,7 +75,6 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         _csprojPath = Path.Combine(_projectDirectory, "CLI.csproj");
         if (!File.Exists(_csprojPath))
             throw new FileNotFoundException($"Project file not found: {_csprojPath}");
-        Console.WriteLine("Dir found");
     }
     [Fact]
     [Trait("Category", "E2E")]
