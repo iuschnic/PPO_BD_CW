@@ -108,10 +108,7 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 if (e.Data == null)
                     outputCompleted.TrySetResult(true);
                 else
-                {
                     output.AppendLine(e.Data);
-                    Debug.WriteLine($"[APP] {e.Data}");
-                }
             };
             Console.WriteLine("Starting process...");
             process.Start();
@@ -157,20 +154,17 @@ public class TaskTrackerE2ETests : IAsyncLifetime
             {
                 var stepCts = CancellationTokenSource.CreateLinkedTokenSource(globalCts.Token);
                 stepCts.CancelAfter(step.Timeout);
-                Console.WriteLine("command: " + step.Command);
                 await process.StandardInput.WriteLineAsync(step.Command);
                 await process.StandardInput.FlushAsync();
                 Assert.True(await WaitForOutput(output, step.Expected, stepCts.Token,
                     TimeSpan.FromMilliseconds(step.Timeout)));
             }
-            Console.WriteLine("everything ok");
             process.StandardInput.Close();
             process.CancelOutputRead();
             process.CancelErrorRead();
             if (!process.HasExited)
             {
-                Console.WriteLine("Waiting for process exit...");
-                if (process.WaitForExit(10000)) // 30 секунд в миллисекундах
+                if (process.WaitForExit(10000))
                 {
                     Console.WriteLine($"Process exited with code: {process.ExitCode}");
                 }
@@ -182,15 +176,9 @@ public class TaskTrackerE2ETests : IAsyncLifetime
                 }
             }
             else
-            {
                 Console.WriteLine($"Process already exited with code: {process.ExitCode}");
-            }
-
-            // Проверяем ExitCode только если процесс завершился
             if (process.HasExited && process.ExitCode != 0)
-            {
                 Console.WriteLine($"Non-zero exit code: {process.ExitCode}, but main test passed");
-            }
         }
         catch (Exception ex)
         {
@@ -200,10 +188,8 @@ public class TaskTrackerE2ETests : IAsyncLifetime
         }
         finally
         {
-            Console.WriteLine("everything ok3");
             await KillProcessAndChildrenSafeAsync(process);
             globalCts.Dispose();
-            Console.WriteLine("everything ok4");
         }
     }
     private async Task<bool> WaitForOutput(StringBuilder output, string expected,
