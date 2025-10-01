@@ -12,6 +12,9 @@ public interface ITaskTracker
     Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string user_name, string name);
     Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string name);
     Task<User> ChangeSettingsAsync(UserSettings settings);
+    Task<User> NotificationsOnAsync(string user_name);
+    Task<User> NotificationsOffAsync(string user_name);
+    Task<User> UpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);
     Task DeleteUserAsync(string username);
 
     //По имени пользователя, телефону и паролю создает нового пользователя
@@ -28,5 +31,8 @@ public interface ITaskTracker
     Tuple<User, List<Habit>> DeleteHabit(string user_name, string name);
     Tuple<User, List<Habit>> DeleteHabits(string name);
     User ChangeSettings(UserSettings settings);
+    User NotificationsOn(string user_name);
+    User NotificationsOff(string user_name);
+    User UpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);
     void DeleteUser(string username);
 }

@@ -36,3 +36,7 @@
 * xUnit для модульного, интеграционного и e2e тестирования
 ### Технологический стек фронтенда:
 * WinForms для GUI - пока что только desktop
+### Черновые варианты интерфейса
+![PNG Image](./docs/auth.png)
+![PNG Image](./docs/add_habit.png)
+![PNG Image](./docs/main_window.png)

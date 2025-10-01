@@ -32,7 +32,6 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         if ((_connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                           ?? configuration.GetConnectionString("IntegrationTestsConnection")) == null)
             throw new InvalidDataException("Не найдена строка подключения к тестовой базе данных");
-        Console.WriteLine("CONN: " + _connString);
         _serviceProvider = Setup();
         _dbContext = _serviceProvider.GetRequiredService<EfDbContext>();
     }

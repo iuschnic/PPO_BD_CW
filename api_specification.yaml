@@ -1,0 +1,622 @@
+openapi: 3.1.1
+info:
+  title: Task Tracker API
+  description: API для управления привычками и расписанием пользователей
+  version: 1.0.0
+
+servers:
+  - url: http://localhost:5000/api/v1
+    description: Local development server
+
+components:
+  schemas:
+    # Основные модели
+    User:
+      type: object
+      required:
+        - name
+        - password
+        - Phonenumber
+        - settings
+      properties:
+        name:
+          type: string
+          example: "kulik"
+        password:
+          type: string
+          example: "hashed_password"
+        Phonenumber:
+          $ref: '#/components/schemas/PhoneNumber'
+        habits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Habit'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/Event'
+        settings:
+          $ref: '#/components/schemas/UserSettings'
+
+    PhoneNumber:
+      type: object
+      required:
+        - stringNumber
+      properties:
+        stringNumber:
+          type: string
+          example: "+71111111111"
+
+    UserSettings:
+      type: object
+      required:
+        - id
+        - notifyOn
+        - userName
+        - settingsTimes
+      properties:
+        id:
+          type: string
+          format: uuid
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        notifyOn:
+          type: boolean
+          example: true
+        userName:
+          type: string
+          example: "kulik"
+        settingsTimes:
+          type: array
+          items:
+            $ref: '#/components/schemas/SettingsTime'
+
+    SettingsTime:
+      type: object
+      required:
+        - id
+        - start
+        - end
+        - settingsID
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: time
+          example: "09:00:00"
+        end:
+          type: string
+          format: time
+          example: "18:00:00"
+        settingsID:
+          type: string
+          format: uuid
+
+    Habit:
+      type: object
+      required:
+        - id
+        - name
+        - minsToComplete
+        - actualTimings
+        - prefFixedTimings
+        - option
+        - userName
+        - countInWeek
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Чтение"
+        minsToComplete:
+          type: integer
+          minimum: 1
+          example: 30
+        actualTimings:
+          type: array
+          items:
+            $ref: '#/components/schemas/ActualTime'
+        prefFixedTimings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrefFixedTime'
+        option:
+          $ref: '#/components/schemas/TimeOption'
+        userName:
+          type: string
+          example: "kulik"
+        countInWeek:
+          type: integer
+          minimum: 1
+          maximum: 7
+          example: 6
+
+    ActualTime:
+      type: object
+      required:
+        - id
+        - start
+        - end
+        - day
+        - habitID
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: time
+          example: "08:00:00"
+        end:
+          type: string
+          format: time
+          example: "08:30:00"
+        day:
+          type: integer
+          minimum: 0
+          maximum: 6
+          description: "День недели (0 - Sunday, 6 - Saturday)"
+        habitID:
+          type: string
+          format: uuid
+
+    PrefFixedTime:
+      type: object
+      required:
+        - id
+        - start
+        - end
+        - habitID
+      properties:
+        id:
+          type: string
+          format: uuid
+        start:
+          type: string
+          format: time
+          example: "08:00:00"
+        end:
+          type: string
+          format: time
+          example: "08:30:00"
+        habitID:
+          type: string
+          format: uuid
+
+    Event:
+      type: object
+      required:
+        - id
+        - name
+        - start
+        - end
+        - userNameID
+        - option
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          example: "Работа"
+        start:
+          type: string
+          format: time
+          example: "09:00:00"
+        end:
+          type: string
+          format: time
+          example: "18:00:00"
+        userNameID:
+          type: string
+          example: "kulik"
+        option:
+          $ref: '#/components/schemas/EventOption'
+        day:
+          type: integer
+          minimum: 0
+          maximum: 6
+          nullable: true
+          description: |
+            День недели (0 - Sunday, 6 - Saturday)
+            Обязателен для событий с option = EveryWeek
+        eDate:
+          type: string
+          format: date
+          nullable: true
+          description: |
+            Дата для событий
+            Обязательна для событий с option = Once или EveryTwoWeeks
+
+    TimeOption:
+      type: string
+      enum:
+        - NoMatter
+        - Preffered
+        - Fixed
+      example: "NoMatter"
+
+    EventOption:
+      type: string
+      enum:
+        - Once
+        - EveryWeek
+        - EveryTwoWeeks
+      example: "EveryWeek"
+
+    DistributionResult:
+      type: object
+      properties:
+        user:
+          $ref: '#/components/schemas/User'
+        nonDistributedHabits:
+          type: array
+          items:
+            $ref: '#/components/schemas/Habit'
+
+    ErrorResponse:
+      type: object
+      properties:
+        error:
+          type: string
+        message:
+          type: string
+        details:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+
+  responses:
+    UserNotFound:
+      description: Пользователь не найден
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "USER_NOT_FOUND"
+            message: "Пользователь с именем kulik не существует в базе данных"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    UserAlreadyExists:
+      description: Пользователь уже существует
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "USER_ALREADY_EXISTS"
+            message: "Аккаунт не был создан так как уже существует аккаунт с именем пользователя kulik"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    InvalidCredentials:
+      description: Неверные учетные данные
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "INVALID_CREDENTIALS"
+            message: "Вход в аккаунт kulik не был выполнен так как пользователь ввел неправильный пароль"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    ScheduleLoadError:
+      description: Ошибка загрузки расписания
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "SCHEDULE_LOAD_ERROR"
+            message: "Ошибка загрузки расписания для пользователя kulik: Неверный формат файла"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    RepositoryError:
+      description: Ошибка работы с базой данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "REPOSITORY_ERROR"
+            message: "Ошибка при попытке перезаписи событий пользователя kulik в базу данных"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    HabitsNotFound:
+      description: Привычки не найдены
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "HABITS_NOT_FOUND"
+            message: "Не удалось получить привычки для пользователя kulik"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    EventsNotFound:
+      description: События не найдены
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "EVENTS_NOT_FOUND"
+            message: "Не удалось получить события для пользователя kulik"
+            timestamp: "2024-01-15T10:30:00Z"
+
+    ValidationError:
+      description: Ошибка валидации данных
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ErrorResponse'
+          example:
+            error: "VALIDATION_ERROR"
+            message: "Неверные данные привычки: Preffered or fixed time habit should have at least one time interval"
+            timestamp: "2024-01-15T10:30:00Z"
+
+paths:
+  # Аутентификация
+  /auth/register:
+    post:
+      summary: Создание нового пользователя
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, password, phoneNumber]
+              properties:
+                name:
+                  type: string
+                  minLength: 1
+                  example: "kulik"
+                password:
+                  type: string
+                  minLength: 1
+                  example: "hashed_password"
+                phoneNumber:
+                  type: string
+                  minLength: 12
+                  maxLength: 12
+                  example: "+71111111111"
+                settings:
+                  $ref: '#/components/schemas/UserSettings'
+      responses:
+        '201':
+          description: Пользователь создан
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Неверные данные
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              example:
+                error: "VALIDATION_ERROR"
+                message: "Неверный формат номера телефона"
+                timestamp: "2024-01-15T10:30:00Z"
+        '409':
+          $ref: '#/components/responses/UserAlreadyExists'
+
+  /auth/login:
+    post:
+      summary: Вход в систему
+      tags: [Authentication]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [nameID, passwordHash]
+              properties:
+                nameID:
+                  type: string
+                  example: "kulik"
+                passwordHash:
+                  type: string
+                  example: "hashed_password"
+      responses:
+        '200':
+          description: Успешный вход
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+
+  # Пользователи
+  /users/{username}:
+    delete:
+      summary: Удаление пользователя
+      tags: [Users]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '204':
+          description: Пользователь удален
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/RepositoryError'
+
+  # Привычки
+  /users/{username}/habits:
+    post:
+      summary: Добавление привычки
+      tags: [Habits]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Habit'
+      responses:
+        '200':
+          description: Привычка добавлена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributionResult'
+        '400':
+          $ref: '#/components/responses/ValidationError'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          description: Ошибка при работе с данными
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                habitsError:
+                  $ref: '#/components/responses/HabitsNotFound'
+                eventsError:
+                  $ref: '#/components/responses/EventsNotFound'
+                repositoryError:
+                  $ref: '#/components/responses/RepositoryError'
+
+    delete:
+      summary: Удаление всех привычек
+      tags: [Habits]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Привычки удалены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributionResult'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/HabitsNotFound'
+
+  /users/{username}/habits/{habitName}:
+    delete:
+      summary: Удаление конкретной привычки
+      tags: [Habits]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: habitName
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Привычка удалена
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributionResult'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/HabitsNotFound'
+
+  # Расписание
+  /users/{username}/schedule/import:
+    post:
+      summary: Импорт расписания
+      tags: [Schedule]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              required: [file]
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Файл расписания (CSV, JSON, iCal)
+      responses:
+        '200':
+          description: Расписание импортировано
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DistributionResult'
+        '400':
+          $ref: '#/components/responses/ScheduleLoadError'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          description: Ошибка при работе с данными
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                habitsError:
+                  $ref: '#/components/responses/HabitsNotFound'
+                repositoryError:
+                  $ref: '#/components/responses/RepositoryError'
+  # Настройки
+  /users/{username}/settings:
+    put:
+      summary: Обновление настроек
+      tags: [Users]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserSettings'
+      responses:
+        '200':
+          description: Настройки обновлены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/RepositoryError'
