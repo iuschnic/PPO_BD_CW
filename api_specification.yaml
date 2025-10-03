@@ -16,7 +16,7 @@ components:
       required:
         - name
         - password
-        - Phonenumber
+        - phoneNumber
         - settings
       properties:
         name:
@@ -24,8 +24,8 @@ components:
           example: "kulik"
         password:
           type: string
-          example: "hashed_password"
-        Phonenumber:
+          example: "password"
+        phoneNumber:
           $ref: '#/components/schemas/PhoneNumber'
         habits:
           type: array
@@ -93,6 +93,7 @@ components:
           type: string
           format: uuid
 
+    # оставить один объект с no-required id или сделать два объекта - один с id другой без??
     Habit:
       type: object
       required:
