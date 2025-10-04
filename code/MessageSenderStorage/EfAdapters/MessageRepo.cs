@@ -1,11 +1,4 @@
-﻿using Domain.OutPorts;
-using Domain.Models;
-using Storage.Models;
-using Storage.EfAdapters;
-using Microsoft.EntityFrameworkCore;
-using Dapper;
-
-namespace Storage.StorageAdapters;
+﻿namespace MessageSenderStorage.EfAdapters;
 
 public class EfMessageRepo(ITaskTrackerContext dbContext) : IMessageRepo
 {

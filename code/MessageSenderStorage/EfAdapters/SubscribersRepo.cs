@@ -1,6 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
-
-namespace StorageSubscribers;
+﻿namespace MessageSenderStorage.EfAdapters;
 
 public class DBSubscriber
 {
@@ -45,10 +43,10 @@ public class SubscribersDBContext : DbContext
         modelBuilder.Entity<DBSubscriber>().HasKey(u => u.DBChatId);
     }
 }
-public class SQLiteSubscribersRepo : ISubscribersRepo
+public class SubscribersRepo : ISubscribersRepo
 {
     private SubscribersDBContext _dbContext { get; }
-    public SQLiteSubscribersRepo(SubscribersDBContext dbContext)
+    public SubscribersRepo(SubscribersDBContext dbContext)
     {
         _dbContext = dbContext;
     }
