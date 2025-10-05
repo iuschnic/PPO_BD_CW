@@ -8,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 //using Storage.StorageAdapters;
 using MessageSenderDomain.Models;
 using MessageSenderDomain.OutPorts;
-using StorageSubscribers;
 
 using TelegramMessage = Telegram.Bot.Types.Message;
 using DomainMessage = MessageSenderDomain.Models.Message;

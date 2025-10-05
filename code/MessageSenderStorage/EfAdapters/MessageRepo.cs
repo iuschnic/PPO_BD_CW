@@ -1,6 +1,9 @@
-﻿namespace MessageSenderStorage.EfAdapters;
+﻿using MessageSenderDomain.Models;
+using MessageSenderDomain.OutPorts;
+using MessageSenderStorage.Models;
+namespace MessageSenderStorage.EfAdapters;
 
-public class EfMessageRepo(ITaskTrackerContext dbContext) : IMessageRepo
+public class EfMessageRepo(MessageSenderDBContext dbContext) : IMessageRepo
 {
     public class HabitDueSoonResult
     {
@@ -9,9 +12,9 @@ public class EfMessageRepo(ITaskTrackerContext dbContext) : IMessageRepo
         public TimeOnly StartTime { get; set; }
         public TimeOnly EndTime { get; set; }
     }
-    private ITaskTrackerContext _dbContext { get; } = dbContext;
+    private MessageSenderDBContext _dbContext { get; } = dbContext;
     private object _locker = new object();
-    private List<HabitDueSoonResult> GetHabitsDueSoon()
+    /*private List<HabitDueSoonResult> GetHabitsDueSoon()
     {
         var currentTime = TimeOnly.FromDateTime(DateTime.Now);
         var currentDayOfWeek = DateTime.Now.DayOfWeek;
@@ -57,7 +60,7 @@ public class EfMessageRepo(ITaskTrackerContext dbContext) : IMessageRepo
     private DayOfWeek GetTomorrowDayOfWeek(DayOfWeek today)
     {
         return today == DayOfWeek.Saturday ? DayOfWeek.Sunday : today + 1;
-    }
+    }*/
 
     public bool TryCreateMessages(List<Message> users_messages)
     {
@@ -69,6 +72,36 @@ public class EfMessageRepo(ITaskTrackerContext dbContext) : IMessageRepo
                 return false;
 
             List<DBUserMessage> dbuser_messages = [];
+            List<DBMessage> dbmessages = [];
+            foreach (var user_message in users_messages)
+            {
+                if (!dbusers.Any(dbu => dbu.NameID == user_message.UserNameID))
+                    ret = false;
+                else
+                {
+                    var g = Guid.NewGuid();
+                    DBMessage dbm = new DBMessage(user_message.Id, user_message.Text);
+                    dbuser_messages.Add(new DBUserMessage(user_message.UserNameID, user_message.Id, false, user_message.TimeOutdated, null));
+                    dbmessages.Add(dbm);
+                }
+            }
+            _dbContext.Messages.AddRange(dbmessages);
+            _dbContext.UserMessages.AddRange(dbuser_messages);
+            _dbContext.SaveChanges();
+            return ret;
+        }
+    }
+
+    public bool TryCreateMessages(List<Message> users_messages)
+    {
+        lock (_locker)
+        {
+            bool ret = true;
+            var subs = _dbContext.Subscribers.ToList();
+            if (subs == null)
+                return false;
+
+            List<DBSubscriberMessage> dbsubs_messages = [];
             List<DBMessage> dbmessages = [];
             foreach (var user_message in users_messages)
             {
