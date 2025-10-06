@@ -6,7 +6,7 @@ public class MessageSenderDBContext : DbContext
 {
     public DbSet<DBSubscriber> Subscribers { get; set; }
     public DbSet<DBMessage> Messages { get; set; }
-    public DbSet<DBSubscriberMessage> SubscriberMessages { get; set; }
+    public DbSet<DBSubscriberMessage> SubscriberMessage { get; set; }
 
     public MessageSenderDBContext(DbContextOptions<MessageSenderDBContext> options) : base(options)
     {
