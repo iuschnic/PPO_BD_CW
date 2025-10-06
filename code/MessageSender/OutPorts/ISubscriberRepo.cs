@@ -1,7 +1,7 @@
 ﻿using MessageSenderDomain.Models;
 namespace MessageSenderDomain.OutPorts;
 
-public interface ISubscribersRepo
+public interface ISubscriberRepo
 {
     Subscriber? TryGetByChatID(long chat_id);
     Subscriber? TryGetByTaskTrackerLogin(string task_tracker_login);
