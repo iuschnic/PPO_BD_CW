@@ -1,16 +1,9 @@
 ﻿namespace MessageSenderDomain.Models;
 
-public class UserHabitInfo
+public class UserHabitInfo(string user_name, string habit_name, TimeOnly start, TimeOnly end)
 {
-    public string UserName;
-    public string HabitName;
-    public TimeOnly Start;
-    public TimeOnly End;
-    public UserHabitInfo(string user_name, string habit_name, TimeOnly start, TimeOnly end)
-    {
-        UserName = user_name;
-        HabitName = habit_name;
-        Start = start;
-        End = end;
-    }
+    public string UserName = user_name;
+    public string HabitName = habit_name;
+    public TimeOnly Start = start;
+    public TimeOnly End = end;
 }

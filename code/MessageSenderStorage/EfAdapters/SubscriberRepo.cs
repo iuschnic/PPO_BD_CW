@@ -3,7 +3,7 @@ using MessageSenderDomain.OutPorts;
 using MessageSenderStorage.Models;
 namespace MessageSenderStorage.EfAdapters;
 
-public class SubscriberRepo(MessageSenderDBContext dbContext) : ISubscriberRepo
+public class EfSubscriberRepo(MessageSenderDBContext dbContext) : ISubscriberRepo
 {
     private MessageSenderDBContext _dbContext { get; } = dbContext;
     public Subscriber? TryGetByChatID(long chatId)

@@ -1,9 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using Microsoft.Extensions.DependencyInjection;
 //using Storage.EfAdapters;
 //using Storage.StorageAdapters;
 using MessageSenderDomain.Models;
@@ -15,12 +13,12 @@ using DomainMessage = MessageSenderDomain.Models.Message;
 public class SubscriptionBot
 {
     //через вот это должны дергаться удаленные методы основного сервиса
-    private readonly HttpClient _httpClient;
+    //private readonly HttpClient _httpClient;
     private readonly ITelegramBotClient _botClient;
     private readonly IMessageRepo _messageRepo;
-    //private readonly IUserRepo _userRepo;
-    private readonly ISubscribersRepo _subscribersRepo;
-    private CancellationTokenSource _cts;
+    private readonly ISubscriberRepo _subscribersRepo;
+    private readonly ITaskTrackerClient _taskTrackerClient;
+    private CancellationTokenSource _cts = new();
 
     private enum RegistrationState
     {
@@ -40,17 +38,17 @@ public class SubscriptionBot
     private const int timeout_generate = 30;
     private const int timeout_err = 1;
 
-    public SubscriptionBot(string botToken, IMessageRepo messageRepo, ISubscribersRepo subscriberRepo)
+    public SubscriptionBot(string botToken, IMessageRepo messageRepo, 
+        ISubscriberRepo subscriberRepo, ITaskTrackerClient taskTrackerClient)
     {
         _botClient = new TelegramBotClient(botToken);
         _messageRepo = messageRepo;
         _subscribersRepo = subscriberRepo;
+        _taskTrackerClient = taskTrackerClient;
     }
 
     public async Task StartAsync()
     {
-        _cts = new CancellationTokenSource();
-
         var receiverOptions = new ReceiverOptions
         {
             AllowedUpdates = Array.Empty<UpdateType>()
@@ -74,29 +72,35 @@ public class SubscriptionBot
     {
         while (!_cts.IsCancellationRequested)
         {
-            var users_habits = _messageRepo.GetUsersToNotify();
             Console.WriteLine("StartBroadcasting");
-            List<DomainMessage> messages = [];
             try
             {
                 int cnt = 0;
-                var to_send = _messageRepo.GetMessagesToSend();
-                List<DomainMessage> sent_messages = [];
-                foreach (var send in to_send)
+                var toSend = _messageRepo.TryGetMessagesToSend() ?? throw new Exception("Ошибка получения сообщений из базы данных");
+                List<DomainMessage> sentMessages = [];
+                foreach (var send in toSend)
                 {
-                    var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(send.UserNameID);
+                    /*var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(send.TaskTrackerLogin);
 
                     if (subscriber != null)
                     {
                         await _botClient.SendMessage(
-                            chatId: subscriber.ChatId,
+                            chatId: subscriber.Id,
                             text: send.Text
                         );
                         cnt++;
-                        sent_messages.Add(new DomainMessage(send.Id, send.Text, DateTime.Now, send.TimeOutdated, true, send.UserNameID));
-                    }
+                        sentMessages.Add(new DomainMessage(send.Id, send.Text, send.TimeSent,
+                            send.TimeOutdated, send.WasSent, send.TaskTrackerLogin, send.SubscriberID));
+                    }*/
+                    await _botClient.SendMessage(
+                        chatId: send.SubscriberID,
+                        text: send.Text
+                    );
+                    cnt++;
+                    sentMessages.Add(new DomainMessage(send.Id, send.Text, send.TimeSent,
+                        send.TimeOutdated, send.WasSent, send.TaskTrackerLogin, send.SubscriberID));
                 }
-                _messageRepo.MarkMessagesSent(sent_messages);
+                _messageRepo.MarkMessagesSent(sentMessages);
                 Console.WriteLine($"{DateTime.Now}: Отправлено {cnt} сообщений");
                 await Task.Delay(TimeSpan.FromMinutes(timeout_send), _cts.Token);
             }
@@ -113,30 +117,31 @@ public class SubscriptionBot
         while (!_cts.IsCancellationRequested)
         {
             Console.WriteLine("StartCreating");
-            var users_habits = _messageRepo.GetUsersToNotify();
+            var usersHabits = await _taskTrackerClient.GetUsersToNotifyAsync();
             List<DomainMessage> messages = [];
             try
             {
-                foreach (var user_habit in users_habits)
+                foreach (var userHabit in usersHabits)
                 {
-                    var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(user_habit.UserName);
+                    var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(userHabit.UserName);
                     if (subscriber != null)
                     {
                         var text = $"Привет, {subscriber.Username}!\n" +
                                   $"Логин: {subscriber.TaskTrackerLogin}\n" +
                                   $"В ближайшие 30 минут нужно будет выполнить привычку: " +
-                                  $"{user_habit.HabitName ?? "не указана"} ({user_habit.Start} - {user_habit.End})\n";
-                        DateTime outdated = new DateTime(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
-                            user_habit.End.Hour, user_habit.End.Minute, user_habit.End.Second);
+                                  $"{userHabit.HabitName ?? "не указана"} ({userHabit.Start} - {userHabit.End})\n";
+                        DateTime outdated = new(DateTime.Now.Year, DateTime.Now.Month, DateTime.Now.Day,
+                            userHabit.End.Hour, userHabit.End.Minute, userHabit.End.Second);
 
-                        messages.Add(new DomainMessage(Guid.NewGuid(), text, null, outdated, false, user_habit.UserName));
+                        messages.Add(new DomainMessage(Guid.NewGuid(), text, null, outdated,
+                            false, userHabit.UserName, subscriber.Id));
                     }
                 }
                 Console.WriteLine($"{DateTime.Now}: Создано {messages.Count} сообщений");
                 _messageRepo.TryCreateMessages(messages);
                 await Task.Delay(TimeSpan.FromMinutes(timeout_generate), _cts.Token);
             }
-            catch (Exception ex)
+            catch
             {
                 await Task.Delay(TimeSpan.FromMinutes(timeout_err), _cts.Token);
             }
@@ -173,7 +178,8 @@ public class SubscriptionBot
                 else if (state == RegistrationState.AwaitingPassword)
                 {
                     //вместо этого private метод дергающий основной сервис по http
-                    var u = _userRepo.TryGet(_tempLogins[chatId]);
+                    // u = {Login, Password}
+                    var u = await _taskTrackerClient.TryGetUserInfoAsync(_tempLogins[chatId]);
                     if (u == null)
                         await botClient.SendMessage(chatId, "Критическая ошибка, учетная запись не найдена.\n\n" + WelcomeMessage);
                     else if (u != null && u.PasswordHash != text)
@@ -254,40 +260,5 @@ public class SubscriptionBot
     {
         _cts?.Cancel();
         Console.WriteLine("Бот остановлен.");
-    }
-}
-
-class Program
-{
-    static async Task Main(string[] args)
-    {
-        var serviceProvider = new ServiceCollection()
-            .AddSingleton<IMessageRepo, EfMessageRepo>()
-            .AddSingleton<IUserRepo, EfUserRepo>()
-            .AddSingleton<ISubscribersRepo, SQLiteSubscribersRepo>()
-            .AddDbContext<EfDbContext>(options =>
-                options.UseNpgsql("Host=localhost;Port=5432;Database=habitsdb;Username=postgres;Password=postgres"))
-            .AddDbContext<SubscribersDBContext>(options =>
-                options.UseSqlite("Data Source=subscribers.db"))
-            .BuildServiceProvider();
-
-        using (var scope = serviceProvider.CreateScope())
-        {
-            var db = scope.ServiceProvider.GetRequiredService<SubscribersDBContext>();
-            await db.Database.EnsureCreatedAsync();
-        }
-
-        var bot = new SubscriptionBot(
-            "7665679478:AAHtpesgjfWihplWtkBB7Iuwot-6gCElWVY",
-            serviceProvider.GetRequiredService<IMessageRepo>(),
-            serviceProvider.GetRequiredService<ISubscribersRepo>());
-
-        Console.CancelKeyPress += async (sender, e) =>
-        {
-            await bot.StopAsync();
-            Environment.Exit(0);
-        };
-
-        await bot.StartAsync();
     }
 }

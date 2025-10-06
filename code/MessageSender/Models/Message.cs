@@ -1,23 +1,13 @@
 namespace MessageSenderDomain.Models;
 
-public class Message
+public class Message(Guid id, string text, DateTime? timeSent,
+    DateTime timeOutdated, bool wasSent, string taskTrackerLogin, long? subscriberID)
 {
-    public Guid Id { get; }
-    public string Text { get; }
-    public DateTime? TimeSent { get; }
-    public DateTime TimeOutdated { get; }
-    public bool WasSent { get; }
-    public string TaskTrackerLogin { get; }
-    public long? SubscriberID { get; }
-    public Message(Guid id, string text, DateTime? timeSent,
-        DateTime timeOutdated, bool wasSent, string taskTrackerLogin, long? subscriberID)
-    {
-        Id = id;
-        Text = text;
-        TimeSent = timeSent;
-        TimeOutdated = timeOutdated;
-        WasSent = wasSent;
-        TaskTrackerLogin = taskTrackerLogin;
-        SubscriberID = subscriberID;
-    }
+    public Guid Id { get; } = id;
+    public string Text { get; } = text;
+    public DateTime? TimeSent { get; } = timeSent;
+    public DateTime TimeOutdated { get; } = timeOutdated;
+    public bool WasSent { get; } = wasSent;
+    public string TaskTrackerLogin { get; } = taskTrackerLogin;
+    public long? SubscriberID { get; } = subscriberID;
 }

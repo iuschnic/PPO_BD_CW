@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GUI", "GUI\GUI.csproj", "{D
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderStorage", "MessageSenderStorage\MessageSenderStorage.csproj", "{F66B8EF2-1E05-4227-B1A6-0EE1D749E721}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderService", "MessageSenderService\MessageSenderService.csproj", "{77B7981F-9865-4356-BA34-8CCF878D187F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -68,6 +70,10 @@ Global
 		{F66B8EF2-1E05-4227-B1A6-0EE1D749E721}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F66B8EF2-1E05-4227-B1A6-0EE1D749E721}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F66B8EF2-1E05-4227-B1A6-0EE1D749E721}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77B7981F-9865-4356-BA34-8CCF878D187F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77B7981F-9865-4356-BA34-8CCF878D187F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77B7981F-9865-4356-BA34-8CCF878D187F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77B7981F-9865-4356-BA34-8CCF878D187F}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
