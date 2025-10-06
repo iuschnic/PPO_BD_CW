@@ -12,13 +12,11 @@ using DomainMessage = MessageSenderDomain.Models.Message;
 
 public class SubscriptionBot
 {
-    //через вот это должны дергаться удаленные методы основного сервиса
-    //private readonly HttpClient _httpClient;
     private readonly ITelegramBotClient _botClient;
     private readonly IMessageRepo _messageRepo;
     private readonly ISubscriberRepo _subscribersRepo;
     private readonly ITaskTrackerClient _taskTrackerClient;
-    private CancellationTokenSource _cts = new();
+    private readonly CancellationTokenSource _cts = new();
 
     private enum RegistrationState
     {
@@ -177,12 +175,10 @@ public class SubscriptionBot
                 }
                 else if (state == RegistrationState.AwaitingPassword)
                 {
-                    //вместо этого private метод дергающий основной сервис по http
-                    // u = {Login, Password}
                     var u = await _taskTrackerClient.TryGetUserInfoAsync(_tempLogins[chatId]);
                     if (u == null)
                         await botClient.SendMessage(chatId, "Критическая ошибка, учетная запись не найдена.\n\n" + WelcomeMessage);
-                    else if (u != null && u.PasswordHash != text)
+                    else if (u != null && u.Password != text)
                         await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);
                     else
                     {

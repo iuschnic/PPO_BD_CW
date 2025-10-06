@@ -1,9 +1,9 @@
 ﻿using Domain.Models;
-using Types;
 
 namespace Domain.InPorts;
 
-public interface IInternalTaskTracker
+public interface IMessageSenderProvider
 {
-    Task<User> CreateUserAsync(string username, PhoneNumber phone_number, string password);
+    public Task<List<UserHabitInfo>> GetUsersToNotifyAsync();
+    public Task<UserInfo> TryGetUserInfoAsync(string taskTrackerLogin);
 }
