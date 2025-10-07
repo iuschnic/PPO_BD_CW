@@ -303,6 +303,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Habit'
+            
+    UserHabitInfo:
+      type: object
+      required:
+        - userName
+        - habitName
+        - start
+        - end
+      properties:
+        userName:
+          type: string
+          example: "kulik"
+        habitName:
+          type: string
+          example: "running"
+        start:
+          type: string
+          format: time
+          example: "18:00:00"
+        end:
+          type: string
+          format: time
+          example: "18:00:00"
 
     ErrorResponse:
       type: object
@@ -641,7 +664,7 @@ paths:
   /users/{username}/notifications/on:
     put:
       summary: Включение уведомлений
-      tags: [Users]
+      tags: [Notifications]
       parameters:
         - name: username
           in: path
@@ -663,7 +686,7 @@ paths:
   /users/{username}/notifications/off:
     put:
       summary: Выключение уведомлений
-      tags: [Users]
+      tags: [Notifications]
       parameters:
         - name: username
           in: path
@@ -685,7 +708,7 @@ paths:
   /users/{username}/notifications/timings:
     put:
       summary: Обновление времени уведомлений
-      tags: [Users]
+      tags: [Notifications]
       parameters:
         - name: username
           in: path
@@ -759,5 +782,46 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/RepositoryError'
+          
+  #Методы ТОЛЬКО для сервиса отправки уведомлений
+  /internal/check-log-in:
+    put:
+      summary: Проверка введенных пользователем логина и пароля
+      tags: [MessageSender]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userName, password]
+              properties:
+                userName:
+                  type: string
+                  example: "kulik"
+                passwordHash:
+                  type: string
+                  example: "password"
+      responses:
+        '204':
+          description: Успешный вход
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+          
+  /internal/get-users-to-notify:
+    get:
+      summary: Получение пользователей, которым требуется отправить уведомление и их привычек
+      tags: [MessageSender]
+      responses:
+        '200':
+          description: Информация получена успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserInfo'
         '500':
           $ref: '#/components/responses/RepositoryError'

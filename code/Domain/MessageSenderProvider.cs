@@ -15,8 +15,8 @@ public class MessageSenderProvider(IHabitRepo habitRepo,
         var result = await _habitRepo.GetUsersToNotifyAsync();
         return result ?? throw new Exception("Ошибка получения списка привычек, которые в скором времени нужно выполнить");
     }
-    public async Task<bool> TryLogInAsync(string login, string password)
+    public async Task<bool> CheckLogInAsync(string login, string password)
     {
-        return await _userRepo.TryLogInAsync(login, password);
+        return await _userRepo.TryCheckLogInAsync(login, password);
     }
 }
