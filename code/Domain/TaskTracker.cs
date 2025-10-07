@@ -387,7 +387,7 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Пользователь с именем {user_name} запросил удаление своей учетной записи");
         var ret = await _userRepo.TryDeleteAsync(user_name);
         if (!ret)
-            throw new RepositoryOperationException("удаления", "пользователя", user_name);
+            throw new UserNotFoundException(user_name);
         _logger.LogInformation($"Удаление учетной записи пользователя {user_name} произведено успешно");
     }
     public void DeleteUser(string user_name)
@@ -396,7 +396,7 @@ public class TaskTracker : ITaskTracker
         var ret = _userRepo.TryDelete(user_name);
         if (!ret)
         {
-            throw new RepositoryOperationException("удаления", "пользователя", user_name);
+            throw new UserNotFoundException(user_name);
         }
         _logger.LogInformation($"Удаление учетной записи пользователя {user_name} произведено успешно");
     }

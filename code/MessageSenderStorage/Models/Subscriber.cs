@@ -28,7 +28,7 @@ public class DBSubscriber
     }
     public DBSubscriber(Subscriber subscriber)
     {
-        Id = subscriber.ChatId;
+        Id = subscriber.Id;
         TaskTrackerLogin = subscriber.TaskTrackerLogin;
         Password = subscriber.Password;
         Username = subscriber.Username;

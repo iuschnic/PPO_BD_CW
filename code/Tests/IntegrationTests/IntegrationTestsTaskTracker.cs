@@ -1,5 +1,6 @@
 ﻿using Allure.Xunit.Attributes;
 using Domain;
+using Domain.Exceptions;
 using Domain.InPorts;
 using Domain.Models;
 using Domain.OutPorts;
@@ -163,7 +164,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         await context.USettings.AddAsync(settings);
         await context.SaveChangesAsync();
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<UserAlreadyExistsException>(() =>
             taskTracker.CreateUser(userName, phoneNumber, password));
 
         Assert.Contains(userName, exception.Message);
@@ -188,7 +189,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         await context.USettings.AddAsync(settings);
         await context.SaveChangesAsync();
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<UserAlreadyExistsException>(() =>
             taskTracker.CreateUserAsync(userName, phoneNumber, password));
 
         Assert.Contains(userName, exception.Message);
@@ -265,7 +266,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         await context.USettings.AddAsync(settings);
         await context.SaveChangesAsync();
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<InvalidCredentialsException>(() =>
             taskTracker.LogIn(userName, wrongPassword));
 
         Assert.Contains("неправильный пароль", exception.Message);
@@ -290,15 +291,9 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         await context.USettings.AddAsync(settings);
         await context.SaveChangesAsync();
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<InvalidCredentialsException>(() =>
             taskTracker.LogInAsync(userName, wrongPassword));
-
-        Assert.Contains("неправильный пароль", exception.Message);
     }
-
-
-
-
     [Fact]
     [Trait("Category", "Integration")]
     [AllureFeature("TaskTracker")]
@@ -449,7 +444,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
             .WithPrefFixedTiming(prefFixedStart, prefFixedEnd)
             .Build();
 
-        var exception = Assert.Throws<Exception>(() => taskTracker.AddHabit(habit));
+        var exception = Assert.Throws<UserNotFoundException>(() => taskTracker.AddHabit(habit));
 
         var notCreatedHabit = await context.Habits.FindAsync(habitGuid);
         var notCreatedPrefFixed = await context.PrefFixedTimes
@@ -485,7 +480,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
             .WithPrefFixedTiming(prefFixedStart, prefFixedEnd)
             .Build();
 
-        var exception = await Assert.ThrowsAsync<Exception>(() => taskTracker.AddHabitAsync(habit));
+        var exception = await Assert.ThrowsAsync<UserNotFoundException>(() => taskTracker.AddHabitAsync(habit));
 
         var notCreatedHabit = await context.Habits.FindAsync(habitGuid);
         var notCreatedPrefFixed = await context.PrefFixedTimes
@@ -614,7 +609,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         var notExistUserName = "existing_" + Guid.NewGuid().ToString();
         var habitName = "existing_habit_" + Guid.NewGuid().ToString();
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<UserNotFoundException>(() =>
             taskTracker.DeleteHabit(notExistUserName, habitName));
     }
     [Fact]
@@ -630,7 +625,7 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         var notExistUserName = "existing_" + Guid.NewGuid().ToString();
         var habitName = "existing_habit_" + Guid.NewGuid().ToString();
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<UserNotFoundException>(() =>
             taskTracker.DeleteHabitAsync(notExistUserName, habitName));
     }
 }
