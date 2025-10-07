@@ -34,7 +34,8 @@ builder.Services.AddScoped<IEventRepo, EfEventRepo>();
 builder.Services.AddScoped<IHabitRepo, EfHabitRepo>();
 builder.Services.AddScoped<IUserRepo, EfUserRepo>();
 builder.Services.AddScoped<ITaskTrackerContext, EfDbContext>();
-builder.Services.AddDbContext<EfDbContext>(options => configuration.GetConnectionString("PostgresConnection"));
+builder.Services.AddDbContext<EfDbContext>(options =>
+    options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")));
 builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
 builder.Services.AddScoped<ITaskTracker, TaskTracker>();
 builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();

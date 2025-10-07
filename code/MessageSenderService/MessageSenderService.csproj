@@ -9,12 +9,14 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.9" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\MessageSenderStorage\MessageSenderStorage.csproj" />
     <ProjectReference Include="..\MessageSenderDomain\MessageSenderDomain.csproj" />
+    <ProjectReference Include="..\MessageSenderTaskTrackerClient\MessageSenderTaskTrackerClient.csproj" />
   </ItemGroup>
 
 </Project>

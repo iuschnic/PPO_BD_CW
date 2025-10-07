@@ -17,10 +17,10 @@ public class DBSubscriber
     public string Username { get; set; }
     [Column("subscription_date")]
     public DateTime SubscriptionDate { get; set; }
-    public DBSubscriber(long chatId, string taskTrackerLogin, string password,
+    public DBSubscriber(long id, string taskTrackerLogin, string password,
         string username, DateTime subscriptionDate)
     {
-        Id = chatId;
+        Id = id;
         TaskTrackerLogin = taskTrackerLogin;
         Password = password;
         Username = username;

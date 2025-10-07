@@ -1,0 +1,13 @@
+﻿{
+  "profiles": {
+    "ApiGateway": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "applicationUrl": "https://localhost:7000;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      },
+      "launchBrowser": false // ← ВАЖНО: убрать автоматическое открытие браузера
+    }
+  }
+}
