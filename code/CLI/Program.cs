@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using System.IO;
 class Program
 {
     private static Habit? ParseHabit(ITaskTracker task_service, string user_name)

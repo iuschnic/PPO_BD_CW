@@ -27,7 +27,6 @@ public class EfDbContext : DbContext, ITaskTrackerContext
     public DbSet<DBUserSettings> USettings { get; set; }
     public EfDbContext(DbContextOptions<EfDbContext> options) : base(options)
     {
-        Database.EnsureDeleted();
         AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
         AppContext.SetSwitch("Npgsql.DisableDateTimeInfinityConversions", true);
         Database.EnsureCreated();

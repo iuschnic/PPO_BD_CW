@@ -296,4 +296,14 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
 
         return true;
     }
+    public async Task<bool> TryLogInAsync(string login, string password)
+    {
+        var dbu = await _dbContext.Users.FindAsync(login);
+        return dbu != null && dbu.PasswordHash == password;
+    }
+    public bool TryLogIn(string login, string password)
+    {
+        var dbu = _dbContext.Users.Find(login);
+        return dbu != null && dbu.PasswordHash == password;
+    }
 }

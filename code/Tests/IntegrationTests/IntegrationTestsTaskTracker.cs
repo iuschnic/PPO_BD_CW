@@ -78,8 +78,6 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
         await _dbContext.ActualTimes.ExecuteDeleteAsync();
         await _dbContext.PrefFixedTimes.ExecuteDeleteAsync();
         await _dbContext.Habits.ExecuteDeleteAsync();
-        await _dbContext.UserMessages.ExecuteDeleteAsync();
-        await _dbContext.Messages.ExecuteDeleteAsync();
         await _dbContext.Users.ExecuteDeleteAsync();
 
         await _dbContext.SaveChangesAsync();

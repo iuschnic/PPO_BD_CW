@@ -5,5 +5,5 @@ namespace Domain.InPorts;
 public interface IMessageSenderProvider
 {
     public Task<List<UserHabitInfo>> GetUsersToNotifyAsync();
-    public Task<UserInfo> TryGetUserInfoAsync(string taskTrackerLogin);
+    public Task<bool> TryLogInAsync(string login, string password);
 }

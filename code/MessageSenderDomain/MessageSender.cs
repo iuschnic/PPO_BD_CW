@@ -173,11 +173,13 @@ public class MessageSender
                 }
                 else if (state == RegistrationState.AwaitingPassword)
                 {
-                    var u = await _taskTrackerClient.TryGetUserInfoAsync(_tempLogins[chatId]);
+                    /*var u = await _taskTrackerClient.TryLogInAsync(_tempLogins[chatId], text);
                     if (u == null)
                         await botClient.SendMessage(chatId, "Критическая ошибка, учетная запись не найдена.\n\n" + WelcomeMessage);
                     else if (u != null && u.Password != text)
-                        await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);
+                        await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);*/
+                    if (!await _taskTrackerClient.TryLogInAsync(_tempLogins[chatId], text))
+                        await botClient.SendMessage(chatId, "Ошибка авторизации, попробуйте еще раз.\n\n" + WelcomeMessage);
                     else
                     {
                         var subscriber = new Subscriber(chatId, _tempLogins[chatId], text,

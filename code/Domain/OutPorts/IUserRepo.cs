@@ -11,6 +11,7 @@ public interface IUserRepo
     Task<bool> TryNotificationsOnAsync(string username);
     Task<bool> TryUpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);
     Task<bool> TryDeleteAsync(string username);
+    Task<bool> TryLogInAsync(string login, string password);
 
     User? TryGet(string username);
     User? TryFullGet(string username);
@@ -21,4 +22,5 @@ public interface IUserRepo
     bool TryNotificationsOn(string username);
     bool TryUpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);
     bool TryDelete(string username);
+    bool TryLogIn(string login, string password);
 }
