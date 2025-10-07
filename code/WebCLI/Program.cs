@@ -7,7 +7,6 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using Serilog;
-using Microsoft.Extensions.Logging;
 using LoadAdapters;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -35,16 +34,13 @@ builder.Services.AddScoped<IEventRepo, EfEventRepo>();
 builder.Services.AddScoped<IHabitRepo, EfHabitRepo>();
 builder.Services.AddScoped<IUserRepo, EfUserRepo>();
 builder.Services.AddScoped<ITaskTrackerContext, EfDbContext>();
-builder.Services.AddDbContext<EfDbContext>(options =>
-                    options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-                          ?? configuration.GetConnectionString("PostgresConnection")));
+builder.Services.AddDbContext<EfDbContext>(options => configuration.GetConnectionString("PostgresConnection"));
 builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
 builder.Services.AddScoped<ITaskTracker, TaskTracker>();
 builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();
 builder.Services.AddScoped<IMessageSenderProvider, MessageSenderProvider>();
 builder.Services.AddLogging(loggingBuilder =>
                  {
-                     //loggingBuilder.ClearProviders();
                      loggingBuilder.AddSerilog();
                  });
 //builder.Services.AddScoped<IPasswordHasher<Employee>, PasswordHasher<Employee>>();
