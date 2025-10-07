@@ -2,15 +2,13 @@
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-//using Storage.EfAdapters;
-//using Storage.StorageAdapters;
 using MessageSenderDomain.Models;
 using MessageSenderDomain.OutPorts;
 
 using TelegramMessage = Telegram.Bot.Types.Message;
 using DomainMessage = MessageSenderDomain.Models.Message;
 
-public class SubscriptionBot
+public class MessageSender
 {
     private readonly ITelegramBotClient _botClient;
     private readonly IMessageRepo _messageRepo;
@@ -36,7 +34,7 @@ public class SubscriptionBot
     private const int timeout_generate = 30;
     private const int timeout_err = 1;
 
-    public SubscriptionBot(string botToken, IMessageRepo messageRepo, 
+    public MessageSender(string botToken, IMessageRepo messageRepo, 
         ISubscriberRepo subscriberRepo, ITaskTrackerClient taskTrackerClient)
     {
         _botClient = new TelegramBotClient(botToken);
