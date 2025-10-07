@@ -7,7 +7,7 @@
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },
-      "launchBrowser": false // ← ВАЖНО: убрать автоматическое открытие браузера
+      "launchBrowser": false
     }
   }
 }
