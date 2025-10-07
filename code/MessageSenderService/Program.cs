@@ -1,7 +1,7 @@
 ﻿using MessageSenderDomain.OutPorts;
 using MessageSenderStorage.EfAdapters;
 using Microsoft.Extensions.DependencyInjection;
-
+using Microsoft.EntityFrameworkCore;
 
 class Program
 {
@@ -14,7 +14,7 @@ class Program
                 options.UseNpgsql("Host=localhost;Port=5432;Database=messagesenderdb;Username=postgres;Password=postgres"))
             .AddSingleton<ITaskTrackerClient, TaskTrackerClient>
             .BuildServiceProvider();
-        var bot = new SubscriptionBot(
+        var bot = new MessageSender(
             "7665679478:AAHtpesgjfWihplWtkBB7Iuwot-6gCElWVY",
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<ISubscriberRepo>(),
