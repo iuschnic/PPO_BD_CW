@@ -1,5 +1,45 @@
 ﻿{
   "Routes": [
+    // ==================== SWAGGER UI ROUTES ====================
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/swagger/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
+      "Key": "SwaggerUI"
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/v1/swagger.json",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/swagger/v1/swagger.json",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Key": "SwaggerSpec"
+    },
+    {
+      "DownstreamPathTemplate": "/index.html",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/index.html",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Key": "SwaggerIndex"
+    },
     // ==================== PUBLIC AUTH ENDPOINTS ====================
     {
       "DownstreamPathTemplate": "/api/v1/auth/register",
@@ -10,7 +50,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/auth/register",
+      "UpstreamPathTemplate": "/api/v1/auth/register",
       "UpstreamHttpMethod": [ "POST" ],
       "Key": "AuthRegister"
     },
@@ -23,7 +63,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/auth/login",
+      "UpstreamPathTemplate": "/api/v1/auth/login",
       "UpstreamHttpMethod": [ "POST" ],
       "Key": "AuthLogin"
     },
@@ -38,7 +78,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/users/{username}",
+      "UpstreamPathTemplate": "/api/v1/users/{username}",
       "UpstreamHttpMethod": [ "DELETE" ],
       "Key": "UserDelete"
     },
@@ -53,7 +93,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/users/{username}/habits",
+      "UpstreamPathTemplate": "/api/v1/users/{username}/habits",
       "UpstreamHttpMethod": [ "POST", "DELETE" ],
       "Key": "UserHabits"
     },
@@ -66,7 +106,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/users/{username}/habits/{habitName}",
+      "UpstreamPathTemplate": "/api/v1/users/{username}/habits/{habitName}",
       "UpstreamHttpMethod": [ "DELETE" ],
       "Key": "UserHabitDelete"
     },
@@ -81,7 +121,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/users/{username}/schedule/import",
+      "UpstreamPathTemplate": "/api/v1/users/{username}/schedule/import",
       "UpstreamHttpMethod": [ "POST" ],
       "Key": "ScheduleImport"
     },
@@ -96,7 +136,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/users/{username}/notifications/on",
+      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/on",
       "UpstreamHttpMethod": [ "PUT" ],
       "Key": "NotificationsOn"
     },
@@ -109,7 +149,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/users/{username}/notifications/off",
+      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/off",
       "UpstreamHttpMethod": [ "PUT" ],
       "Key": "NotificationsOff"
     },
@@ -122,7 +162,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/users/{username}/notifications/timings",
+      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/timings",
       "UpstreamHttpMethod": [ "PUT" ],
       "Key": "NotificationsTimings"
     },
@@ -137,7 +177,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/internal/check-log-in",
+      "UpstreamPathTemplate": "/api/v1/internal/check-log-in",
       "UpstreamHttpMethod": [ "PUT" ],
       "DelegatingHandlers": [ "MicroserviceAuthHandler" ],
       "AddHeadersToRequest": {
@@ -154,7 +194,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/internal/get-users-to-notify",
+      "UpstreamPathTemplate": "/api/v1/internal/get-users-to-notify",
       "UpstreamHttpMethod": [ "GET" ],
       "DelegatingHandlers": [ "MicroserviceAuthHandler" ],
       "AddHeadersToRequest": {
@@ -164,7 +204,7 @@
     }
   ],
   "GlobalConfiguration": {
-    "BaseUrl": "https://localhost:7000",
+    "BaseUrl": "http://localhost:5000",
     "RequestIdKey": "OcelotRequestId"
   }
 }

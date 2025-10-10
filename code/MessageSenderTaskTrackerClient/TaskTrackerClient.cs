@@ -15,7 +15,7 @@ public class TaskTrackerClient : ITaskTrackerClient
 
     public async Task<List<UserHabitInfo>?> GetUsersToNotifyAsync()
     {
-        var response = await _httpClient.GetAsync("/api/internal/get-users-to-notify");
+        var response = await _httpClient.GetAsync("/api/v1/internal/get-users-to-notify");
 
         if (!response.IsSuccessStatusCode)
             return null;
@@ -40,7 +40,7 @@ public class TaskTrackerClient : ITaskTrackerClient
         var jsonContent = JsonSerializer.Serialize(loginRequest);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PutAsync("/api/internal/check-log-in", content);
+        var response = await _httpClient.PutAsync("/api/v1/internal/check-log-in", content);
 
         var isValid = response.IsSuccessStatusCode;
 

@@ -3,12 +3,12 @@ using MessageSenderStorage.EfAdapters;
 using MessageSenderTaskTrackerClient;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 class Program
 {
     static async Task Main(string[] args)
     {
-        // Создаем ServiceCollection для DI
         var services = new ServiceCollection();
 
         ConfigureServices(services);
