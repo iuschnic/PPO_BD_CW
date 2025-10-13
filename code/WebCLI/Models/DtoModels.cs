@@ -128,6 +128,12 @@ public class NotificationTimingDto
     public TimeSpan End { get; set; }
 }
 
+public class NotificationSettingsDto
+{
+    public List<NotificationTimingDto>? NewTimings { get; set; }
+    public bool? NotifyOn { get; set; }
+}
+
 public class DistributionResultDto
 {
     public UserDto User { get; set; } = new();

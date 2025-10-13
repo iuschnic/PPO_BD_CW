@@ -1,9 +1,10 @@
+using Domain.Exceptions;
 using Domain.InPorts;
 using Domain.Models;
 using Domain.OutPorts;
-using Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Types;
+using static Dapper.SqlMapper;
 
 namespace Domain;
 
@@ -321,6 +322,23 @@ public class TaskTracker : ITaskTracker
             throw new RepositoryOperationException("обновления", "настроек", settings.UserNameID);
         _logger.LogInformation($"Изменение настроек для пользователя {settings.UserNameID} произведено успешно");
         return GetUser(settings.UserNameID);
+    }
+
+    public async Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил изменение своих настроек");
+        if (!await _userRepo.TryUpdateSettingsAsync(newTimings, notifyOn, user_name))
+            throw new RepositoryOperationException("обновления", "настроек", user_name);
+        _logger.LogInformation($"Изменение настроек для пользователя {user_name} произведено успешно");
+        return await GetUserAsync(user_name);
+    }
+    public User ChangeSettings(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил изменение своих настроек");
+        if (!_userRepo.TryUpdateSettings(newTimings, notifyOn, user_name))
+            throw new RepositoryOperationException("обновления", "настроек", user_name);
+        _logger.LogInformation($"Изменение настроек для пользователя {user_name} произведено успешно");
+        return GetUser(user_name);
     }
     public async Task<User> NotificationsOnAsync(string user_name)
     {
