@@ -128,7 +128,7 @@
 
     // ==================== NOTIFICATIONS MANAGEMENT ====================
     {
-      "DownstreamPathTemplate": "/api/v1/users/{username}/notifications/on",
+      "DownstreamPathTemplate": "/api/v1/users/{username}/notifications/change_settings",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -136,35 +136,9 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/on",
-      "UpstreamHttpMethod": [ "PUT" ],
+      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/change_settings",
+      "UpstreamHttpMethod": [ "PATCH" ],
       "Key": "NotificationsOn"
-    },
-    {
-      "DownstreamPathTemplate": "/api/v1/users/{username}/notifications/off",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5234
-        }
-      ],
-      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/off",
-      "UpstreamHttpMethod": [ "PUT" ],
-      "Key": "NotificationsOff"
-    },
-    {
-      "DownstreamPathTemplate": "/api/v1/users/{username}/notifications/timings",
-      "DownstreamScheme": "http",
-      "DownstreamHostAndPorts": [
-        {
-          "Host": "localhost",
-          "Port": 5234
-        }
-      ],
-      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/timings",
-      "UpstreamHttpMethod": [ "PUT" ],
-      "Key": "NotificationsTimings"
     },
 
     // ==================== INTERNAL ENDPOINTS (MICROSERVICE ONLY) ====================

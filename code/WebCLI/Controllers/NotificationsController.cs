@@ -179,7 +179,7 @@ public class NotificationsController : ControllerBase
         }
     }*/
 
-    [HttpPatch("notifications")]
+    [HttpPatch("change_settings")]
     public async Task<ActionResult<UserDto>> UpdateNotificationSettings(string username,
         [FromBody] NotificationSettingsDto newSettings)
     {
