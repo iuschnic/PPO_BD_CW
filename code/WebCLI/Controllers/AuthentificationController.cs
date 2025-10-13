@@ -30,6 +30,16 @@ public class AuthenticationController : ControllerBase
             _logger.LogInformation("User {UserName} registered successfully", request.UserName);
             return Ok(userDto);
         }
+        catch (ArgumentException ex)
+        {
+            _logger.LogError(ex, "Invalid phone number for user {UserName}", request.UserName);
+            return BadRequest(new ErrorResponseDto
+            {
+                Error = "Invalid Phone Number",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
         catch (UserAlreadyExistsException ex)
         {
             _logger.LogWarning("User {UserName} already exists", request.UserName);

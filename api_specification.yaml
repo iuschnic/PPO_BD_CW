@@ -682,6 +682,8 @@ paths:
           $ref: '#/components/responses/UserNotFound'
         '500':
           $ref: '#/components/responses/RepositoryError'
+          
+  #сделать одну ручку с patch настроек!!!!!!!!!!!!!!1
 
   /users/{username}/notifications/off:
     put:

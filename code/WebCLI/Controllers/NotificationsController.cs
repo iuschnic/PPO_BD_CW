@@ -18,7 +18,7 @@ public class NotificationsController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPut("on")]
+    [HttpPatch("on")]
     public async Task<ActionResult<UserDto>> TurnOnNotifications(string username)
     {
         try
@@ -71,7 +71,7 @@ public class NotificationsController : ControllerBase
         }
     }
 
-    [HttpPut("off")]
+    [HttpPatch("off")]
     public async Task<ActionResult<UserDto>> TurnOffNotifications(string username)
     {
         try
