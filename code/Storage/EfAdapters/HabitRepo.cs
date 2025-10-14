@@ -221,7 +221,6 @@ public class EfHabitRepo(ITaskTrackerContext dbContext) : IHabitRepo
         _dbContext.SaveChanges();
         return true;
     }
-
     public async Task<bool> TryReplaceHabitsAsync(List<Habit> habits, string user_name)
     {
         if (!habits.TrueForAll(h => h.UserNameID == user_name))
@@ -236,4 +235,65 @@ public class EfHabitRepo(ITaskTrackerContext dbContext) : IHabitRepo
         if (!TryDeleteHabits(user_name)) return false;
         return TryCreateMany(habits);
     }
+    public async Task<List<UserHabitInfo>?> GetUsersToNotifyAsync()
+    {
+        var currentTime = TimeOnly.FromDateTime(DateTime.Now);
+        var currentDayOfWeek = DateTime.Now.DayOfWeek;
+        var timePlus30Min = currentTime.AddMinutes(30);
+        var crossesMidnight = timePlus30Min < currentTime;
+        var usersHabits = await _dbContext.ActualTimes
+            .Include(at => at.DBHabit)
+            .ThenInclude(h => h.DBUser)
+            .Include(at => at.DBHabit)
+            .ThenInclude(h => h.DBUser.Settings)
+            .ThenInclude(s => s.ForbiddenTimings)
+            .Where(at =>
+                (at.Day == currentDayOfWeek ||
+                 (crossesMidnight && at.Day == GetTomorrowDayOfWeek(currentDayOfWeek))) &&
+                IsTimeInRange(at.Start, currentTime, timePlus30Min, crossesMidnight) &&
+                !IsInForbiddenTime(at.DBHabit.DBUser, currentTime))
+            .Select(at => new UserHabitInfo(at.DBHabit.DBUser.NameID, at.DBHabit.Name, at.Start, at.End))
+            .ToListAsync();
+        return usersHabits;
+    }
+    public List<UserHabitInfo>? GetUsersToNotify()
+    {
+        var currentTime = TimeOnly.FromDateTime(DateTime.Now);
+        var currentDayOfWeek = DateTime.Now.DayOfWeek;
+        var timePlus30Min = currentTime.AddMinutes(30);
+        var crossesMidnight = timePlus30Min < currentTime;
+        var usersHabits = _dbContext.ActualTimes
+            .Include(at => at.DBHabit)
+            .ThenInclude(h => h.DBUser)
+            .Include(at => at.DBHabit)
+            .ThenInclude(h => h.DBUser.Settings)
+            .ThenInclude(s => s.ForbiddenTimings)
+            .Where(at =>
+                (at.Day == currentDayOfWeek ||
+                 (crossesMidnight && at.Day == GetTomorrowDayOfWeek(currentDayOfWeek))) &&
+                IsTimeInRange(at.Start, currentTime, timePlus30Min, crossesMidnight) &&
+                !IsInForbiddenTime(at.DBHabit.DBUser, currentTime))
+            .Select(at => new UserHabitInfo(at.DBHabit.DBUser.NameID, at.DBHabit.Name, at.Start, at.End))
+            .ToList();
+        return usersHabits;
+    }
+
+    private bool IsTimeInRange(TimeOnly time, TimeOnly currentTime, TimeOnly timePlus30Min, bool crossesMidnight)
+    {
+        if (!crossesMidnight)
+            return time >= currentTime && time <= timePlus30Min;
+        else
+            return time >= currentTime || time <= timePlus30Min;
+    }
+
+    private bool IsInForbiddenTime(DBUser user, TimeOnly currentTime)
+    {
+        return user.Settings?.ForbiddenTimings?
+            .Any(ft => currentTime >= ft.Start && currentTime <= ft.End) ?? false;
+    }
+    private DayOfWeek GetTomorrowDayOfWeek(DayOfWeek today)
+    {
+        return today == DayOfWeek.Saturday ? DayOfWeek.Sunday : today + 1;
+    }
+
 }

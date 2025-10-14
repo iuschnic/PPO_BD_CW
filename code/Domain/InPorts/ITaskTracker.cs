@@ -12,6 +12,7 @@ public interface ITaskTracker
     Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string user_name, string name);
     Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string name);
     Task<User> ChangeSettingsAsync(UserSettings settings);
+    Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name);
     Task<User> NotificationsOnAsync(string user_name);
     Task<User> NotificationsOffAsync(string user_name);
     Task<User> UpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);
@@ -31,6 +32,7 @@ public interface ITaskTracker
     Tuple<User, List<Habit>> DeleteHabit(string user_name, string name);
     Tuple<User, List<Habit>> DeleteHabits(string name);
     User ChangeSettings(UserSettings settings);
+    User ChangeSettings(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name);
     User NotificationsOn(string user_name);
     User NotificationsOff(string user_name);
     User UpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name);

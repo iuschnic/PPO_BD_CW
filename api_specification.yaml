@@ -16,7 +16,7 @@ components:
       required:
         - name
         - password
-        - Phonenumber
+        - phoneNumber
         - settings
       properties:
         name:
@@ -24,8 +24,8 @@ components:
           example: "kulik"
         password:
           type: string
-          example: "hashed_password"
-        Phonenumber:
+          example: "password"
+        phoneNumber:
           $ref: '#/components/schemas/PhoneNumber'
         habits:
           type: array
@@ -133,7 +133,39 @@ components:
           minimum: 1
           maximum: 7
           example: 6
-
+    
+    HabitData:
+      type: object
+      required:
+        - name
+        - minsToComplete
+        - prefFixedTimings
+        - option
+        - userName
+        - countInWeek
+      properties:
+        name:
+          type: string
+          example: "Чтение"
+        minsToComplete:
+          type: integer
+          minimum: 1
+          example: 30
+        prefFixedTimings:
+          type: array
+          items:
+            $ref: '#/components/schemas/PrefFixedTimeData'
+        option:
+          $ref: '#/components/schemas/TimeOption'
+        userName:
+          type: string
+          example: "kulik"
+        countInWeek:
+          type: integer
+          minimum: 1
+          maximum: 7
+          example: 6
+          
     ActualTime:
       type: object
       required:
@@ -185,6 +217,21 @@ components:
         habitID:
           type: string
           format: uuid
+    
+    PrefFixedTimeData:
+      type: object
+      required:
+        - start
+        - end
+      properties:
+        start:
+          type: string
+          format: time
+          example: "08:00:00"
+        end:
+          type: string
+          format: time
+          example: "08:30:00"
 
     Event:
       type: object
@@ -256,6 +303,29 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Habit'
+            
+    UserHabitInfo:
+      type: object
+      required:
+        - userName
+        - habitName
+        - start
+        - end
+      properties:
+        userName:
+          type: string
+          example: "kulik"
+        habitName:
+          type: string
+          example: "running"
+        start:
+          type: string
+          format: time
+          example: "18:00:00"
+        end:
+          type: string
+          format: time
+          example: "18:00:00"
 
     ErrorResponse:
       type: object
@@ -371,23 +441,21 @@ paths:
           application/json:
             schema:
               type: object
-              required: [name, password, phoneNumber]
+              required: [userName, password, phoneNumber]
               properties:
-                name:
+                userName:
                   type: string
                   minLength: 1
                   example: "kulik"
                 password:
                   type: string
                   minLength: 1
-                  example: "hashed_password"
+                  example: "password"
                 phoneNumber:
                   type: string
                   minLength: 12
                   maxLength: 12
                   example: "+71111111111"
-                settings:
-                  $ref: '#/components/schemas/UserSettings'
       responses:
         '201':
           description: Пользователь создан
@@ -418,14 +486,14 @@ paths:
           application/json:
             schema:
               type: object
-              required: [nameID, passwordHash]
+              required: [userName, password]
               properties:
-                nameID:
+                userName:
                   type: string
                   example: "kulik"
                 passwordHash:
                   type: string
-                  example: "hashed_password"
+                  example: "password"
       responses:
         '200':
           description: Успешный вход
@@ -569,7 +637,7 @@ paths:
                 file:
                   type: string
                   format: binary
-                  description: Файл расписания (CSV, JSON, iCal)
+                  description: Файл расписания (CSV, ICS)
       responses:
         '200':
           description: Расписание импортировано
@@ -593,7 +661,105 @@ paths:
                 repositoryError:
                   $ref: '#/components/responses/RepositoryError'
   # Настройки
-  /users/{username}/settings:
+  /users/{username}/notifications/on:
+    put:
+      summary: Включение уведомлений
+      tags: [Notifications]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Уведомления включены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/RepositoryError'
+          
+  #сделать одну ручку с patch настроек!!!!!!!!!!!!!!1
+
+  /users/{username}/notifications/off:
+    put:
+      summary: Выключение уведомлений
+      tags: [Notifications]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Уведомления выключены
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/RepositoryError'
+
+  /users/{username}/notifications/timings:
+    put:
+      summary: Обновление времени уведомлений
+      tags: [Notifications]
+      parameters:
+        - name: username
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: array
+              items:
+                type: object
+                required: [start, end]
+                properties:
+                  start:
+                    type: string
+                    format: time
+                    example: "09:00"
+                  end:
+                    type: string
+                    format: time
+                    example: "18:00"
+              example:
+                - start: "09:00"
+                  end: "12:00"
+                - start: "14:00"
+                  end: "18:00"
+      responses:
+        '200':
+          description: Время уведомлений обновлено
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Неверный формат времени
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/RepositoryError'
+  
+  
+  /users/{username}/settings: # скорее всего нужно удалить, слишком общий метод?
     put:
       summary: Обновление настроек
       tags: [Users]
@@ -618,5 +784,46 @@ paths:
                 $ref: '#/components/schemas/User'
         '404':
           $ref: '#/components/responses/UserNotFound'
+        '500':
+          $ref: '#/components/responses/RepositoryError'
+          
+  #Методы ТОЛЬКО для сервиса отправки уведомлений
+  /internal/check-log-in:
+    put:
+      summary: Проверка введенных пользователем логина и пароля
+      tags: [MessageSender]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [userName, password]
+              properties:
+                userName:
+                  type: string
+                  example: "kulik"
+                passwordHash:
+                  type: string
+                  example: "password"
+      responses:
+        '204':
+          description: Успешный вход
+        '401':
+          $ref: '#/components/responses/InvalidCredentials'
+          
+  /internal/get-users-to-notify:
+    get:
+      summary: Получение пользователей, которым требуется отправить уведомление и их привычек
+      tags: [MessageSender]
+      responses:
+        '200':
+          description: Информация получена успешно
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserInfo'
         '500':
           $ref: '#/components/responses/RepositoryError'

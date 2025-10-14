@@ -1,0 +1,184 @@
+﻿{
+  "Routes": [
+    // ==================== SWAGGER UI ROUTES ====================
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/swagger/{everything}",
+      "UpstreamHttpMethod": [ "GET", "POST", "PUT", "DELETE", "OPTIONS" ],
+      "Key": "SwaggerUI"
+    },
+    {
+      "DownstreamPathTemplate": "/swagger/v1/swagger.json",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/swagger/v1/swagger.json",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Key": "SwaggerSpec"
+    },
+    {
+      "DownstreamPathTemplate": "/index.html",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/index.html",
+      "UpstreamHttpMethod": [ "GET" ],
+      "Key": "SwaggerIndex"
+    },
+    // ==================== PUBLIC AUTH ENDPOINTS ====================
+    {
+      "DownstreamPathTemplate": "/api/v1/auth/register",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/auth/register",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Key": "AuthRegister"
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/auth/login",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/auth/login",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Key": "AuthLogin"
+    },
+
+    // ==================== USER MANAGEMENT ====================
+    {
+      "DownstreamPathTemplate": "/api/v1/users/{username}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/users/{username}",
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "Key": "UserDelete"
+    },
+
+    // ==================== HABITS MANAGEMENT ====================
+    {
+      "DownstreamPathTemplate": "/api/v1/users/{username}/habits",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/users/{username}/habits",
+      "UpstreamHttpMethod": [ "POST", "DELETE" ],
+      "Key": "UserHabits"
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/users/{username}/habits/{habitName}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/users/{username}/habits/{habitName}",
+      "UpstreamHttpMethod": [ "DELETE" ],
+      "Key": "UserHabitDelete"
+    },
+
+    // ==================== SCHEDULE MANAGEMENT ====================
+    {
+      "DownstreamPathTemplate": "/api/v1/users/{username}/schedule/import",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/users/{username}/schedule/import",
+      "UpstreamHttpMethod": [ "POST" ],
+      "Key": "ScheduleImport"
+    },
+
+    // ==================== NOTIFICATIONS MANAGEMENT ====================
+    {
+      "DownstreamPathTemplate": "/api/v1/users/{username}/notifications/change_settings",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/change_settings",
+      "UpstreamHttpMethod": [ "PATCH" ],
+      "Key": "NotificationsOn"
+    },
+
+    // ==================== INTERNAL ENDPOINTS (MICROSERVICE ONLY) ====================
+    {
+      "DownstreamPathTemplate": "/api/v1/internal/check-log-in",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/internal/check-log-in",
+      "UpstreamHttpMethod": [ "PUT" ],
+      "DelegatingHandlers": [ "MicroserviceAuthHandler" ],
+      "AddHeadersToRequest": {
+        "X-Microservice-Auth": "microservice-secret-key-2024"
+      },
+      "Key": "InternalCheckLogin"
+    },
+    {
+      "DownstreamPathTemplate": "/api/v1/internal/get-users-to-notify",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/internal/get-users-to-notify",
+      "UpstreamHttpMethod": [ "GET" ],
+      "DelegatingHandlers": [ "MicroserviceAuthHandler" ],
+      "AddHeadersToRequest": {
+        "X-Microservice-Auth": "microservice-secret-key-2024"
+      },
+      "Key": "InternalGetUsersToNotify"
+    }
+  ],
+  "GlobalConfiguration": {
+    "BaseUrl": "http://localhost:5000",
+    "RequestIdKey": "OcelotRequestId"
+  }
+}

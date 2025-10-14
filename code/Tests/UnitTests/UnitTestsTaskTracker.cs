@@ -2,9 +2,9 @@
 using Domain;
 using Domain.Models;
 using Domain.OutPorts;
+using Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using Moq;
-using System.ComponentModel;
 using Tests.ObjectMothers;
 using Types;
 
@@ -114,7 +114,7 @@ public class UnitTestsTaskTracker
         var password = "123";
         mockUserRepo.Setup(r => r.TryCreate(It.IsAny<User>())).Returns(false);
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<UserAlreadyExistsException>(() =>
             taskTracker.CreateUser(userName, phoneNumber, password));
 
         Assert.Contains(userName, exception.Message);
@@ -145,7 +145,7 @@ public class UnitTestsTaskTracker
         var password = "123";
         mockUserRepo.Setup(r => r.TryCreateAsync(It.IsAny<User>())).ReturnsAsync(false);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<UserAlreadyExistsException>(() =>
             taskTracker.CreateUserAsync(userName, phoneNumber, password));
 
         Assert.Contains(userName, exception.Message);
@@ -246,7 +246,7 @@ public class UnitTestsTaskTracker
             new UserSettings(Guid.NewGuid(), true, userName, []));
         mockUserRepo.Setup(r => r.TryGet(userName)).Returns(user);
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<InvalidCredentialsException>(() =>
             taskTracker.LogIn(userName, wrongPassword));
 
         Assert.Contains("неправильный пароль", exception.Message);
@@ -279,7 +279,7 @@ public class UnitTestsTaskTracker
             new UserSettings(Guid.NewGuid(), true, userName, []));
         mockUserRepo.Setup(r => r.TryGetAsync(userName)).ReturnsAsync(user);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<InvalidCredentialsException>(() =>
             taskTracker.LogInAsync(userName, wrongPassword));
 
         Assert.Contains("неправильный пароль", exception.Message);
@@ -403,7 +403,7 @@ public class UnitTestsTaskTracker
         mockShedLoader.Setup(s => s.LoadShedule(userName, invalidFilePath))
                       .Throws(new InvalidDataException($"Ошибка чтения файла"));
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<ScheduleLoadException>(() =>
             taskTracker.ImportNewShedule(userName, invalidFilePath));
 
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
@@ -437,7 +437,7 @@ public class UnitTestsTaskTracker
         mockShedLoader.Setup(s => s.LoadShedule(userName, invalidFilePath))
                       .Throws(new InvalidDataException($"Ошибка чтения файла"));
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<ScheduleLoadException>(() =>
             taskTracker.ImportNewSheduleAsync(userName, invalidFilePath));
 
         Assert.Contains("Ошибка загрузки расписания", exception.Message);
@@ -560,7 +560,7 @@ public class UnitTestsTaskTracker
         var habit = new Habit(Guid.NewGuid(), "Спорт", 30, TimeOption.NoMatter, notExistUserName, [], [], 1);
         mockUserRepo.Setup(r => r.TryGet(notExistUserName)).Returns((User?)null);
 
-        var exception = Assert.Throws<Exception>(() => taskTracker.AddHabit(habit));
+        var exception = Assert.Throws<UserNotFoundException>(() => taskTracker.AddHabit(habit));
 
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
@@ -589,7 +589,7 @@ public class UnitTestsTaskTracker
         var habit = new Habit(Guid.NewGuid(), "Спорт", 30, TimeOption.NoMatter, notExistUserName, [], [], 1);
         mockUserRepo.Setup(r => r.TryGetAsync(notExistUserName)).ReturnsAsync((User?)null);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() => taskTracker.AddHabitAsync(habit));
+        var exception = await Assert.ThrowsAsync<UserNotFoundException>(() => taskTracker.AddHabitAsync(habit));
 
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
     }
@@ -725,7 +725,7 @@ public class UnitTestsTaskTracker
 
         mockUserRepo.Setup(r => r.TryGet(notExistUserName)).Returns((User?)null);
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<UserNotFoundException>(() =>
             taskTracker.DeleteHabit(notExistUserName, habitName));
 
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
@@ -756,7 +756,7 @@ public class UnitTestsTaskTracker
 
         mockUserRepo.Setup(r => r.TryGetAsync(notExistUserName)).ReturnsAsync((User?)null);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<UserNotFoundException>(() =>
             taskTracker.DeleteHabitAsync(notExistUserName, habitName));
 
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
@@ -867,7 +867,7 @@ public class UnitTestsTaskTracker
         var notExistUserName = "not_exists";
         mockUserRepo.Setup(r => r.TryGet(notExistUserName)).Returns((User?)null);
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<UserNotFoundException>(() =>
             taskTracker.DeleteHabits(notExistUserName));
 
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
@@ -896,7 +896,7 @@ public class UnitTestsTaskTracker
         var notExistUserName = "not_exists";
         mockUserRepo.Setup(r => r.TryGetAsync(notExistUserName)).ReturnsAsync((User?)null);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<UserNotFoundException>(() =>
             taskTracker.DeleteHabitsAsync(notExistUserName));
 
         Assert.Contains($"Пользователя с именем {notExistUserName} не существует", exception.Message);
@@ -1000,7 +1000,7 @@ public class UnitTestsTaskTracker
         var settings = new UserSettings(Guid.NewGuid(), true, notExistsUserName, []);
         mockUserRepo.Setup(r => r.TryGet(notExistsUserName)).Returns((User?)null);
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<UserNotFoundException>(() =>
             taskTracker.ChangeSettings(settings));
 
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
@@ -1030,7 +1030,7 @@ public class UnitTestsTaskTracker
         var settings = new UserSettings(Guid.NewGuid(), true, notExistsUserName, []);
         mockUserRepo.Setup(r => r.TryGetAsync(notExistsUserName)).ReturnsAsync((User?)null);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<UserNotFoundException>(() =>
             taskTracker.ChangeSettingsAsync(settings));
 
         Assert.Contains($"Пользователя с именем {notExistsUserName} не существует", exception.Message);
@@ -1111,10 +1111,10 @@ public class UnitTestsTaskTracker
         var userName = "test";
         mockUserRepo.Setup(r => r.TryDelete(userName)).Returns(false);
 
-        var exception = Assert.Throws<Exception>(() =>
+        var exception = Assert.Throws<UserNotFoundException>(() =>
             taskTracker.DeleteUser(userName));
 
-        Assert.Contains("Не удалось удалить пользователя", exception.Message);
+        Assert.Contains($"Пользователя с именем {userName} не существует", exception.Message);
         Assert.Contains(userName, exception.Message);
     }
     [Fact]
@@ -1141,10 +1141,10 @@ public class UnitTestsTaskTracker
         var userName = "test";
         mockUserRepo.Setup(r => r.TryDeleteAsync(userName)).ReturnsAsync(false);
 
-        var exception = await Assert.ThrowsAsync<Exception>(() =>
+        var exception = await Assert.ThrowsAsync<UserNotFoundException>(() =>
             taskTracker.DeleteUserAsync(userName));
 
-        Assert.Contains("Не удалось удалить пользователя", exception.Message);
+        Assert.Contains($"Пользователя с именем {userName} не существует", exception.Message);
         Assert.Contains(userName, exception.Message);
     }
 }

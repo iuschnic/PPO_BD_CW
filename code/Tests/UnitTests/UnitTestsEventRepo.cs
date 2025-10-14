@@ -8,7 +8,6 @@ using Types;
 using Allure.Xunit.Attributes;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore.Query;
-using System.ComponentModel;
 
 namespace Tests.UnitTests;
 

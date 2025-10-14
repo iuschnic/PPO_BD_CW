@@ -1,8 +1,9 @@
-﻿namespace Storage.Models;
-
+﻿using MessageSenderDomain.Models;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
-using Domain.Models;
+
+
+namespace MessageSenderStorage.Models;
 
 [Table("messages")]
 public class DBMessage
@@ -19,25 +20,26 @@ public class DBMessage
     }
 }
 
-[Table("user_message")]
-public class DBUserMessage
+[Table("subscriber_message")]
+public class DBSubscriberMessage
 {
-    [Column("user_name")]
-    public string? DBUserID { get; set; }
+    [Column("subscriber_id")]
+    public long SubscriberID { get; set; }
     [Column("message_id")]
-    public Guid DBMessageID { get; set; }
+    public Guid MessageID { get; set; }
     [Column("was_sent")]
     public bool WasSent { get; set; }
     [Column("time_outdated")]
     public DateTime TimeOutdated { get; set; }
     [Column("time_sent")]
     public DateTime? TimeSent { get; set; }
-    public DBUser? DBUser { get; set; }
+    public DBSubscriber? DBSubscriber { get; set; }
     public DBMessage? DBMessage { get; set; }
-    public DBUserMessage(string dBUserID, Guid dBMessageID, bool wasSent, DateTime timeOutdated, DateTime? timeSent)
+    public DBSubscriberMessage(long subscriberID, Guid messageID, bool wasSent,
+        DateTime timeOutdated, DateTime? timeSent)
     {
-        DBMessageID = dBMessageID;
-        DBUserID = dBUserID;
+        MessageID = messageID;
+        SubscriberID = subscriberID;
         WasSent = wasSent;
         TimeOutdated = timeOutdated;
         TimeSent = timeSent;

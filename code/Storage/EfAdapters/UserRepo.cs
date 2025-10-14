@@ -168,6 +168,60 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         _dbContext.SaveChanges();
         return true;
     }
+    public async Task<bool> TryUpdateSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name)
+    {
+        if (newTimings == null && notifyOn == null)
+            return false;
+        var dbuser = await _dbContext.Users
+            .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
+            .FirstOrDefaultAsync(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+        if (newTimings != null)
+        {
+            List<DBSTime> times = [];
+            foreach (var time in newTimings)
+            {
+                DBSTime st = new(Guid.NewGuid(), time.Item1, time.Item2, dbuser.Settings.Id);
+                times.Add(st);
+            }
+            _dbContext.SettingsTimes.RemoveRange(dbuser.Settings.ForbiddenTimings);
+            _dbContext.SettingsTimes.AddRange(times);
+        }
+        if (notifyOn != null)
+            dbuser.Settings.NotifyOn = notifyOn.Value;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    public bool TryUpdateSettings(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name)
+    {
+        if (newTimings == null && notifyOn == null)
+            return false;
+        var dbuser = _dbContext.Users
+            .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
+            .FirstOrDefault(u => u.NameID == user_name);
+        if (dbuser == null)
+            return false;
+        if (dbuser.Settings == null)
+            return false;
+        if (newTimings != null)
+        {
+            List<DBSTime> times = [];
+            foreach (var time in newTimings)
+            {
+                DBSTime st = new(Guid.NewGuid(), time.Item1, time.Item2, dbuser.Settings.Id);
+                times.Add(st);
+            }
+            _dbContext.SettingsTimes.RemoveRange(dbuser.Settings.ForbiddenTimings);
+            _dbContext.SettingsTimes.AddRange(times);
+        }
+        if (notifyOn != null)
+            dbuser.Settings.NotifyOn = notifyOn.Value;
+        _dbContext.SaveChanges();
+        return true;
+    }
     public async Task<bool> TryUpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
     {
         var dbuser = await _dbContext.Users
@@ -295,5 +349,15 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         _dbContext.SaveChanges();
 
         return true;
+    }
+    public async Task<bool> TryCheckLogInAsync(string login, string password)
+    {
+        var dbu = await _dbContext.Users.FindAsync(login);
+        return dbu != null && dbu.PasswordHash == password;
+    }
+    public bool TryCheckLogIn(string login, string password)
+    {
+        var dbu = _dbContext.Users.Find(login);
+        return dbu != null && dbu.PasswordHash == password;
     }
 }
