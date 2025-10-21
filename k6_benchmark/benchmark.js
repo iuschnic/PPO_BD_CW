@@ -1,17 +1,20 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
 import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
+import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
+import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 export const options = {
   stages: [
-    { duration: '30s', target: 5 },    // Плавный рост
-    { duration: '1m', target: 10 },    // Средняя нагрузка
-    { duration: '30s', target: 15 },   // Пиковая нагрузка
-    { duration: '20s', target: 0 },    // Завершение
+    { duration: '10s', target: 5 },    // Плавный рост
+    { duration: '30s', target: 10 },    // Средняя нагрузка
+    { duration: '10s', target: 15 },   // Пиковая нагрузка
+    { duration: '10s', target: 0 },    // Завершение
   ],
   thresholds: {
-    http_req_failed: ['rate<0.1'],     // Допускаем 10% ошибок
-    http_req_duration: ['p(95)<3000'], // 95% запросов < 3 сек
+    http_req_failed: ['rate<0.05'],
+    http_req_duration: ['p(95)<50'],
   },
 };
 
@@ -32,28 +35,32 @@ export default function () {
 }
 
 function generateUserData() {
-  const userId = randomIntBetween(100000, 999999);
-  const username = `user_${userId}`;
-  const password = `pass_${userId}`;
+  const uuid = uuidv4().replace(/-/g, '').substring(0, 16);
+  const username = `user_${uuid}`;
+  const password = `pass_${uuid}`;
   const phoneNumber = `+7${randomIntBetween(9000000000, 9999999999)}`;
   
-  return { username, password, phoneNumber, userId };
+  return { username, password, phoneNumber };
 }
 
 function executeUserScenario(userData) {
   // ШАГ 1: Регистрация
   const registrationSuccess = registerUser(userData);
   if (!registrationSuccess) return;
+  sleep(0.5);
 
   // ШАГ 2: Вход
   const loginSuccess = loginUser(userData);
   if (!loginSuccess) return;
+  sleep(0.5);
 
   // ШАГ 3: Добавление привычки
   addHabit(userData);
+  sleep(0.5);
 
   // ШАГ 4: Удаление всех привычек
   deleteAllHabits(userData);
+  sleep(0.5);
 
   // ШАГ 5: Удаление аккаунта
   deleteAccount(userData);
@@ -92,8 +99,10 @@ function addHabit(userData) {
   const payload = JSON.stringify({
     userNameID: userData.username,
     name: habitName,
-    duration: randomIntBetween(15, 120),
-    prefFixedTimings: generateTimings()
+    minsToComplete: randomIntBetween(15, 120),
+    prefFixedTimings: generateTimings(),
+	Option: 0,
+	countInWeek: 3
   });
   
   const response = http.post(
@@ -101,8 +110,6 @@ function addHabit(userData) {
     payload,
     commonParams
   );
-  console.log(`name: ${userData.username}, ${payload.userNameID}, ${payload.name}, ${payload.duration}`);
-  console.log(`Status: ${response.status}, Body: ${response.body}`);
   
   check(response, {
     'add habit status is 200': (r) => r.status === 200,
@@ -141,4 +148,20 @@ function generateTimings() {
     { Start: "20:00:00", End: "21:00:00" }
   ];
   return timeSlots;
+}
+
+export function handleSummary(data) {
+  const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+  
+  console.log('Saving results to /scripts/results/');
+  
+  return {
+    [`/scripts/results/${timestamp}_summary.json`]: JSON.stringify(data, null, 2),
+    
+    [`/scripts/results/${timestamp}_report.html`]: htmlReport(data),
+    
+    [`/scripts/results/${timestamp}_summary.txt`]: textSummary(data, { indent: ' ', enableColors: false }),
+    
+    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+  };
 }

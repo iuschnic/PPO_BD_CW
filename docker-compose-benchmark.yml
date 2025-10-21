@@ -46,8 +46,7 @@ services:
         condition: service_healthy
     volumes:
       - ./k6-results:/scripts/results
-    # Запуск бенчмарка только по команде
-    profiles: ["benchmark"]
+
 
 volumes:
   postgres_data:

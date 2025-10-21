@@ -1,17 +1,10 @@
 FROM grafana/k6:latest
-
 WORKDIR /scripts
-
-# Копируем скрипт бенчмарка
 COPY ["benchmark.js", "."]
-
-# Устанавливаем зависимости (если нужны дополнительные утилиты)
 USER root
 RUN apk add --no-cache curl
-
-# Можно добавить health check для проверки готовности API
+# health check для проверки готовности API
 HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
   CMD curl -f http://webcli:5234/api/v1/health || exit 1
-
 # Запускаем бенчмарк (будет переопределен в docker-compose)
 CMD ["run", "benchmark.js"]

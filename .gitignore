@@ -237,3 +237,4 @@ _Pvt_Extensions
 allure-report/
 *.bkp
 appsettings.*.json
+k6-results/
