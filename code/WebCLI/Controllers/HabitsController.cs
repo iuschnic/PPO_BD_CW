@@ -28,7 +28,7 @@ public class HabitsController : ControllerBase
             {
                 return BadRequest(new ErrorResponseDto
                 {
-                    Error = "VALIDATION_ERROR",
+                    Error = "VALIDATION_ERROR, username invalid",
                     Message = "Имя пользователя в пути и в данных привычки не совпадают",
                     Timestamp = DateTime.UtcNow
                 });
@@ -92,7 +92,7 @@ public class HabitsController : ControllerBase
             _logger.LogWarning(ex, "Validation error when adding habit for user {UserName}", username);
             return BadRequest(new ErrorResponseDto
             {
-                Error = "VALIDATION_ERROR",
+                Error = "VALIDATION_ERROR, timings invalid",
                 Message = ex.Message,
                 Timestamp = DateTime.UtcNow
             });

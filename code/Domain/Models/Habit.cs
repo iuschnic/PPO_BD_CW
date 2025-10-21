@@ -13,7 +13,7 @@ public class ActualTime
     public ActualTime(Guid id, TimeOnly start, TimeOnly end, DayOfWeek week_day, Guid habitID)
     {
         if (start >= end)
-            throw new ArgumentException("start < end!");
+            throw new ArgumentException($"(ActualTime) start < end! ({start} >= {end})");
         Id = id;
         Start = start;
         End = end;
@@ -37,7 +37,7 @@ public class PrefFixedTime
     public PrefFixedTime(Guid id, TimeOnly start, TimeOnly end, Guid habit_id)
     {
         if (start >= end)
-            throw new ArgumentException("start < end!");
+            throw new ArgumentException($"(PrefFixedTime) start < end! ({start} >= {end}");
         Id = id;
         Start = start;
         End = end;
@@ -63,6 +63,8 @@ public class Habit
     public Habit(Guid id, string name, int mins_to_complete,
         TimeOption option, string user_name, List<ActualTime> actual_timings, List<PrefFixedTime> pref_fixed_timings, int countInWeek)
     {
+        if (countInWeek < 0 || countInWeek > 7)
+            throw new ArgumentException("CountInWeek should be 0 <= c <= 7");
         if (pref_fixed_timings.Count() == 0 && (option == TimeOption.Preffered || option == TimeOption.Fixed))
             throw new ArgumentException("Preffered or fixed time habit should have at least one time interval");
         Id = id;

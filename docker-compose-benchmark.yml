@@ -1,0 +1,53 @@
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: tasktracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Приложение WebCLI
+  webcli:
+    build:
+      context: ./code
+      dockerfile: ../webcli_benchmark/Dockerfile.webcli
+    ports:
+      - "5000:5234"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=password
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+
+  # Бенчмарк k6
+  benchmark:
+    build:
+      context: ./k6_benchmark
+      dockerfile: Dockerfile.k6
+    depends_on:
+      webcli:
+        condition: service_healthy
+    volumes:
+      - ./k6-results:/scripts/results
+    # Запуск бенчмарка только по команде
+    profiles: ["benchmark"]
+
+volumes:
+  postgres_data:
