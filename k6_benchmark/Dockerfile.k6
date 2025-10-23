@@ -3,8 +3,5 @@ WORKDIR /scripts
 COPY ["benchmark.js", "."]
 USER root
 RUN apk add --no-cache curl
-# health check для проверки готовности API
-HEALTHCHECK --interval=10s --timeout=3s --start-period=10s --retries=3 \
-  CMD curl -f http://webcli:5234/api/v1/health || exit 1
 # Запускаем бенчмарк (будет переопределен в docker-compose)
 CMD ["run", "benchmark.js"]

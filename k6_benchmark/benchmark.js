@@ -158,10 +158,10 @@ export function handleSummary(data) {
   return {
     [`/scripts/results/${timestamp}_summary.json`]: JSON.stringify(data, null, 2),
     
-    [`/scripts/results/${timestamp}_report.html`]: htmlReport(data),
+    //[`/scripts/results/${timestamp}_report.html`]: htmlReport(data),
     
-    [`/scripts/results/${timestamp}_summary.txt`]: textSummary(data, { indent: ' ', enableColors: false }),
+    //[`/scripts/results/${timestamp}_summary.txt`]: textSummary(data, { indent: ' ', enableColors: false }),
     
-    'stdout': textSummary(data, { indent: ' ', enableColors: true }),
+    //'stdout': textSummary(data, { indent: ' ', enableColors: true }),
   };
 }

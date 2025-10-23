@@ -6,28 +6,28 @@ WORKDIR /src
 COPY ["Domain/", "Domain/"]
 COPY ["Storage/", "Storage/"]
 COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
-COPY ["WebCLI/", "WebCLI/"]
+COPY ["WebAPI/", "WebAPI/"]
 
 # Восстанавливаем и строим
 RUN dotnet restore "Domain/Domain.csproj" && \
     dotnet restore "Storage/Storage.csproj" && \
     dotnet restore "ShedLoadAdapter/ShedLoadAdapter.csproj" && \
-    dotnet restore "WebCLI/WebCLI.csproj"
+    dotnet restore "WebAPI/WebAPI.csproj"
 
 RUN dotnet build "Domain/Domain.csproj" -c Release --no-restore && \
     dotnet build "Storage/Storage.csproj" -c Release --no-restore && \
     dotnet build "ShedLoadAdapter/ShedLoadAdapter.csproj" -c Release --no-restore && \
-    dotnet build "WebCLI/WebCLI.csproj" -c Release --no-restore
+    dotnet build "WebAPI/WebAPI.csproj" -c Release --no-restore
 
 # Публикуем приложение
-RUN dotnet publish "WebCLI/WebCLI.csproj" -c Release -o /app/publish --no-restore --no-build
+RUN dotnet publish "WebAPI/WebAPI.csproj" -c Release -o /app/publish --no-restore --no-build
 
 # Финальный образ
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS runtime
 WORKDIR /app
 
-# Устанавливаем PostgreSQL клиент (для health checks)
-RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+# Устанавливаем curl для healthcheck
+RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 # Копируем собранное приложение
 COPY --from=build /app/publish .
@@ -39,4 +39,4 @@ ENV ASPNETCORE_ENVIRONMENT=Development
 EXPOSE 5234
 
 # Запускаем приложение
-ENTRYPOINT ["dotnet", "WebCLI.dll"]
+ENTRYPOINT ["dotnet", "WebAPI.dll"]

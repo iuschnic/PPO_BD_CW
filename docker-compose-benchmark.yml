@@ -30,11 +30,10 @@ services:
       postgres:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5234/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
       interval: 10s
       timeout: 5s
       retries: 10
-      start_period: 30s
 
   # Бенчмарк k6
   benchmark:
@@ -45,7 +44,20 @@ services:
       webcli:
         condition: service_healthy
     volumes:
-      - ./k6-results:/scripts/results
+      - ./k6_results/benchmark:/scripts/results
+  
+  # Сбор метрик по CPU, RAM
+  metrics:
+    build:
+      context: ./metrics_collector
+      dockerfile: Dockerfile.metrics
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./k6_results/metrics:/scripts/results
+    depends_on:
+      - benchmark
+    environment:
+      - RESULTS_DIR=/scripts/results
 
 
 volumes:

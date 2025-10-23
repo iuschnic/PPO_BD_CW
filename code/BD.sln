@@ -31,7 +31,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderService", "Mes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderDomain", "MessageSenderDomain\MessageSenderDomain.csproj", "{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebCLI", "WebCLI\WebCLI.csproj", "{CB62004F-ED30-4DB7-B126-CF22394944A3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI", "WebCLI\WebAPI.csproj", "{CB62004F-ED30-4DB7-B126-CF22394944A3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{34F2F393-0A18-4BD8-9A60-8AA835417A2E}"
 EndProject
