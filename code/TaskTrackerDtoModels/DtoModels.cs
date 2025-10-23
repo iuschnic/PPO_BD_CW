@@ -1,8 +1,7 @@
-﻿// DTO Classes based on your business logic
-using Domain.Models;
+﻿using Domain.Models;
 using Types;
 
-namespace WebCLI.Models;
+namespace TaskTrackerDtoModels;
 
 public class RegisterRequestDto
 {

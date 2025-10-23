@@ -2,6 +2,7 @@
 using MessageSenderDomain.Models;
 using System.Text;
 using System.Text.Json;
+using TaskTrackerDtoModels;
 namespace MessageSenderTaskTrackerClient;
 
 public class TaskTrackerClient : ITaskTrackerClient
@@ -56,18 +57,4 @@ public class TaskTrackerClient : ITaskTrackerClient
             TimeOnly.FromTimeSpan(dto.End)
         );
     }
-}
-
-public class UserHabitInfoDto
-{
-    public string UserName { get; set; } = string.Empty;
-    public string HabitName { get; set; } = string.Empty;
-    public TimeSpan Start { get; set; }
-    public TimeSpan End { get; set; }
-}
-
-public class LoginRequestDto
-{
-    public string UserName { get; set; } = string.Empty;
-    public string Password { get; set; } = string.Empty;
 }

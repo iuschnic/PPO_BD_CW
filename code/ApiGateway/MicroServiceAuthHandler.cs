@@ -1,20 +1,25 @@
 ﻿using Ocelot.Logging;
 using System.Net;
 
+public record MicroserviceAuthHandlerArgs
+{
+    public required string SecretKey { get; set; }
+}
+
 public class MicroserviceAuthHandler : DelegatingHandler
 {
     private readonly IOcelotLogger _logger;
-    private const string MicroserviceSecret = "microservice-secret-key-2024";
+    private readonly string _secretKey;
 
-    public MicroserviceAuthHandler(IOcelotLoggerFactory loggerFactory)
+    public MicroserviceAuthHandler(IOcelotLoggerFactory loggerFactory, MicroserviceAuthHandlerArgs args)
     {
         _logger = loggerFactory.CreateLogger<MicroserviceAuthHandler>();
+        _secretKey = args.SecretKey;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(
         HttpRequestMessage request, CancellationToken cancellationToken)
     {
-        // Проверяем заголовок микросервиса
         if (!request.Headers.Contains("X-Microservice-Auth"))
         {
             _logger.LogWarning($"Missing microservice auth header for request to {request.RequestUri}");
@@ -22,7 +27,7 @@ public class MicroserviceAuthHandler : DelegatingHandler
         }
 
         var authHeader = request.Headers.GetValues("X-Microservice-Auth").FirstOrDefault();
-        if (authHeader != MicroserviceSecret)
+        if (authHeader != _secretKey)
         {
             _logger.LogWarning($"Missing microservice auth header for request to {request.RequestUri}");
             return CreateUnauthorizedResponse("Invalid microservice authentication");

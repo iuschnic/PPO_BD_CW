@@ -1,23 +1,20 @@
 ﻿using Domain.InPorts;
 using Microsoft.AspNetCore.Mvc;
-using WebCLI.Models;
+using TaskTrackerDtoModels;
 
-namespace WebCLI.Controllers;
+namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/v1/internal")]
 public class InternalController : ControllerBase
 {
-    private readonly ITaskTracker _taskTracker;
     private readonly IMessageSenderProvider _messageSenderProvider;
     private readonly ILogger<InternalController> _logger;
 
     public InternalController(
-        ITaskTracker taskTracker,
         IMessageSenderProvider messageSenderProvider,
         ILogger<InternalController> logger)
     {
-        _taskTracker = taskTracker;
         _messageSenderProvider = messageSenderProvider;
         _logger = logger;
     }

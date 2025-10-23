@@ -8,6 +8,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\MessageSenderDomain\MessageSenderDomain.csproj" />
+    <ProjectReference Include="..\TaskTrackerDtoModels\TaskTrackerDtoModels.csproj" />
   </ItemGroup>
 
 </Project>

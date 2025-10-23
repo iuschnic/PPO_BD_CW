@@ -21,6 +21,7 @@
     <ProjectReference Include="..\Domain\Domain.csproj" />
     <ProjectReference Include="..\ShedLoadAdapter\ShedLoadAdapter.csproj" />
     <ProjectReference Include="..\Storage\Storage.csproj" />
+    <ProjectReference Include="..\TaskTrackerDtoModels\TaskTrackerDtoModels.csproj" />
   </ItemGroup>
 
   <ItemGroup>

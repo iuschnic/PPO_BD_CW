@@ -1,10 +1,9 @@
 ﻿using Domain.Exceptions;
 using Domain.InPorts;
-using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
-using WebCLI.Models;
+using TaskTrackerDtoModels;
 
-namespace WebCLI.Controllers;
+namespace WebAPI.Controllers;
 
 [ApiController]
 [Route("api/v1/users/{username}/notifications")]
