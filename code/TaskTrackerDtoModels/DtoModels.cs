@@ -203,6 +203,23 @@ public static class DtoMapper
             countInWeek: dto.CountInWeek
         );
     }
+    public static Habit MapToDomain(HabitDto dto)
+    {
+        return new Habit(
+            id: dto.Id,
+            name: dto.Name,
+            mins_to_complete: dto.MinsToComplete,
+            option: dto.Option,
+            user_name: dto.UserNameID,
+            actual_timings: dto.ActualTimings.Select(MapToDomain).ToList(),
+            pref_fixed_timings: dto.PrefFixedTimings.Select(MapToDomain).ToList(),
+            countInWeek: dto.CountInWeek
+        );
+    }
+    public static List<Habit> MapToDomain(List<HabitDto> dtos)
+    {
+        return dtos.Select(MapToDomain).ToList();
+    }
 
     // ActualTime mappings
     public static ActualTimeDto MapToDto(ActualTime domain)
@@ -289,6 +306,23 @@ public static class DtoMapper
             eDate: dto.EDate
         );
     }
+    public static Event MapToDomain(EventDto dto)
+    {
+        return new Event(
+            id: dto.Id,
+            name: dto.Name,
+            start: TimeOnly.FromTimeSpan(dto.Start),
+            end: TimeOnly.FromTimeSpan(dto.End),
+            userNameID: dto.UserNameID,
+            option: dto.Option,
+            day: dto.Day,
+            eDate: dto.EDate
+        );
+    }
+    public static List<Event> MapToDomain(List<EventDto> dtos)
+    {
+        return dtos.Select(MapToDomain).ToList();
+    }
 
     // UserSettings mappings
     public static UserSettingsDto MapToDto(UserSettings domain)
@@ -356,6 +390,11 @@ public static class DtoMapper
             Events = domain.Events?.Select(MapToDto).ToList() ?? new List<EventDto>(),
             Settings = MapToDto(domain.Settings)
         };
+    }
+    public static User MapToDomain(UserDto dto)
+    {
+        return new User(dto.NameID, dto.PasswordHash, MapToDomain(dto.Number), MapToDomain(dto.Settings),
+            MapToDomain(dto.Habits), MapToDomain(dto.Events));
     }
 
     // Notification timing mappings
