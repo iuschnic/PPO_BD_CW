@@ -13,7 +13,7 @@ public class MessageSender
     private readonly ITelegramBotClient _botClient;
     private readonly IMessageRepo _messageRepo;
     private readonly ISubscriberRepo _subscribersRepo;
-    private readonly ITaskTrackerClient _taskTrackerClient;
+    private readonly ISenderTaskTrackerClient _taskTrackerClient;
     private readonly CancellationTokenSource _cts = new();
 
     private enum RegistrationState
@@ -35,7 +35,7 @@ public class MessageSender
     private const int timeout_err = 1;
 
     public MessageSender(string botToken, IMessageRepo messageRepo, 
-        ISubscriberRepo subscriberRepo, ITaskTrackerClient taskTrackerClient)
+        ISubscriberRepo subscriberRepo, ISenderTaskTrackerClient taskTrackerClient)
     {
         _botClient = new TelegramBotClient(botToken);
         _messageRepo = messageRepo;

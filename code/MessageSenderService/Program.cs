@@ -36,7 +36,7 @@ class Program
             botToken,
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<ISubscriberRepo>(),
-            serviceProvider.GetRequiredService<ITaskTrackerClient>());
+            serviceProvider.GetRequiredService<ISenderTaskTrackerClient>());
 
         Console.CancelKeyPress += async (sender, e) =>
         {
@@ -56,7 +56,7 @@ class Program
         services.AddSingleton<ISubscriberRepo, EfSubscriberRepo>();
         services.AddDbContext<MessageSenderDBContext>(options =>
             options.UseNpgsql(connString));
-        services.AddHttpClient<ITaskTrackerClient, TaskTrackerClient>((provider, client) =>
+        services.AddHttpClient<ISenderTaskTrackerClient, WebSenderTaskTrackerClient>((provider, client) =>
         {
             client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(30);

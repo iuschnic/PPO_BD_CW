@@ -1,18 +1,18 @@
-﻿using MessageSenderDomain.OutPorts;
-using MessageSenderDomain.Models;
-using System.Text;
+﻿using System.Text;
 using System.Text.Json;
 using TaskTrackerDtoModels;
 namespace MessageSenderTaskTrackerClient;
 
-public class TaskTrackerClient : ITaskTrackerClient
+public class WebPublicTaskTrackerClient
 {
     private readonly HttpClient _httpClient;
 
-    public TaskTrackerClient(HttpClient httpClient)
+    public WebPublicTaskTrackerClient(HttpClient httpClient)
     {
         _httpClient = httpClient;
     }
+
+    public async 
 
     public async Task<List<UserHabitInfo>?> GetUsersToNotifyAsync()
     {
@@ -58,3 +58,4 @@ public class TaskTrackerClient : ITaskTrackerClient
         );
     }
 }
+
