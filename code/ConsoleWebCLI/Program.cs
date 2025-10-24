@@ -4,11 +4,10 @@ using Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
-
 using MessageSenderTaskTrackerClient;
 class Program
 {
-    private static Habit? ParseHabit(WebPublicTaskTrackerClient task_service, string user_name)
+    private static Habit? ParseHabit(string user_name)
     {
         Guid g = Guid.NewGuid();
         Console.WriteLine("Введите название привычки:");
@@ -77,7 +76,7 @@ class Program
         Habit habit = new Habit(g, name, mins, (TimeOption)opt, user_name, [], timings, ndays);
         return habit;
     }
-    private static void LoggedCycle(WebPublicTaskTrackerClient task_service, User user)
+    private async static Task LoggedCycle(IPublicTaskTrackerClient task_service, User user)
     {
         while (true)
         {
@@ -103,12 +102,20 @@ class Program
                     }
                     try
                     {
-                        ret = task_service.ImportNewShedule(user.NameID, path);
-                        if (ret == null)
+                        if (!File.Exists(path))
                         {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
+                            Console.WriteLine($"\nФайл '{path}' не найден\n");
+                            break;
                         }
+                        var extension = Path.GetExtension(path).ToLowerInvariant();
+                        if (extension != ".csv" && extension != ".ics")
+                        {
+                            Console.WriteLine($"\nНеподдерживаемый формат файла: {extension}. Поддерживаются только .csv и .ics\n");
+                            break;
+                        }
+                        using var stream = File.OpenRead(path);
+
+                        ret = await task_service.ImportNewScheduleAsync(user.NameID, stream, extension);
                         user = ret.Item1;
                         undistributed = ret.Item2;
                         Console.WriteLine("\nРасписание было успешно импортировано, нераспределенные привычки:\n");
@@ -126,17 +133,12 @@ class Program
                     }
                     break;
                 case 2:
-                    var habit = ParseHabit(task_service, user.NameID);
+                    var habit = ParseHabit(user.NameID);
                     if (habit == null)
                         break;
                     try
                     {
-                        ret = task_service.AddHabit(habit);
-                        if (ret == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
+                        ret = await task_service.AddHabitAsync(habit);
                         user = ret.Item1;
                         undistributed = ret.Item2;
                         Console.WriteLine("\nПривычка была успешно добавлена, нераспределенные привычки:\n");
@@ -163,12 +165,7 @@ class Program
                     }
                     try
                     {
-                        ret = task_service.DeleteHabit(user.NameID, name);
-                        if (ret == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
+                        ret = await task_service.DeleteHabitAsync(user.NameID, name);
                         user = ret.Item1;
                         undistributed = ret.Item2;
                         Console.WriteLine("\nПривычка была удалена\n");
@@ -188,12 +185,7 @@ class Program
 
                     try
                     {
-                        ret = task_service.DeleteHabits(user.NameID);
-                        if (ret == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
+                        ret = await task_service.DeleteHabitsAsync(user.NameID);
                         user = ret.Item1;
                         Console.WriteLine("\nПривычки были успешно удалены\n");
                         Console.WriteLine();
@@ -208,15 +200,7 @@ class Program
 
                     try
                     {
-                        var settings = new UserSettings(user.Settings.Id, true, user.Settings.UserNameID,
-                            user.Settings.SettingsTimes);
-                        var tmpuser = task_service.ChangeSettings(settings);
-                        if (tmpuser == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
-                        user = tmpuser;
+                        user = await task_service.ChangeSettingsAsync(null, true, user.NameID);
                         Console.WriteLine("\nУведомления разрешены\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -230,15 +214,7 @@ class Program
 
                     try
                     {
-                        var settings = new UserSettings(user.Settings.Id, false, user.Settings.UserNameID,
-                            user.Settings.SettingsTimes);
-                        var tmpuser = task_service.ChangeSettings(settings);
-                        if (tmpuser == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
-                        user = tmpuser;
+                        user = await task_service.ChangeSettingsAsync(null, false, user.NameID);
                         Console.WriteLine("\nУведомления запрещены\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -252,7 +228,7 @@ class Program
 
                     try
                     {
-                        List<SettingsTime> timings = [];
+                        List<Tuple<TimeOnly, TimeOnly>> timings = [];
                         Console.WriteLine("\nВведите новые временные интервалы запрета уведомлений по одному в строке (hh:mm hh:mm):\n");
                         while (true)
                         {
@@ -277,16 +253,9 @@ class Program
                             {
                                 break;
                             }
-                            timings.Add(new SettingsTime(Guid.NewGuid(), start, end, user.Settings.Id));
+                            timings.Add(Tuple.Create(start, end));
                         }
-                        var settings = new UserSettings(user.Settings.Id, user.Settings.NotifyOn, user.Settings.UserNameID, timings);
-                        var tmpuser = task_service.ChangeSettings(settings);
-                        if (tmpuser == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
-                        user = tmpuser;
+                        user = await task_service.ChangeSettingsAsync(timings, null, user.NameID);
                         Console.WriteLine("\nЗапрещенное время посылки уведомлений изменено\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -312,13 +281,13 @@ class Program
                     {
                         try
                         {
-                            task_service.DeleteUser(user.NameID);
+                            await task_service.DeleteUserAsync(user.NameID);
                             Console.WriteLine("\nУчетная запись успешно удалена\n");
                             return;
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            Console.WriteLine(ex.Message);
                         }
                     }
                     else
@@ -328,7 +297,7 @@ class Program
             }
         }
     }
-    private static User? LogIn(ITaskTracker task_service)
+    private async static Task<User?> LogIn(IPublicTaskTrackerClient task_service)
     {
         string? user_name, password;
         Console.WriteLine("Введите имя пользователя:");
@@ -345,16 +314,18 @@ class Program
             Console.WriteLine("Ошибка ввода");
             return null;
         }
-        User? user = task_service.LogIn(user_name, password);
-        if (user == null)
+        try
         {
-            Console.WriteLine("Неверные логин или пароль");
+            var user = await task_service.LogInAsync(user_name, password);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
             return null;
         }
-        else
-            return user;
     }
-    private static User? CreateUser(WebPublicTaskTrackerClient task_service)
+    private async static Task<User?> CreateUser(IPublicTaskTrackerClient task_service)
     {
         string? user_name, phone_string, password;
         PhoneNumber phone_number;
@@ -388,16 +359,18 @@ class Program
             Console.WriteLine("Ошибка ввода");
             return null;
         }
-        User? user = task_service.CreateUser(user_name, phone_number, password);
-        if (user == null)
+        try
         {
-            Console.WriteLine("Пользователь с заданным логином уже существует");
+            var user = await task_service.CreateUserAsync(user_name, phone_number, password);
+            return user;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
             return null;
         }
-        else
-            return user;
     }
-    private static void LogInCycle(WebPublicTaskTrackerClient task_service)
+    private async static Task LogInCycle(IPublicTaskTrackerClient task_service)
     {
         int opt;
         User? user;
@@ -409,17 +382,17 @@ class Program
             switch (opt)
             {
                 case 1:
-                    user = CreateUser(task_service);
+                    user = await CreateUser(task_service);
                     if (user == null)
                         break;
                     Console.Write(user);
                     break;
                 case 2:
-                    user = LogIn(task_service);
+                    user = await LogIn(task_service);
                     if (user == null)
                         break;
                     Console.Write(user);
-                    LoggedCycle(task_service, user);
+                    await LoggedCycle(task_service, user);
                     break;
                 case 3:
                     Log.CloseAndFlush();
@@ -427,28 +400,29 @@ class Program
             }
         }
     }
-    static void Main()
+    static async Task Main()
     {
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
             .Build();
+        var baseUrl = configuration.GetValue<string>("BaseUrl");
+        if (baseUrl == null)
+        {
+            Console.WriteLine("Ошибка чтения конфигурации");
+            return;
+        }
         Log.Logger = new LoggerConfiguration()
             .ReadFrom.Configuration(configuration)
             .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
             .CreateLogger();
         try
         {
-            var serviceProvider = new ServiceCollection()
-                .AddSingleton<IConfiguration>(configuration)
-                .AddLogging(loggingBuilder =>
-                {
-                    loggingBuilder.ClearProviders();
-                    loggingBuilder.AddSerilog();
-                })
-                .BuildServiceProvider();
-            var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
-            LogInCycle(taskService);
+            var services = new ServiceCollection();
+            ConfigureServices(services, baseUrl, configuration);
+            var serviceProvider = services.BuildServiceProvider();
+            var taskService = serviceProvider.GetRequiredService<IPublicTaskTrackerClient>();
+            await LogInCycle(taskService);
         }
         catch (Exception ex)
         {
@@ -458,5 +432,19 @@ class Program
         {
             Log.CloseAndFlush();
         }
+    }
+    static void ConfigureServices(IServiceCollection services, string baseUrl, IConfigurationRoot configuration)
+    {
+        services.AddSingleton<IConfiguration>(configuration)
+                .AddLogging(loggingBuilder =>
+                {
+                    loggingBuilder.ClearProviders();
+                    loggingBuilder.AddSerilog();
+                });
+        services.AddHttpClient<IPublicTaskTrackerClient, WebPublicTaskTrackerClient>((provider, client) =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(10);
+        });
     }
 }

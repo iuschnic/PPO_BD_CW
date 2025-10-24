@@ -6,7 +6,19 @@ using TaskTrackerDtoModels;
 using Types;
 namespace MessageSenderTaskTrackerClient;
 
-public class WebPublicTaskTrackerClient
+public interface IPublicTaskTrackerClient
+{
+    Task<User> CreateUserAsync(string username, PhoneNumber phone_number, string password);
+    Task<User> LogInAsync(string username, string password);
+    Task<Tuple<User, List<Habit>>> ImportNewScheduleAsync(string user_name, Stream stream, string extension);
+    Task<Tuple<User, List<Habit>>> AddHabitAsync(Habit habit);
+    Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string user_name, string name);
+    Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string name);
+    Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name);
+    Task DeleteUserAsync(string username);
+}
+
+public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
 {
     private readonly HttpClient _httpClient;
 
@@ -14,7 +26,7 @@ public class WebPublicTaskTrackerClient
     {
         _httpClient = httpClient;
     }
-    public async Task<User?> CreateUserAsync(string username, PhoneNumber phone_number, string password)
+    public async Task<User> CreateUserAsync(string username, PhoneNumber phone_number, string password)
     {
         var request = new RegisterRequestDto
         {
@@ -29,15 +41,16 @@ public class WebPublicTaskTrackerClient
         var response = await _httpClient.PostAsync("/api/v1/auth/register", content);
 
         if (!response.IsSuccessStatusCode)
-            return null;
+            throw new Exception("Ошибка создания пользорвателя");
 
         var userDto = await response.Content.ReadFromJsonAsync<UserDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-        return userDto != null ? DtoMapper.MapToDomain(userDto) : null;
+        if (userDto == null)
+            throw new Exception("Ошибка создания пользорвателя");
+        return DtoMapper.MapToDomain(userDto);
     }
 
-    public async Task<User?> LogInAsync(string username, string password)
+    public async Task<User> LogInAsync(string username, string password)
     {
         var request = new LoginRequestDto
         {
@@ -48,18 +61,27 @@ public class WebPublicTaskTrackerClient
         var jsonContent = JsonSerializer.Serialize(request);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PostAsync("/api/v1/auth/login", content);
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var response = await _httpClient.PostAsync("/api/v1/auth/login", content, cts.Token);
+            if (!response.IsSuccessStatusCode)
+                throw new Exception("Ошибка входа");
 
-        if (!response.IsSuccessStatusCode)
-            return null;
-
-        var userDto = await response.Content.ReadFromJsonAsync<UserDto>(
-            new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-
-        return userDto != null ? DtoMapper.MapToDomain(userDto) : null;
+            var userDto = await response.Content.ReadFromJsonAsync<UserDto>(
+                new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            if (userDto == null)
+                throw new Exception("Ошибка входа");
+            return DtoMapper.MapToDomain(userDto);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
     }
 
-    public async Task<Tuple<User, List<Habit>>?> AddHabitAsync(Habit habit)
+    public async Task<Tuple<User, List<Habit>>> AddHabitAsync(Habit habit)
     {
         var habitDataDto = DtoMapper.MapToDto(habit);
 
@@ -69,13 +91,13 @@ public class WebPublicTaskTrackerClient
         var response = await _httpClient.PostAsync($"/api/v1/users/{habit.UserNameID}/habits", content);
 
         if (!response.IsSuccessStatusCode)
-            return null;
+            throw new Exception("Ошибка создания привычки");
 
         var resultDto = await response.Content.ReadFromJsonAsync<DistributionResultDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         if (resultDto == null)
-            return null;
+            throw new Exception("Ошибка создания привычки");
 
         var user = DtoMapper.MapToDomain(resultDto.User);
 
@@ -84,18 +106,18 @@ public class WebPublicTaskTrackerClient
         return new Tuple<User, List<Habit>>(user, habits);
     }
 
-    public async Task<Tuple<User, List<Habit>>?> DeleteHabitAsync(string user_name, string name)
+    public async Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string user_name, string name)
     {
         var response = await _httpClient.DeleteAsync($"/api/v1/users/{user_name}/habits/{name}");
 
         if (!response.IsSuccessStatusCode)
-            return null;
+            throw new Exception("Ошибка удаления привычки");
 
         var resultDto = await response.Content.ReadFromJsonAsync<DistributionResultDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         if (resultDto == null)
-            return null;
+            throw new Exception("Ошибка удаления привычки");
 
         var user = DtoMapper.MapToDomain(resultDto.User);
         var habits = resultDto.NonDistributedHabits.Select(DtoMapper.MapToDomain).ToList();
@@ -103,18 +125,18 @@ public class WebPublicTaskTrackerClient
         return new Tuple<User, List<Habit>>(user, habits);
     }
 
-    public async Task<Tuple<User, List<Habit>>?> DeleteHabitsAsync(string user_name)
+    public async Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string user_name)
     {
         var response = await _httpClient.DeleteAsync($"/api/v1/users/{user_name}/habits");
 
         if (!response.IsSuccessStatusCode)
-            return null;
+            throw new Exception("Ошибка удаления привычек");
 
         var resultDto = await response.Content.ReadFromJsonAsync<DistributionResultDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         if (resultDto == null)
-            return null;
+            throw new Exception("Ошибка удаления привычек");
 
         var user = DtoMapper.MapToDomain(resultDto.User);
         var habits = resultDto.NonDistributedHabits.Select(DtoMapper.MapToDomain).ToList();
@@ -122,7 +144,8 @@ public class WebPublicTaskTrackerClient
         return new Tuple<User, List<Habit>>(user, habits);
     }
 
-    public async Task<User?> UpdateNotificationSettingsAsync(string username, List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn)
+    public async Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings,
+        bool? notifyOn, string username)
     { 
         var notificationSettings = new NotificationSettingsDto
         {
@@ -137,18 +160,20 @@ public class WebPublicTaskTrackerClient
         var jsonContent = JsonSerializer.Serialize(notificationSettings);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PatchAsync($"/api/v1/users/{username}/settings/change_settings", content);
+        var response = await _httpClient.PatchAsync($"/api/v1/users/{username}/notifications/change_settings", content);
 
         if (!response.IsSuccessStatusCode)
-            return null;
+            throw new Exception("Ошибка обновления настроек");
 
         var userDto = await response.Content.ReadFromJsonAsync<UserDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+        if (userDto == null)
+            throw new Exception("Ошибка обновления настроек");
 
-        return userDto != null ? DtoMapper.MapToDomain(userDto) : null;
+        return DtoMapper.MapToDomain(userDto);
     }
 
-    public async Task<Tuple<User, List<Habit>>?> ImportNewScheduleAsync(string user_name, Stream stream, string extension)
+    public async Task<Tuple<User, List<Habit>>> ImportNewScheduleAsync(string user_name, Stream stream, string extension)
     {
         var formData = new MultipartFormDataContent
         {
@@ -158,13 +183,13 @@ public class WebPublicTaskTrackerClient
         var response = await _httpClient.PostAsync($"/api/v1/users/{user_name}/schedule/import", formData);
 
         if (!response.IsSuccessStatusCode)
-            return null;
+            throw new Exception("Ошибка импорта расписания");
 
         var resultDto = await response.Content.ReadFromJsonAsync<DistributionResultDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
 
         if (resultDto == null)
-            return null;
+            throw new Exception("Ошибка импорта расписания");
 
         var user = DtoMapper.MapToDomain(resultDto.User);
         var habits = resultDto.NonDistributedHabits.Select(DtoMapper.MapToDomain).ToList();
@@ -172,10 +197,11 @@ public class WebPublicTaskTrackerClient
         return new Tuple<User, List<Habit>>(user, habits);
     }
 
-    public async Task<bool> DeleteUserAsync(string username)
+    public async Task DeleteUserAsync(string username)
     {
         var response = await _httpClient.DeleteAsync($"/api/v1/users/{username}");
-        return response.IsSuccessStatusCode;
+        if (!response.IsSuccessStatusCode)
+            throw new Exception("Ошибка удаления пользователя");
     }
 }
 
