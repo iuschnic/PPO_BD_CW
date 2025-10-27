@@ -24,8 +24,8 @@ services:
     ports:
       - "5000:5234"
     environment:
-      - ASPNETCORE_ENVIRONMENT=Development
       - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=password
+      - ENABLE_BENCHMARK=true
     depends_on:
       postgres:
         condition: service_healthy

@@ -7,17 +7,20 @@ COPY ["Domain/", "Domain/"]
 COPY ["Storage/", "Storage/"]
 COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
 COPY ["WebAPI/", "WebAPI/"]
+COPY ["TaskTrackerDtoModels/", "TaskTrackerDtoModels/"]
 
 # Восстанавливаем и строим
 RUN dotnet restore "Domain/Domain.csproj" && \
     dotnet restore "Storage/Storage.csproj" && \
     dotnet restore "ShedLoadAdapter/ShedLoadAdapter.csproj" && \
-    dotnet restore "WebAPI/WebAPI.csproj"
+    dotnet restore "WebAPI/WebAPI.csproj" && \
+	dotnet restore "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj"
 
 RUN dotnet build "Domain/Domain.csproj" -c Release --no-restore && \
     dotnet build "Storage/Storage.csproj" -c Release --no-restore && \
     dotnet build "ShedLoadAdapter/ShedLoadAdapter.csproj" -c Release --no-restore && \
-    dotnet build "WebAPI/WebAPI.csproj" -c Release --no-restore
+    dotnet build "WebAPI/WebAPI.csproj" -c Release --no-restore && \
+	dotnet build "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj" -c Release --no-restore
 
 # Публикуем приложение
 RUN dotnet publish "WebAPI/WebAPI.csproj" -c Release -o /app/publish --no-restore --no-build
@@ -33,7 +36,6 @@ RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 COPY --from=build /app/publish .
 
 ENV ASPNETCORE_URLS=http://0.0.0.0:5234
-ENV ASPNETCORE_ENVIRONMENT=Development
 
 # Открываем порт
 EXPOSE 5234

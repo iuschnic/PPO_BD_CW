@@ -3,5 +3,4 @@ WORKDIR /scripts
 COPY ["benchmark.js", "."]
 USER root
 RUN apk add --no-cache curl
-# Запускаем бенчмарк (будет переопределен в docker-compose)
 CMD ["run", "benchmark.js"]
