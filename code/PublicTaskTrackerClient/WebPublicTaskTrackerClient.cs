@@ -160,7 +160,7 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         var jsonContent = JsonSerializer.Serialize(notificationSettings);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PatchAsync($"/api/v1/users/{username}/notifications/change_settings", content);
+        var response = await _httpClient.PatchAsync($"/api/v1/users/{username}/notifications/change-settings", content);
 
         if (!response.IsSuccessStatusCode)
             throw new Exception("Ошибка обновления настроек");

@@ -128,7 +128,7 @@
 
     // ==================== NOTIFICATIONS MANAGEMENT ====================
     {
-      "DownstreamPathTemplate": "/api/v1/users/{username}/notifications/change_settings",
+      "DownstreamPathTemplate": "/api/v1/users/{username}/notifications/change-settings",
       "DownstreamScheme": "http",
       "DownstreamHostAndPorts": [
         {
@@ -136,7 +136,7 @@
           "Port": 5234
         }
       ],
-      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/change_settings",
+      "UpstreamPathTemplate": "/api/v1/users/{username}/notifications/change-settings",
       "UpstreamHttpMethod": [ "PATCH" ],
       "Key": "NotificationsOn"
     },
