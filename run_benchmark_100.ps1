@@ -2,7 +2,7 @@ Write-Host "Starting 100 benchmark iterations..." -ForegroundColor Green
 
 $successfulRuns = 0
 $failedRuns = 0
-$runs = 2
+$runs = 10
 
 for ($i = 1; $i -le $runs; $i++) {
     Write-Host "`n=== Iteration $i/$runs ===" -ForegroundColor Yellow

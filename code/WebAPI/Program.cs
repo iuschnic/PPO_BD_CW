@@ -9,6 +9,8 @@ using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using Serilog;
+using Serilog.Core;
+using Serilog.Events;
 using Storage.EfAdapters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Diagnostics;
@@ -17,12 +19,7 @@ using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
-
-var threadPoolSettings = configuration.GetSection("ThreadPoolSettings");
+var threadPoolSettings = builder.Configuration.GetSection("ThreadPoolSettings");
 ThreadPool.SetMinThreads(
     threadPoolSettings.GetValue<int>("MinWorkerThreads"),
     threadPoolSettings.GetValue<int>("MinCompletionPortThreads"));
@@ -31,18 +28,19 @@ ThreadPool.SetMaxThreads(
     threadPoolSettings.GetValue<int>("MaxCompletionPortThreads"));
 
 Log.Logger = new LoggerConfiguration()
-            .ReadFrom.Configuration(configuration)
-            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
-            .CreateLogger();
+    .ReadFrom.Configuration(builder.Configuration)
+    .Filter.With<BenchmarkLogFilter>()
+    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
+    .CreateLogger();
 
-builder.Services.AddSingleton<IConfiguration>(configuration);
+builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddScoped<IEventRepo, EfEventRepo>();
 builder.Services.AddScoped<IHabitRepo, EfHabitRepo>();
 builder.Services.AddScoped<IUserRepo, EfUserRepo>();
 builder.Services.AddScoped<ITaskTrackerContext, EfDbContext>();
 builder.Services.AddDbContext<EfDbContext>(options =>
                     options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-                          ?? configuration.GetConnectionString("PostgresConnection")));
+                          ?? builder.Configuration.GetConnectionString("PostgresConnection")));
 builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
 builder.Services.AddScoped<ITaskTracker, TaskTracker>();
 builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();
@@ -56,7 +54,7 @@ if (Environment.GetEnvironmentVariable("ENABLE_BENCHMARK") is string envVar &&
     bool.TryParse(envVar, out isBenchmark)) { }
 else
 {
-    isBenchmark = configuration.GetValue<bool>("Enable_benchmark");
+    isBenchmark = builder.Configuration.GetValue<bool>("Enable_benchmark");
 }
 if (isBenchmark)
     builder.Services.AddTransient<IConfigureOptions<MvcOptions>, BenchmarkFormattersOptions>();
@@ -217,7 +215,6 @@ public class BenchmarkOutputFormatter : TextOutputFormatter
     }
 }
 
-// Создаем класс для конфигурации
 public class BenchmarkFormattersOptions : IConfigureOptions<MvcOptions>
 {
     private readonly ILogger<BenchmarkInputFormatter> _inputLogger;
@@ -235,5 +232,15 @@ public class BenchmarkFormattersOptions : IConfigureOptions<MvcOptions>
     {
         options.InputFormatters.Insert(0, new BenchmarkInputFormatter(_inputLogger));
         options.OutputFormatters.Insert(0, new BenchmarkOutputFormatter(_outputLogger));
+    }
+}
+
+public class BenchmarkLogFilter : ILogEventFilter
+{
+    public bool IsEnabled(LogEvent logEvent)
+    {
+        if (logEvent.MessageTemplate.Text.Contains("BENCHMARK_"))
+            return true;
+        return logEvent.Level >= LogEventLevel.Warning;
     }
 }
