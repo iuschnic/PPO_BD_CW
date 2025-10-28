@@ -30,7 +30,7 @@ services:
       postgres:
         condition: service_healthy
     volumes:
-      - ./benchmark_results/serialization_time_results:/app/logs
+      - ./temp_serialization_time_results:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
       interval: 10s
@@ -46,7 +46,7 @@ services:
       webcli:
         condition: service_healthy
     volumes:
-      - ./benchmark_results/http_requests_summary:/scripts/results
+      - ./temp_http_requests_summary:/scripts/results
   
   # Сбор метрик по CPU, RAM
   metrics:
@@ -55,12 +55,11 @@ services:
       dockerfile: Dockerfile.metrics
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
-      - ./benchmark_results/cpu_mem_results:/scripts/results
+      - ./temp_cpu_mem_results:/scripts/results
     depends_on:
       - benchmark
     environment:
       - RESULTS_DIR=/scripts/results
-
 
 volumes:
   postgres_data:
