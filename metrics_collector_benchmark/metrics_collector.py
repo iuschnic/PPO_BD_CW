@@ -21,9 +21,9 @@ class DockerMetricsCollector:
             print("Available containers:")
             for container in containers:
                 print(f"  - {container.name} (Status: {container.status})")
-                if 'webapi' in container.name.lower():
-                    self.container_map['webapi'] = container.name
-                    self.metrics_data['webapi'] = {'cpu': [], 'memory': []}
+                if 'webcli' in container.name.lower():
+                    self.container_map['webcli'] = container.name
+                    self.metrics_data['webcli'] = {'cpu': [], 'memory': []}
                 elif 'postgres' in container.name.lower():
                     self.container_map['postgres'] = container.name
                     self.metrics_data['postgres'] = {'cpu': [], 'memory': []}

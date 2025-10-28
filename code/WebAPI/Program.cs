@@ -8,9 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
+using NodaTime.Extensions;
 using Serilog;
-using Serilog.Core;
-using Serilog.Events;
 using Storage.EfAdapters;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Diagnostics;
@@ -29,7 +28,6 @@ ThreadPool.SetMaxThreads(
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .Filter.With<BenchmarkLogFilter>()
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
     .CreateLogger();
 
@@ -232,15 +230,5 @@ public class BenchmarkFormattersOptions : IConfigureOptions<MvcOptions>
     {
         options.InputFormatters.Insert(0, new BenchmarkInputFormatter(_inputLogger));
         options.OutputFormatters.Insert(0, new BenchmarkOutputFormatter(_outputLogger));
-    }
-}
-
-public class BenchmarkLogFilter : ILogEventFilter
-{
-    public bool IsEnabled(LogEvent logEvent)
-    {
-        if (logEvent.MessageTemplate.Text.Contains("BENCHMARK_"))
-            return true;
-        return logEvent.Level >= LogEventLevel.Warning;
     }
 }
