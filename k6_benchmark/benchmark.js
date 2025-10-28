@@ -18,7 +18,6 @@ export const options = {
   },
 };
 
-// Используем имя сервиса из docker-compose
 const BASE_URL = 'http://webcli:5234/api/v1';
 
 const commonParams = {

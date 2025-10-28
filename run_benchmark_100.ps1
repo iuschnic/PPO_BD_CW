@@ -28,12 +28,12 @@ $failedRuns = 0
 $runs = 2
 
 Write-Host "Starting $runs benchmark iterations..." -ForegroundColor Green
-
-# Создаем основную папку для результатов если её нет
 $resultsBaseDir = "benchmark_results"
-if (-not (Test-Path $resultsBaseDir)) {
-    New-Item -ItemType Directory -Path $resultsBaseDir | Out-Null
+if (Test-Path $resultsBaseDir) {
+    Write-Host "Cleaning up previous benchmark results..." -ForegroundColor Yellow
+    Remove-Item $resultsBaseDir -Recurse -Force
 }
+New-Item -ItemType Directory -Path $resultsBaseDir | Out-Null
 
 for ($i = 1; $i -le $runs; $i++) {
     Write-Host "`n=== Iteration $i/$runs ===" -ForegroundColor Yellow

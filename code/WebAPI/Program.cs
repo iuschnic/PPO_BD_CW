@@ -153,11 +153,12 @@ public class BenchmarkInputFormatter : TextInputFormatter
             var result = JsonSerializer.Deserialize(jsonString, context.ModelType, _jsonOptions);
 
             stopwatch.Stop();
+            double nanoseconds = (double)stopwatch.ElapsedTicks / Stopwatch.Frequency * 1_000_000_000;
 
             _logger.LogInformation(
-                "[BENCHMARK_DESERIALIZE] Type: {ModelType}, TimeMs: {TimeMs}, SizeBytes: {Size}",
+                "[BENCHMARK_DESERIALIZE] Type: {ModelType}, TimeNs: {TimeNs}, SizeBytes: {Size}",
                 context.ModelType.Name,
-                stopwatch.ElapsedMilliseconds,
+                nanoseconds,
                 encoding.GetByteCount(jsonString));
 
             return InputFormatterResult.Success(result);
@@ -196,10 +197,12 @@ public class BenchmarkOutputFormatter : TextOutputFormatter
 
             stopwatch.Stop();
 
+            double nanoseconds = (double)stopwatch.ElapsedTicks / Stopwatch.Frequency * 1_000_000_000;
+
             _logger.LogInformation(
-                "[BENCHMARK_SERIALIZE] Type: {ObjectType}, TimeMs: {TimeMs}, SizeBytes: {Size}",
+                "[BENCHMARK_SERIALIZE] Type: {ObjectType}, TimeNs: {TimeNs}, SizeBytes: {Size}",
                 context.ObjectType.Name,
-                stopwatch.ElapsedMilliseconds,
+                nanoseconds,
                 encoding.GetByteCount(jsonString));
 
             await context.HttpContext.Response.WriteAsync(jsonString, encoding);

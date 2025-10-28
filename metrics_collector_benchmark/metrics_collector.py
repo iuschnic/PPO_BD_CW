@@ -33,31 +33,6 @@ class DockerMetricsCollector:
         except Exception as e:
             print(f"Error listing containers: {e}")
     
-    '''def get_container_stats(self, container_name):
-        """Получение метрик контейнера через Docker API"""
-        try:
-            container = self.client.containers.get(container_name)
-            stats = container.stats(stream=False)
-            
-            # CPU calculation
-            cpu_delta = stats['cpu_stats']['cpu_usage']['total_usage'] - stats['precpu_stats']['cpu_usage']['total_usage']
-            system_delta = stats['cpu_stats']['system_cpu_usage'] - stats['precpu_stats']['system_cpu_usage']
-            cpu_percent = 0.0
-            
-            if system_delta > 0 and cpu_delta > 0:
-                cpu_percent = (cpu_delta / system_delta) * 100.0 * stats['cpu_stats']['online_cpus']
-            
-            # Memory calculation (в MB)
-            memory_usage = stats['memory_stats']['usage'] / (1024 * 1024)
-            
-            return {
-                'cpu_percent': round(cpu_percent, 2),
-                'memory_mb': round(memory_usage, 2),
-                'timestamp': time.time()
-            }
-        except Exception as e:
-            print(f"Error getting stats for {container_name}: {e}")
-            return None'''
     def _calculate_cpu_percent(self, stats):
         """Расчет использования CPU в процентах"""
         try:
@@ -158,46 +133,6 @@ class DockerMetricsCollector:
         
         return stats_summary
     
-    def create_plots(self, results_dir):
-        """Создание графиков утилизации ресурсов"""
-        if not self.metrics_data:
-            print("No data to create plots")
-            return
-            
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        
-        for service_name in self.metrics_data.keys():
-            if not self.metrics_data[service_name]['cpu']:
-                print(f"No data for {service_name}, skipping plot")
-                continue
-                
-            # Создаем графики только для CPU и Memory
-            fig, axes = plt.subplots(1, 2, figsize=(15, 6))
-            fig.suptitle(f'Docker Resource Utilization - {service_name.capitalize()}', fontsize=16)
-            
-            time_points = list(range(len(self.metrics_data[service_name]['cpu'])))
-            
-            # CPU Usage
-            axes[0].plot(time_points, self.metrics_data[service_name]['cpu'], 'b-', linewidth=1, alpha=0.7)
-            axes[0].set_title('CPU Usage (%)')
-            axes[0].set_ylabel('CPU %')
-            axes[0].set_xlabel('Time (seconds)')
-            axes[0].grid(True, alpha=0.3)
-            
-            # Memory Usage
-            axes[1].plot(time_points, self.metrics_data[service_name]['memory'], 'r-', linewidth=1, alpha=0.7)
-            axes[1].set_title('Memory Usage (MB)')
-            axes[1].set_ylabel('Memory (MB)')
-            axes[1].set_xlabel('Time (seconds)')
-            axes[1].grid(True, alpha=0.3)
-            
-            plt.tight_layout()
-            plot_path = os.path.join(results_dir, f'{timestamp}_{service_name}_docker_resources.png')
-            plt.savefig(plot_path, dpi=300, bbox_inches='tight')
-            plt.close()
-            
-            print(f"Saved Docker metrics plot: {plot_path}")
-    
     def save_metrics(self, results_dir):
         """Сохранение метрик и статистики"""
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
@@ -241,10 +176,6 @@ def main():
     os.makedirs(results_dir, exist_ok=True)
     
     stats_summary = collector.save_metrics(results_dir)
-    #collector.create_plots(results_dir)
-    
-    #print("\n=== DOCKER RESOURCE USAGE SUMMARY ===")
-    #print(json.dumps(stats_summary, indent=2))
 
 if __name__ == "__main__":
     main()
