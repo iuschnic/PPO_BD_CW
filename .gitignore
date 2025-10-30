@@ -240,3 +240,4 @@ appsettings.*.json
 benchmark_results/
 aggregate_benchmark_results/final_results/
 aggregate_benchmark_results/libs/
+test_results/

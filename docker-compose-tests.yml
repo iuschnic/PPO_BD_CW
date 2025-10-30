@@ -6,7 +6,7 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: integrationdb  # Добавляем базу по умолчанию
+      POSTGRES_DB: integrationdb
     ports:
       - "5432:5432"
     healthcheck:
@@ -15,26 +15,26 @@ services:
       timeout: 5s
       retries: 5
     networks:
-      - my_persistent_network  # Добавляем постгрес в сеть
+      - my_persistent_network
 
   unit-tests:
     build:
       context: ./code
-      dockerfile: ../Dockerfile.unit
+      dockerfile: ../tests_dockerfiles/Dockerfile.unit
     volumes:
-      - ./test-results:/test-results
+      - ./test_results:/test-results
     depends_on:
       postgres:
         condition: service_healthy
     networks:
-      - my_persistent_network  # Добавляем unit-тесты в сеть
+      - my_persistent_network
 
   integration-tests:
     build:
       context: ./code
-      dockerfile: ../Dockerfile.integration
+      dockerfile: ../tests_dockerfiles/Dockerfile.integration
     volumes:
-      - ./test-results:/test-results
+      - ./test_results:/test-results
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,9 +64,9 @@ services:
   e2e-tests:
     build:
       context: ./code
-      dockerfile: ../Dockerfile.e2e
+      dockerfile: ../tests_dockerfiles/Dockerfile.e2e
     volumes:
-      - ./test-results:/test-results
+      - ./test_results:/test-results
     depends_on:
       postgres:
         condition: service_healthy
