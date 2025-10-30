@@ -76,18 +76,6 @@ public class MessageSender
                 List<DomainMessage> sentMessages = [];
                 foreach (var send in toSend)
                 {
-                    /*var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(send.TaskTrackerLogin);
-
-                    if (subscriber != null)
-                    {
-                        await _botClient.SendMessage(
-                            chatId: subscriber.Id,
-                            text: send.Text
-                        );
-                        cnt++;
-                        sentMessages.Add(new DomainMessage(send.Id, send.Text, send.TimeSent,
-                            send.TimeOutdated, send.WasSent, send.TaskTrackerLogin, send.SubscriberID));
-                    }*/
                     await _botClient.SendMessage(
                         chatId: send.SubscriberID,
                         text: send.Text
@@ -173,13 +161,8 @@ public class MessageSender
                 }
                 else if (state == RegistrationState.AwaitingPassword)
                 {
-                    /*var u = await _taskTrackerClient.TryLogInAsync(_tempLogins[chatId], text);
-                    if (u == null)
-                        await botClient.SendMessage(chatId, "Критическая ошибка, учетная запись не найдена.\n\n" + WelcomeMessage);
-                    else if (u != null && u.Password != text)
-                        await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);*/
                     if (!await _taskTrackerClient.TryLogInAsync(_tempLogins[chatId], text))
-                        await botClient.SendMessage(chatId, "Ошибка авторизации, попробуйте еще раз.\n\n" + WelcomeMessage);
+                        await botClient.SendMessage(chatId, "Ошибка авторизации, попробуйте ввести пароль еще раз.\n\n");
                     else
                     {
                         var subscriber = new Subscriber(chatId, _tempLogins[chatId], text,

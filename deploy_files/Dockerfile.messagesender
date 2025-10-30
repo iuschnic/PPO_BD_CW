@@ -1,0 +1,32 @@
+FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
+
+WORKDIR /src
+
+# Копируем исходный код
+COPY ["MessageSenderDomain/", "MessageSenderDomain/"]
+COPY ["MessageSenderStorage/", "MessageSenderStorage/"]
+COPY ["MessageSenderTaskTrackerClient/", "MessageSenderTaskTrackerClient/"]
+COPY ["TaskTrackerDtoModels/", "TaskTrackerDtoModels/"]
+COPY ["Domain/", "Domain/"]
+COPY ["MessageSenderService/", "MessageSenderService/"]
+
+# Восстанавливаем и строим
+RUN dotnet restore "Domain/Domain.csproj" && \
+	dotnet restore "MessageSenderDomain/MessageSenderDomain.csproj" && \
+    dotnet restore "MessageSenderStorage/MessageSenderStorage.csproj" && \
+    dotnet restore "MessageSenderTaskTrackerClient/MessageSenderTaskTrackerClient.csproj" && \
+	dotnet restore "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj" && \
+	dotnet restore "MessageSenderService/MessageSenderService.csproj"
+
+RUN dotnet build "Domain/Domain.csproj" -c Release --no-restore && \
+	dotnet build "MessageSenderDomain/MessageSenderDomain.csproj" -c Release --no-restore && \
+    dotnet build "MessageSenderStorage/MessageSenderStorage.csproj" -c Release --no-restore && \
+    dotnet build "MessageSenderTaskTrackerClient/MessageSenderTaskTrackerClient.csproj" -c Release --no-restore && \
+	dotnet build "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj" -c Release --no-restore && \
+	dotnet build "MessageSenderService/MessageSenderService.csproj" -c Release --no-restore
+
+# Публикуем приложение
+RUN dotnet publish "MessageSenderService/MessageSenderService.csproj" -c Release -o /app/publish
+
+WORKDIR /app/publish
+ENTRYPOINT ["dotnet", "MessageSenderService.dll"]

@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Документация TaskTracker API</title>
+    <!-- Marked.js - библиотека для преобразования markdown -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <!-- Highlight.js для подсветки синтаксиса -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            line-height: 1.6;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            color: #333;
+            background: #f8f9fa;
+        }
+        #content {
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+        }
+        pre {
+            background: #f6f8fa;
+            padding: 16px;
+            border-radius: 8px;
+            overflow-x: auto;
+            border: 1px solid #e1e4e8;
+        }
+        code {
+            background: #f6f8fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+            font-size: 0.9em;
+        }
+        a {
+            color: #0366d6;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+        a:hover {
+            color: #0256cc;
+            text-decoration: underline;
+        }
+        h1, h2, h3 {
+            border-bottom: 1px solid #eaecef;
+            padding-bottom: 10px;
+            margin-top: 2em;
+        }
+        h1 {
+            color: #24292e;
+            font-size: 2.5em;
+            margin-top: 0;
+        }
+        h2 {
+            color: #2c3e50;
+            font-size: 1.8em;
+        }
+        h3 {
+            color: #34495e;
+            font-size: 1.4em;
+        }
+        blockquote {
+            border-left: 4px solid #dfe2e5;
+            padding-left: 20px;
+            margin-left: 0;
+            color: #6a737d;
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 0 8px 8px 0;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            border: 1px solid #e1e4e8;
+        }
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin: 20px 0;
+        }
+        th, td {
+            border: 1px solid #dfe2e5;
+            padding: 12px;
+            text-align: left;
+        }
+        th {
+            background: #f6f8fa;
+            font-weight: 600;
+        }
+        tr:nth-child(even) {
+            background: #fafbfc;
+        }
+        .image-container {
+            text-align: center;
+            margin: 30px 0;
+        }
+        .image-container img {
+            max-width: 90%;
+        }
+        .image-caption {
+            color: #6a737d;
+            font-style: italic;
+            margin-top: 8px;
+            font-size: 0.9em;
+        }
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #6a737d;
+        }
+    </style>
+</head>
+<body>
+    <div id="content">
+        <div class="loading">
+            <p>Загрузка документации...</p>
+        </div>
+    </div>
+    
+    <script>
+        // Функция для исправления путей к изображениям
+        function fixImagePaths(markdown) {
+            // Заменяем относительные пути на абсолютные
+            return markdown.replace(
+                /!\[(.*?)\]\((.*?)\)/g, 
+                function(match, altText, imagePath) {
+                    // Если путь уже абсолютный, оставляем как есть
+                    if (imagePath.startsWith('http')) {
+                        return match;
+                    }
+                    // Если путь относительный, делаем абсолютным
+                    if (imagePath.startsWith('./')) {
+                        return `![${altText}](/static/${imagePath.substring(2)})`;
+                    }
+                    // Для остальных случаев
+                    return `![${altText}](/static/${imagePath})`;
+                }
+            );
+        }
+
+        // Загружаем markdown файл и преобразуем его
+        fetch('/static/readme.md')
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Ошибка загрузки файла: ' + response.status);
+                }
+                return response.text();
+            })
+            .then(markdown => {
+                // Исправляем пути к изображениям
+                const fixedMarkdown = fixImagePaths(markdown);
+                
+                // Настраиваем marked
+                marked.setOptions({
+                    highlight: function(code, lang) {
+                        if (lang && hljs.getLanguage(lang)) {
+                            try {
+                                return hljs.highlight(code, { language: lang }).value;
+                            } catch (err) {
+                                console.warn('Ошибка подсветки для языка:', lang, err);
+                            }
+                        }
+                        return hljs.highlightAuto(code).value;
+                    },
+                    breaks: true,
+                    gfm: true
+                });
+                
+                // Преобразуем markdown в HTML
+                const html = marked.parse(fixedMarkdown);
+                document.getElementById('content').innerHTML = html;
+                
+                // Применяем подсветку синтаксиса ко всем блокам кода
+                document.querySelectorAll('pre code').forEach((block) => {
+                    hljs.highlightElement(block);
+                });
+                
+                // Добавляем обработчики для изображений (опционально)
+                document.querySelectorAll('img').forEach(img => {
+                    img.addEventListener('click', function() {
+                        window.open(this.src, '_blank');
+                    });
+                    img.style.cursor = 'pointer';
+                });
+            })
+            .catch(error => {
+                document.getElementById('content').innerHTML = 
+                    '<div style="color: #d73a49; padding: 20px; background: #ffeef0; border-radius: 8px; border: 1px solid #d73a49;">' +
+                    '<h3>❌ Ошибка загрузки документации</h3>' +
+                    '<p>' + error.message + '</p>' +
+                    '<p>Проверьте:</p>' +
+                    '<ul>' +
+                    '<li>Файл readme.md существует в папке static</li>' +
+                    '<li>Файл имеет правильную кодировку UTF-8</li>' +
+                    '<li>Nginx настроен для отдачи статических файлов</li>' +
+                    '</ul>' +
+                    '</div>';
+                console.error('Ошибка:', error);
+            });
+    </script>
+</body>
+</html>

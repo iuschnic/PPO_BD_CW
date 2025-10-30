@@ -17,8 +17,10 @@ class Program
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.secrets.json", optional: false, reloadOnChange: true)
             .Build();
-        var baseUrl = configuration.GetValue<string>("BaseUrl");
-        var connString = configuration.GetConnectionString("PostgresConnection");
+        var baseUrl = Environment.GetEnvironmentVariable("BASE_URL")
+            ?? configuration.GetValue<string>("BaseUrl");
+        var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+            ?? configuration.GetConnectionString("PostgresConnection");
         var secretKey = secretConfiguration.GetValue<string>("SecretKey");
         var botToken = secretConfiguration.GetValue<string>("BotToken");
         if (baseUrl == null || connString == null || secretKey == null || botToken == null)

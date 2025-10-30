@@ -18,7 +18,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build test image
-      run: docker build -t bd-unit-tests -f ./tests_dockerfiles/Dockerfile.unit ./code
+      run: docker build -t bd-unit-tests -f ./tests_files/Dockerfile.unit ./code
       
     - name: Run unit tests with HTML output
       run: |
@@ -60,7 +60,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build integration test image
-      run: docker build -t bd-integration-tests -f ./tests_dockerfiles/Dockerfile.integration ./code
+      run: docker build -t bd-integration-tests -f ./tests_files/Dockerfile.integration ./code
 
     - name: Wait for PostgreSQL to be ready
       run: |
@@ -121,7 +121,7 @@ jobs:
       uses: docker/setup-buildx-action@v3
 
     - name: Build e2e test image
-      run: docker build -t bd-e2e-tests -f ./tests_dockerfiles/Dockerfile.e2e ./code
+      run: docker build -t bd-e2e-tests -f ./tests_files/Dockerfile.e2e ./code
 
     - name: Wait for PostgreSQL to be ready
       run: |

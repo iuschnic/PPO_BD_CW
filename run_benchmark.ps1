@@ -67,9 +67,9 @@ function Save-BenchmarkResults {
     
     # Копируем результаты из временных папок в папку прогона
     $sourceDirs = @(
-        @{Source = "temp_serialization_time_results"; Dest = "serialization_time_results"},
-        @{Source = "temp_http_requests_summary"; Dest = "http_requests_summary"},
-        @{Source = "temp_cpu_mem_results"; Dest = "cpu_mem_results"}
+        @{Source = "./benchmark_files/temp_serialization_time_results"; Dest = "serialization_time_results"},
+        @{Source = "./benchmark_files/temp_http_requests_summary"; Dest = "http_requests_summary"},
+        @{Source = "./benchmark_files/temp_cpu_mem_results"; Dest = "cpu_mem_results"}
     )
     
     foreach ($dirMapping in $sourceDirs) {
@@ -116,7 +116,7 @@ function Get-NextRunNumber {
 
 $successfulRuns = 0
 $failedRuns = 0
-$runs = 10
+$runs = 1
 
 Write-Host "Starting $runs benchmark iterations..." -ForegroundColor Green
 $resultsBaseDir = "benchmark_results"
@@ -150,28 +150,15 @@ for ($i = 0; $i -lt $runs; $i++) {
     try {
         # Полностью останавливаем и очищаем предыдущий запуск
         Write-Host "Cleaning up previous run..." -ForegroundColor Gray
-        docker-compose -f docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
+        docker-compose -f ./benchmark_files/docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
         
         # Ждем полной остановки
         Start-Sleep -Seconds 3
         
-        # Создаем временные папки для этого прогона
-        $tempDirs = @(
-            "temp_serialization_time_results",
-            "temp_http_requests_summary", 
-            "temp_cpu_mem_results"
-        )
-        
-        foreach ($tempDir in $tempDirs) {
-            if (Test-Path $tempDir) {
-                Remove-Item $tempDir -Recurse -Force
-            }
-            New-Item -ItemType Directory -Path $tempDir | Out-Null
-        }
         
         # Запускаем все сервисы заново с временными папками
         Write-Host "Starting fresh containers..." -ForegroundColor Gray
-        docker-compose -f docker-compose-benchmark.yml up --build -d 2>&1 | Out-Null
+        docker-compose -f ./benchmark_files/docker-compose-benchmark.yml up --build -d 2>&1 | Out-Null
         
         # Ждем когда все сервисы станут здоровыми (максимум 2 минуты)
         Write-Host "Waiting for services to be healthy..." -ForegroundColor Gray
@@ -182,8 +169,8 @@ for ($i = 0; $i -lt $runs; $i++) {
             Start-Sleep -Seconds 5
             $timeout += 5
             
-            $webcli_healthy = docker-compose -f docker-compose-benchmark.yml ps webcli | Select-String "healthy"
-            $postgres_healthy = docker-compose -f docker-compose-benchmark.yml ps postgres | Select-String "healthy"
+            $webcli_healthy = docker-compose -f ./benchmark_files/docker-compose-benchmark.yml ps webcli | Select-String "healthy"
+            $postgres_healthy = docker-compose -f ./benchmark_files/docker-compose-benchmark.yml ps postgres | Select-String "healthy"
             
             if ($timeout -ge $maxWait) {
                 throw "Services health check timeout"
@@ -200,7 +187,7 @@ for ($i = 0; $i -lt $runs; $i++) {
         do {
             Start-Sleep -Seconds 5
             $benchmarkTimeout += 5
-            $status = docker-compose -f docker-compose-benchmark.yml ps benchmark | Select-String "Up"
+            $status = docker-compose -f ./benchmark_files/docker-compose-benchmark.yml ps benchmark | Select-String "Up"
             
             if ($benchmarkTimeout -ge $maxBenchmarkWait) {
                 throw "Benchmark execution timeout"
@@ -228,13 +215,13 @@ for ($i = 0; $i -lt $runs; $i++) {
         }
         
         # Принудительно останавливаем все при ошибке
-        docker-compose -f docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
+        docker-compose -f ./benchmark_files/docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
     } finally {
         # Очищаем временные папки
         $tempDirs = @(
-            "temp_serialization_time_results",
-            "temp_http_requests_summary",
-            "temp_cpu_mem_results"
+            "./benchmark_files/temp_serialization_time_results",
+            "./benchmark_files/temp_http_requests_summary",
+            "./benchmark_files/temp_cpu_mem_results"
         )
         
         foreach ($tempDir in $tempDirs) {
@@ -263,23 +250,6 @@ Write-Host "Successful runs in this session: $successfulRuns" -ForegroundColor G
 Write-Host "Failed runs in this session: $failedRuns" -ForegroundColor Red
 Write-Host "Total runs in benchmark_results: $totalRuns" -ForegroundColor Cyan
 
-docker-compose -f docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
+docker-compose -f ./benchmark_files/docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
 
-# Агрегируем результаты
-$aggregateScriptDir = "aggregate_benchmark_results"
-
-$libsDir = "$aggregateScriptDir/libs"
-if (-not (Test-Path $libsDir)) {
-    New-Item -ItemType Directory -Path $libsDir | Out-Null
-    pip install -t $libsDir matplotlib numpy scipy pandas
-}
-
-$env:PYTHONPATH = "$libsDir;$env:PYTHONPATH"
-python "$aggregateScriptDir/aggregate_cpu_mem.py"
-$env:PYTHONPATH = "$libsDir;$env:PYTHONPATH"
-python "$aggregateScriptDir/aggregate_serialization_time.py"
-$env:PYTHONPATH = "$libsDir;$env:PYTHONPATH"
-python "$aggregateScriptDir/aggregate_scenario_timings.py"
-
-Write-Host "`nAll aggregation scripts completed!" -ForegroundColor Green
 Write-Host "Total dataset now contains $totalRuns runs for analysis" -ForegroundColor Cyan

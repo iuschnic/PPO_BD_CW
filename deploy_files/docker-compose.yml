@@ -1,0 +1,81 @@
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  webcli:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5234:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=password
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      
+  apigateway:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.apigateway
+    ports:
+      - "5000:5000"
+    environment:
+      - ASPNETCORE_URLS=http://+:5000
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+      - "localhost:host-gateway"
+    depends_on:
+      webcli:
+        condition: service_healthy
+    volumes:
+      - ./logs/apigateway:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      
+  message_sender:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.messagesender
+    environment:
+      - BASE_URL=http://apigateway:5000
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=messagesenderdb;Username=postgres;Password=password
+    depends_on:
+      apigateway:
+        condition: service_healthy
+    volumes:
+      - ./logs/message_sender:/app/logs
+      
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/static:/usr/share/nginx/static:ro
+    depends_on:
+      apigateway:
+        condition: service_healthy

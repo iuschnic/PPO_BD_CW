@@ -19,13 +19,14 @@ services:
   # Приложение WebCLI
   webcli:
     build:
-      context: ./code
-      dockerfile: ../webcli_benchmark/Dockerfile.webcli
+      context: ../code
+      dockerfile: ../benchmark_files/webcli/Dockerfile.webcli
     ports:
       - "5000:5234"
     environment:
       - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=password
       - ENABLE_BENCHMARK=true
+      - ASPNETCORE_URLS=http://+:5234
     depends_on:
       postgres:
         condition: service_healthy
@@ -40,7 +41,7 @@ services:
   # Бенчмарк k6
   benchmark:
     build:
-      context: ./k6_benchmark
+      context: ./k6
       dockerfile: Dockerfile.k6
     depends_on:
       webcli:
@@ -51,7 +52,7 @@ services:
   # Сбор метрик по CPU, RAM
   metrics:
     build:
-      context: ./metrics_collector_benchmark
+      context: ./metrics_collector
       dockerfile: Dockerfile.metrics
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock

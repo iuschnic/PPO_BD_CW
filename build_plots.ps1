@@ -1,5 +1,5 @@
 # Агрегируем результаты
-$aggregateScriptDir = "aggregate_benchmark_results"
+$aggregateScriptDir = "benchmark_aggregare_results"
 
 $libsDir = "$aggregateScriptDir/libs"
 if (-not (Test-Path $libsDir)) {

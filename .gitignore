@@ -238,6 +238,7 @@ allure-report/
 *.bkp
 appsettings.*.json
 benchmark_results/
-aggregate_benchmark_results/final_results/
-aggregate_benchmark_results/libs/
+benchmark_aggregate_results/final_results/
+benchmark_aggregate_results/libs/
 test_results/
+deploy_files/logs

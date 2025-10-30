@@ -6,7 +6,6 @@ services:
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: integrationdb
     ports:
       - "5432:5432"
     healthcheck:
@@ -20,9 +19,9 @@ services:
   unit-tests:
     build:
       context: ./code
-      dockerfile: ../tests_dockerfiles/Dockerfile.unit
+      dockerfile: ../tests_files/Dockerfile.unit
     volumes:
-      - ./test_results:/test-results
+      - ./tests_results:/test-results
     depends_on:
       postgres:
         condition: service_healthy
@@ -32,9 +31,9 @@ services:
   integration-tests:
     build:
       context: ./code
-      dockerfile: ../tests_dockerfiles/Dockerfile.integration
+      dockerfile: ../tests_files/Dockerfile.integration
     volumes:
-      - ./test_results:/test-results
+      - ./tests_results:/test-results
     depends_on:
       postgres:
         condition: service_healthy
@@ -64,9 +63,9 @@ services:
   e2e-tests:
     build:
       context: ./code
-      dockerfile: ../tests_dockerfiles/Dockerfile.e2e
+      dockerfile: ../tests_files/Dockerfile.e2e
     volumes:
-      - ./test_results:/test-results
+      - ./tests_results:/test-results
     depends_on:
       postgres:
         condition: service_healthy
