@@ -1,5 +1,6 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { Trend, Counter } from 'k6/metrics';
 import { randomIntBetween } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { uuidv4 } from 'https://jslib.k6.io/k6-utils/1.4.0/index.js';
 import { htmlReport } from 'https://raw.githubusercontent.com/benc-uk/k6-reporter/main/dist/bundle.js';
@@ -27,9 +28,32 @@ const commonParams = {
   timeout: '30s',
 };
 
+const scenarioDuration = new Trend('scenario_duration');
+const scenarioDurationWithTime = new Trend('scenario_duration_with_time');
+
+
 export default function () {
   const userData = generateUserData();
-  executeUserScenario(userData);
+  
+  const scenarioStartTime = Date.now();
+  const scenarioSuccess = executeUserScenario(userData);
+  const scenarioEndTime = Date.now();
+  
+  const scenarioExecutionTime = scenarioEndTime - scenarioStartTime - 2000;
+  
+  scenarioDuration.add(scenarioExecutionTime);
+  scenarioDurationWithTime.add(scenarioExecutionTime, { 
+    timestamp: new Date().toISOString(),
+    simulationTime: scenarioStartTime.toString(),
+    username: userData.username
+  });
+  
+  console.log(JSON.stringify({
+    type: 'SCENARIO_TIMING',
+    timestamp: Date.now(),
+    duration: scenarioExecutionTime
+  }));
+  
   sleep(1);
 }
 
@@ -45,12 +69,12 @@ function generateUserData() {
 function executeUserScenario(userData) {
   // ШАГ 1: Регистрация
   const registrationSuccess = registerUser(userData);
-  if (!registrationSuccess) return;
+  if (!registrationSuccess) return false;
   sleep(0.5);
 
   // ШАГ 2: Вход
   const loginSuccess = loginUser(userData);
-  if (!loginSuccess) return;
+  if (!loginSuccess) return false;
   sleep(0.5);
 
   // ШАГ 3: Добавление привычки
@@ -63,6 +87,8 @@ function executeUserScenario(userData) {
 
   // ШАГ 5: Удаление аккаунта
   deleteAccount(userData);
+  
+  return true;
 }
 
 function registerUser(userData) {
@@ -151,16 +177,9 @@ function generateTimings() {
 
 export function handleSummary(data) {
   const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
-  
   console.log('Saving results to /scripts/results/');
-  
-  return {
+  const results = {
     [`/scripts/results/${timestamp}_summary.json`]: JSON.stringify(data, null, 2),
-    
-    //[`/scripts/results/${timestamp}_report.html`]: htmlReport(data),
-    
-    //[`/scripts/results/${timestamp}_summary.txt`]: textSummary(data, { indent: ' ', enableColors: false }),
-    
-    //'stdout': textSummary(data, { indent: ' ', enableColors: true }),
   };
+  return results;
 }
