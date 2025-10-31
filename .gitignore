@@ -242,3 +242,5 @@ benchmark_aggregate_results/final_results/
 benchmark_aggregate_results/libs/
 test_results/
 deploy_files/logs
+deploy_files/nginx/static/legacy
+deploy_files/nginx/.htpasswd
