@@ -4,7 +4,7 @@ services:
     image: postgres:15
     environment:
       POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
       POSTGRES_MULTIPLE_DATABASES: "tasktracker,messagesenderdb"
     ports:
       - "5432:5432"
@@ -38,7 +38,7 @@ services:
     ports:
       - "5234:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=password
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
     depends_on:
@@ -80,7 +80,7 @@ services:
       dockerfile: ../deploy_files/Dockerfile.messagesender
     environment:
       - BASE_URL=http://apigateway:5000
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=messagesenderdb;Username=postgres;Password=password
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=messagesenderdb;Username=postgres;Password=postgres
     depends_on:
       apigateway:
         condition: service_healthy

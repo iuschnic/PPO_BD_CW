@@ -1,5 +1,18 @@
 ﻿{
   "Routes": [
+    {
+      "DownstreamPathTemplate": "/swagger/{everything}",
+      "DownstreamScheme": "http",
+      "DownstreamHostAndPorts": [
+        {
+          "Host": "localhost",
+          "Port": 5234
+        }
+      ],
+      "UpstreamPathTemplate": "/api/v1/swagger/{everything}",
+      "UpstreamHttpMethod": [ "GET", "OPTIONS" ],
+      "Key": "ApiV1Swagger"
+    },
     // ==================== SWAGGER UI ROUTES ====================
     {
       "DownstreamPathTemplate": "/swagger/{everything}",
