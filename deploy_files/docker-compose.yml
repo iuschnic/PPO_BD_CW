@@ -41,6 +41,8 @@ services:
       - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
     depends_on:
       postgres:
         condition: service_healthy
@@ -60,6 +62,8 @@ services:
       - "5000:5000"
     environment:
       - ASPNETCORE_URLS=http://+:5000
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
     extra_hosts:
       - "host.docker.internal:host-gateway"
       - "localhost:host-gateway"
@@ -89,6 +93,9 @@ services:
       
   nginx:
     image: nginx:alpine
+    environment:
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
     ports:
       - "8888:80"
     volumes:
