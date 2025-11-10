@@ -30,12 +30,12 @@ class Program
         }
         var services = new ServiceCollection();
 
-        ConfigureServices(services, baseUrl, connString, secretKey);
+        ConfigureServices(services, baseUrl, connString, secretKey, botToken);
 
         var serviceProvider = services.BuildServiceProvider();
 
         var bot = new MessageSender(
-            botToken,
+            serviceProvider.GetRequiredService<IBotClient>(),
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<ISubscriberRepo>(),
             serviceProvider.GetRequiredService<ISenderTaskTrackerClient>());
@@ -52,10 +52,14 @@ class Program
         await bot.StartAsync();
     }
 
-    static void ConfigureServices(IServiceCollection services, string baseUrl, string connString, string secretKey)
+    static void ConfigureServices(IServiceCollection services, string baseUrl, string connString,
+        string secretKey, string botToken)
     {
+        var botArgs = new TelegramBotAdapterArgs(botToken);
+        services.AddSingleton(botArgs);
         services.AddSingleton<IMessageRepo, EfMessageRepo>();
         services.AddSingleton<ISubscriberRepo, EfSubscriberRepo>();
+        services.AddSingleton<IBotClient, TelegramBotAdapter>();
         services.AddDbContext<MessageSenderDBContext>(options =>
             options.UseNpgsql(connString));
         services.AddHttpClient<ISenderTaskTrackerClient, WebSenderTaskTrackerClient>((provider, client) =>

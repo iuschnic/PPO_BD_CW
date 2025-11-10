@@ -1,10 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <OutputType>Library</OutputType>
     <TargetFramework>net9.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
   </PropertyGroup>
+  <ItemGroup>
+	<PackageReference Include="Telegram.Bot" Version="22.5.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\MessageSenderDomain\MessageSenderDomain.csproj" />
+  </ItemGroup>
 
 </Project>
