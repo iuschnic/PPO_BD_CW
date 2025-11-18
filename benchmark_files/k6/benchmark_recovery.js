@@ -11,11 +11,10 @@ export const options = {
     { duration: '10s', target: 5 },
     { duration: '10s', target: 10 },
 	{ duration: '10s', target: 25 },
-	{ duration: '5s', target: 15 },
+	{ duration: '10s', target: 15 },
 	{ duration: '10s', target: 10 },
 	{ duration: '10s', target: 5 },
 	{ duration: '10s', target: 5 },
-	{ duration: '10s', target: 1 },
   ],
   thresholds: {
     http_req_failed: ['rate<0.05'],

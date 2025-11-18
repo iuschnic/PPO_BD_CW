@@ -5,12 +5,6 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-'''def aggregate_scenario_timings():
-    # Пути
-    script_dir = Path(__file__).parent
-    base_dir = script_dir.parent / "benchmark_results"
-    final_results_dir = script_dir / "final_results" / "http_time_results"
-    final_results_dir.mkdir(parents=True, exist_ok=True)'''
 def aggregate_scenario_timings(input_directory):    
     script_dir = Path(__file__).parent
     base_dir = Path(input_directory)
@@ -32,6 +26,7 @@ def aggregate_scenario_timings(input_directory):
     
     # Собираем данные в виде списка списков (каждый внутренний список - один run_i)
     all_runs_data = []
+    all_runs_timestamps = []  # Новый список для временных меток
     
     for run_dir in run_dirs:
         jsonl_file = run_dir / "http_requests_summary" / "scenario_timings.jsonl"
@@ -41,13 +36,24 @@ def aggregate_scenario_timings(input_directory):
                 content = read_file_with_bom(jsonl_file)
                 lines = content.splitlines()
                 
-                run_durations = []
+                run_entries = []
                 for line in lines:
                     if line.strip():
                         data = json.loads(line.strip())
-                        run_durations.append(data['duration'])
+                        run_entries.append({
+                            'timestamp': data['timestamp'],
+                            'duration': data['duration']
+                        })
                 
-                all_runs_data.append(run_durations)
+                # Сортируем записи по timestamp
+                run_entries.sort(key=lambda x: x['timestamp'])
+                
+                # Разделяем на отдельные списки
+                timestamps = [entry['timestamp'] for entry in run_entries]
+                durations = [entry['duration'] for entry in run_entries]
+                
+                all_runs_timestamps.append(timestamps)
+                all_runs_data.append(durations)
                 
             except Exception as e:
                 print(f"Error loading {jsonl_file}: {e}")
@@ -65,23 +71,46 @@ def aggregate_scenario_timings(input_directory):
         # Берем минимальное количество замеров
         min_length = min(lengths)
         all_runs_data = [run[:min_length] for run in all_runs_data]
+        all_runs_timestamps = [ts[:min_length] for ts in all_runs_timestamps]
         print(f"Using first {min_length} measurements from each run")
     else:
         min_length = lengths[0]
     
-    # Создаем DataFrame для усреднения
-    df = pd.DataFrame(all_runs_data).T  # Транспонируем: строки - номера замеров, столбцы - run_i
+    # Конвертируем все timestamp в относительное время в секундах ОТНОСИТЕЛЬНО НАЧАЛА КАЖДОГО ПРОГОНА
+    all_runs_relative_times = []
+    for timestamps in all_runs_timestamps:
+        if not timestamps:
+            continue
+        # Находим самый ранний timestamp в данном прогоне
+        earliest_in_run = min(timestamps)
+        relative_times = []
+        for ts in timestamps:
+            # Относительное время от начала данного прогона
+            relative_time = (ts - earliest_in_run) / 1000.0
+            relative_times.append(relative_time)
+        all_runs_relative_times.append(relative_times)
+    
+    # Создаем DataFrame для усреднения duration
+    df_durations = pd.DataFrame(all_runs_data).T  # Строки - номера замеров, столбцы - run_i
+    
+    # Создаем DataFrame для временных меток (берем среднее время для каждого измерения)
+    df_times = pd.DataFrame(all_runs_relative_times).T
     
     # Вычисляем статистику для каждого номера замера
-    avg_duration = df.mean(axis=1)
-    std_duration = df.std(axis=1)
-    min_duration = df.min(axis=1)
-    max_duration = df.max(axis=1)
+    avg_duration = df_durations.mean(axis=1)
+    std_duration = df_durations.std(axis=1)
+    min_duration = df_durations.min(axis=1)
+    max_duration = df_durations.max(axis=1)
     
-    # Создаем графики
-    create_plots(avg_duration, std_duration, min_duration, max_duration, len(all_runs_data), min_length, final_results_dir)
+    # Вычисляем среднее относительное время для каждого измерения
+    avg_relative_time = df_times.mean(axis=1)
+    
+    # Создаем графики с передачей временных меток
+    create_plots(avg_duration, std_duration, min_duration, max_duration, 
+                len(all_runs_data), min_length, final_results_dir, avg_relative_time)
     
     print(f"Graphs saved to {final_results_dir}")
+
 
 def read_file_with_bom(file_path):
     """Читает файл с учетом возможного BOM"""
@@ -100,15 +129,13 @@ def read_file_with_bom(file_path):
             content = content[3:]
         return content.decode('utf-8', errors='ignore')
 
-def create_plots(avg_duration, std_duration, min_duration, max_duration, runs_count, measurements_count, output_dir):
+def create_plots(avg_duration, std_duration, min_duration, max_duration, runs_count, measurements_count, output_dir, avg_relative_time):
     """Создает графики усредненного времени выполнения"""
     
     plt.style.use('default')
     
-    sampling_interval = 0.1
-    
     # Подготовка данных для обоих графиков
-    time_points = [t * sampling_interval for t in range(len(avg_duration))]
+    time_points = [t for t in avg_relative_time]
     measurement_numbers = list(range(len(avg_duration)))
     
     # График 1: По времени
@@ -128,7 +155,7 @@ def create_plots(avg_duration, std_duration, min_duration, max_duration, runs_co
     plt.legend()
     plt.grid(True, alpha=0.3)
     
-    stats_text = f'Runs: {runs_count}\nMeasurements per run: {measurements_count}\nSampling interval: {sampling_interval}s\nOverall average: {avg_duration.mean():.1f}ms'
+    stats_text = f'Runs: {runs_count}\nMeasurements per run: {measurements_count}\nOverall average: {avg_duration.mean():.1f}ms'
     plt.text(0.02, 0.98, stats_text, transform=plt.gca().transAxes, verticalalignment='top',
              bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
     

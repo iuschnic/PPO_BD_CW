@@ -196,7 +196,7 @@ def create_plots(aggregated_metrics, output_dir):
     metrics = ['cpu', 'memory']
     metric_names = {'cpu': 'CPU Usage (%)', 'memory': 'Memory Usage (MB)'}
     
-    sampling_interval = 5
+    sampling_interval = 4
     
     plt.style.use('default')
     fig, axes = plt.subplots(2, 2, figsize=(15, 10))
