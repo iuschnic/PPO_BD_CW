@@ -108,6 +108,7 @@ def aggregate_scenario_timings(input_directory):
     # Создаем графики с передачей временных меток
     create_plots(avg_duration, std_duration, min_duration, max_duration, 
                 len(all_runs_data), min_length, final_results_dir, avg_relative_time)
+    create_distribution_plots(all_runs_data, final_results_dir, len(all_runs_data))
     
     print(f"Graphs saved to {final_results_dir}")
 
@@ -218,9 +219,106 @@ def create_plots(avg_duration, std_duration, min_duration, max_duration, runs_co
     ax2.grid(True, alpha=0.3)
     
     
+def create_distribution_plots(all_durations, output_dir, runs_count):
+    """Создает графики распределения длительностей и перцентилей"""
     
-'''if __name__ == "__main__":
-    aggregate_scenario_timings()'''
+    # Объединяем все измерения в один плоский список
+    all_durations_flat = [duration for sublist in all_durations for duration in sublist]
+    
+    if not all_durations_flat:
+        print("No duration data for distribution plots!")
+        return
+    
+    # Рассчитываем перцентили
+    percentiles = [50, 75, 90, 95, 99]
+    percentile_values = np.percentile(all_durations_flat, percentiles)
+    
+    plt.style.use('default')
+    
+    # График 1: Гистограмма распределения
+    plt.figure(figsize=(14, 8))
+    
+    # Автоматическое определение бинов
+    n, bins, patches = plt.hist(all_durations_flat, bins=50, alpha=0.7, 
+                               color='skyblue', edgecolor='black', linewidth=0.5)
+    
+    # Добавляем вертикальные линии для перцентилей
+    colors = ['red', 'orange', 'green', 'blue', 'purple']
+    for i, (p, value) in enumerate(zip(percentiles, percentile_values)):
+        plt.axvline(value, color=colors[i], linestyle='--', linewidth=2, 
+                   label=f'P{p}: {value:.1f}ms')
+    
+    plt.xlabel('Duration (ms)', fontsize=12)
+    plt.ylabel('Frequency', fontsize=12)
+    plt.title('Distribution of user scenario durations\n(All measurements from all runs)', 
+              fontsize=14, fontweight='bold')
+    plt.legend()
+    plt.grid(True, alpha=0.3)
+    
+    stats_text = (f'Total measurements: {len(all_durations_flat):,}\n'
+                  f'Runs: {runs_count}\n'
+                  f'Mean: {np.mean(all_durations_flat):.1f}ms\n'
+                  f'Std: {np.std(all_durations_flat):.1f}ms\n'
+                  f'Min: {np.min(all_durations_flat):.1f}ms\n'
+                  f'Max: {np.max(all_durations_flat):.1f}ms')
+    
+    plt.text(0.02, 0.98, stats_text, transform=plt.gca().transAxes, 
+             verticalalignment='top', fontsize=10,
+             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.8))
+    
+    plt.tight_layout()
+    plt.savefig(output_dir / 'duration_distribution_histogram.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # График 2: Детальный перцентильный анализ
+    plt.figure(figsize=(14, 8))
+    
+    # Расширенный набор перцентилей для детального анализа
+    detailed_percentiles = np.arange(0, 101, 1)
+    detailed_values = np.percentile(all_durations_flat, detailed_percentiles)
+    
+    plt.plot(detailed_percentiles, detailed_values, linewidth=2, color='purple')
+    plt.xlabel('Percentile', fontsize=12)
+    plt.ylabel('Duration (ms)', fontsize=12)
+    plt.title('Percentile Analysis of Scenario Durations', 
+              fontsize=14, fontweight='bold')
+    plt.grid(True, alpha=0.3)
+    
+    # Выделяем ключевые перцентили
+    key_percentiles = [50, 75, 90, 95, 99, 99.9]
+    key_values = np.percentile(all_durations_flat, key_percentiles)
+    
+    for p, value in zip(key_percentiles, key_values):
+        plt.plot(p, value, 'ro', markersize=8)
+        plt.annotate(f'P{p}: {value:.1f}ms', 
+                    xy=(p, value), xytext=(10, 10),
+                    textcoords='offset points', fontsize=9,
+                    bbox=dict(boxstyle='round,pad=0.3', facecolor='white', alpha=0.8))
+    
+    plt.tight_layout()
+    plt.savefig(output_dir / 'detailed_percentile_analysis.png', dpi=300, bbox_inches='tight')
+    plt.close()
+    
+    # Сохраняем перцентили в CSV файл
+    percentile_data = {
+        'Percentile': percentiles + [99.9],
+        'Duration_ms': list(percentile_values) + [np.percentile(all_durations_flat, 99.9)]
+    }
+    percentile_df = pd.DataFrame(percentile_data)
+    percentile_df.to_csv(output_dir / 'percentile_analysis.csv', index=False)
+    
+    # Выводим статистику в консоль
+    print("\n=== PERCENTILE ANALYSIS ===")
+    print(f"Total measurements: {len(all_durations_flat):,}")
+    print(f"P50 (median): {percentile_values[0]:.1f}ms")
+    print(f"P75: {percentile_values[1]:.1f}ms")
+    print(f"P90: {percentile_values[2]:.1f}ms")
+    print(f"P95: {percentile_values[3]:.1f}ms")
+    print(f"P99: {percentile_values[4]:.1f}ms")
+    print(f"P99.9: {np.percentile(all_durations_flat, 99.9):.1f}ms")
+    
+    
+    
 def main():
     if len(sys.argv) > 1:
         input_directory = sys.argv[1]
