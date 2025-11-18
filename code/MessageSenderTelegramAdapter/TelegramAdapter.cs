@@ -56,7 +56,7 @@ public class TelegramBotAdapter : IBotClient
     }
 }
 
-public class TelegramBotUpdate : IBotUpdate, IBotMessage
+public class TelegramBotUpdate : IBotUpdate
 {
     private readonly Message _message;
 

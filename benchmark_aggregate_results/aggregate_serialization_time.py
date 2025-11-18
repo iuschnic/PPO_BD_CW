@@ -5,15 +5,23 @@ from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import defaultdict
+import sys
 
-def aggregate_serialization_results():
+'''def aggregate_serialization_results():
     # Пути
     script_dir = Path(__file__).parent
     base_dir = script_dir.parent / "benchmark_results"
     final_results_dir = script_dir / "final_results" / "serialization_time"
+    final_results_dir.mkdir(parents=True, exist_ok=True)'''
+def aggregate_serialization_results(input_directory):
+    script_dir = Path(__file__).parent
+    base_dir = Path(input_directory)
+    if not base_dir.exists():
+        print(f"Error: Input directory '{base_dir}' does not exist!")
+        return
+    final_results_dir = script_dir / f"{input_directory}_aggregated" / "serialization_time"
     final_results_dir.mkdir(parents=True, exist_ok=True)
     
-    # Собираем все run_i папки
     run_dirs = [d for d in base_dir.iterdir() if d.is_dir() and d.name.startswith("run_")]
     run_dirs.sort()
     
@@ -172,5 +180,17 @@ def create_individual_plots(averaged_data, output_dir):
         
         print(f"Created plot for {dto_type}")
 
+'''if __name__ == "__main__":
+    aggregate_serialization_results()'''
+    
+def main():
+    # Получаем путь к директории с результатами из аргументов командной строки
+    if len(sys.argv) > 1:
+        results_directory = sys.argv[1]
+        print(f"Processing serialization results from: {results_directory}")
+        aggregate_serialization_results(results_directory)
+    else:
+        sys.exit(1)
+
 if __name__ == "__main__":
-    aggregate_serialization_results()
+    main()

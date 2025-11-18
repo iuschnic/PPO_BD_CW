@@ -37,17 +37,20 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
-
+  
   # Бенчмарк k6
   benchmark:
     build:
       context: ./k6
       dockerfile: Dockerfile.k6
+    command: ["run", "${BENCHMARK_SCRIPT:-benchmark_normal.js}"]
     depends_on:
       webcli:
         condition: service_healthy
     volumes:
       - ./temp_http_requests_summary:/scripts/results
+    environment:
+      - BENCHMARK_SCRIPT=${BENCHMARK_SCRIPT:-benchmark_normal.js}
   
   # Сбор метрик по CPU, RAM
   metrics:

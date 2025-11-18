@@ -62,10 +62,8 @@ class DockerMetricsCollector:
             container = self.client.containers.get(container_name)
             stats = container.stats(stream=False)
             
-            # Docker уже вычисляет проценты за нас
             cpu_percent = 0.0
             if 'cpu_stats' in stats and 'cpu_usage' in stats['cpu_stats']:
-                # Можно использовать предрасчитанные значения
                 cpu_percent = self._calculate_cpu_percent(stats)
             
             memory_usage = stats['memory_stats']['usage'] / (1024 * 1024)
@@ -102,7 +100,7 @@ class DockerMetricsCollector:
                     self.metrics_data[service_name]['cpu'].append(stats['cpu_percent'])
                     self.metrics_data[service_name]['memory'].append(stats['memory_mb'])
                     
-                    if sample_count % 5 == 1:  # Логируем каждые 5 секунд
+                    if sample_count % 5 == 1:
                         print(f"[{current_time}] {service_name}: CPU {stats['cpu_percent']}%, Memory {stats['memory_mb']}MB")
                 else:
                     print(f"[{current_time}] Failed to get stats for {service_name} ({container_name})")

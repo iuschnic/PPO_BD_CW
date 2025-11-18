@@ -8,10 +8,14 @@ import { textSummary } from 'https://jslib.k6.io/k6-summary/0.0.1/index.js';
 
 export const options = {
   stages: [
-    { duration: '10s', target: 5 },    // Плавный рост
-    { duration: '30s', target: 10 },    // Средняя нагрузка
-    { duration: '10s', target: 15 },   // Пиковая нагрузка
-    { duration: '10s', target: 0 },    // Завершение
+    { duration: '10s', target: 5 },
+    { duration: '10s', target: 10 },
+	{ duration: '10s', target: 25 },
+	{ duration: '5s', target: 15 },
+	{ duration: '10s', target: 10 },
+	{ duration: '10s', target: 5 },
+	{ duration: '10s', target: 5 },
+	{ duration: '10s', target: 1 },
   ],
   thresholds: {
     http_req_failed: ['rate<0.05'],
@@ -39,7 +43,7 @@ export default function () {
   const scenarioSuccess = executeUserScenario(userData);
   const scenarioEndTime = Date.now();
   
-  const scenarioExecutionTime = scenarioEndTime - scenarioStartTime - 2000;
+  const scenarioExecutionTime = scenarioEndTime - scenarioStartTime;
   
   scenarioDuration.add(scenarioExecutionTime);
   scenarioDurationWithTime.add(scenarioExecutionTime, { 
@@ -70,20 +74,16 @@ function executeUserScenario(userData) {
   // ШАГ 1: Регистрация
   const registrationSuccess = registerUser(userData);
   if (!registrationSuccess) return false;
-  sleep(0.5);
 
   // ШАГ 2: Вход
   const loginSuccess = loginUser(userData);
   if (!loginSuccess) return false;
-  sleep(0.5);
 
   // ШАГ 3: Добавление привычки
   addHabit(userData);
-  sleep(0.5);
 
   // ШАГ 4: Удаление всех привычек
   deleteAllHabits(userData);
-  sleep(0.5);
 
   // ШАГ 5: Удаление аккаунта
   deleteAccount(userData);

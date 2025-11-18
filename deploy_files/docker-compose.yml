@@ -1,5 +1,4 @@
 services:
-  # PostgreSQL база данных
   postgres:
     image: postgres:15
     environment:
