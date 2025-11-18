@@ -108,11 +108,6 @@ class Program
                     try
                     {
                         ret = task_service.ImportNewShedule(user.NameID, path);
-                        if (ret == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
                         user = ret.Item1;
                         undistributed = ret.Item2;
                         Console.WriteLine("\nРасписание было успешно импортировано, нераспределенные привычки:\n");
@@ -136,11 +131,6 @@ class Program
                     try
                     {
                         ret = task_service.AddHabit(habit);
-                        if (ret == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
                         user = ret.Item1;
                         undistributed = ret.Item2;
                         Console.WriteLine("\nПривычка была успешно добавлена, нераспределенные привычки:\n");
@@ -168,11 +158,6 @@ class Program
                     try
                     {
                         ret = task_service.DeleteHabit(user.NameID, name);
-                        if (ret == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
                         user = ret.Item1;
                         undistributed = ret.Item2;
                         Console.WriteLine("\nПривычка была удалена\n");
@@ -193,11 +178,6 @@ class Program
                     try
                     {
                         ret = task_service.DeleteHabits(user.NameID);
-                        if (ret == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
                         user = ret.Item1;
                         Console.WriteLine("\nПривычки были успешно удалены\n");
                         Console.WriteLine();
@@ -214,13 +194,7 @@ class Program
                     {
                         var settings = new UserSettings(user.Settings.Id, true, user.Settings.UserNameID,
                             user.Settings.SettingsTimes);
-                        var tmpuser = task_service.ChangeSettings(settings);
-                        if (tmpuser == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
-                        user = tmpuser;
+                        user = task_service.ChangeSettings(settings);
                         Console.WriteLine("\nУведомления разрешены\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -236,13 +210,7 @@ class Program
                     {
                         var settings = new UserSettings(user.Settings.Id, false, user.Settings.UserNameID,
                             user.Settings.SettingsTimes);
-                        var tmpuser = task_service.ChangeSettings(settings);
-                        if (tmpuser == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
-                        user = tmpuser;
+                        user = task_service.ChangeSettings(settings);
                         Console.WriteLine("\nУведомления запрещены\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -284,13 +252,7 @@ class Program
                             timings.Add(new SettingsTime(Guid.NewGuid(), start, end, user.Settings.Id));
                         }
                         var settings = new UserSettings(user.Settings.Id, user.Settings.NotifyOn, user.Settings.UserNameID, timings);
-                        var tmpuser = task_service.ChangeSettings(settings);
-                        if (tmpuser == null)
-                        {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
-                            return;
-                        }
-                        user = tmpuser;
+                        user = task_service.ChangeSettings(settings);
                         Console.WriteLine("\nЗапрещенное время посылки уведомлений изменено\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -320,9 +282,9 @@ class Program
                             Console.WriteLine("\nУчетная запись успешно удалена\n");
                             return;
                         }
-                        catch
+                        catch (Exception ex)
                         {
-                            Console.WriteLine("\nКритическая ошибка в базе данных\n");
+                            Console.WriteLine(ex.Message);
                         }
                     }
                     else
@@ -349,14 +311,16 @@ class Program
             Console.WriteLine("Ошибка ввода");
             return null;
         }
-        User? user = task_service.LogIn(user_name, password);
-        if (user == null)
+        try
         {
-            Console.WriteLine("Неверные логин или пароль");
+            var user = task_service.LogIn(user_name, password);
+            return user;
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
             return null;
         }
-        else
-            return user;
     }
     private static User? CreateUser(ITaskTracker task_service)
     {
@@ -392,14 +356,16 @@ class Program
             Console.WriteLine("Ошибка ввода");
             return null;
         }
-        User? user = task_service.CreateUser(user_name, phone_number, password);
-        if (user == null)
+        try
         {
-            Console.WriteLine("Пользователь с заданным логином уже существует");
+            var user = task_service.CreateUser(user_name, phone_number, password);
+            return user;
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e.Message);
             return null;
         }
-        else
-            return user;
     }
     private static void LogInCycle(ITaskTracker task_service)
     {

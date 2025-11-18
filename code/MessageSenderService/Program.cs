@@ -9,17 +9,36 @@ class Program
 {
     static async Task Main(string[] args)
     {
+        var configuration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .Build();
+        var secretConfiguration = new ConfigurationBuilder()
+            .SetBasePath(Directory.GetCurrentDirectory())
+            .AddJsonFile("appsettings.secrets.json", optional: false, reloadOnChange: true)
+            .Build();
+        var baseUrl = Environment.GetEnvironmentVariable("BASE_URL")
+            ?? configuration.GetValue<string>("BaseUrl");
+        var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+            ?? configuration.GetConnectionString("PostgresConnection");
+        var secretKey = secretConfiguration.GetValue<string>("SecretKey");
+        var botToken = secretConfiguration.GetValue<string>("BotToken");
+        if (baseUrl == null || connString == null || secretKey == null || botToken == null)
+        {
+            Console.WriteLine("Ошибка чтения конфигурации");
+            return;
+        }
         var services = new ServiceCollection();
 
-        ConfigureServices(services);
+        ConfigureServices(services, baseUrl, connString, secretKey, botToken);
 
         var serviceProvider = services.BuildServiceProvider();
 
         var bot = new MessageSender(
-            "7665679478:AAHtpesgjfWihplWtkBB7Iuwot-6gCElWVY",
+            serviceProvider.GetRequiredService<IBotClient>(),
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<ISubscriberRepo>(),
-            serviceProvider.GetRequiredService<ITaskTrackerClient>());
+            serviceProvider.GetRequiredService<ISenderTaskTrackerClient>());
 
         Console.CancelKeyPress += async (sender, e) =>
         {
@@ -33,17 +52,21 @@ class Program
         await bot.StartAsync();
     }
 
-    static void ConfigureServices(IServiceCollection services)
+    static void ConfigureServices(IServiceCollection services, string baseUrl, string connString,
+        string secretKey, string botToken)
     {
+        var botArgs = new TelegramBotAdapterArgs(botToken);
+        services.AddSingleton(botArgs);
         services.AddSingleton<IMessageRepo, EfMessageRepo>();
         services.AddSingleton<ISubscriberRepo, EfSubscriberRepo>();
+        services.AddSingleton<IBotClient, TelegramBotAdapter>();
         services.AddDbContext<MessageSenderDBContext>(options =>
-            options.UseNpgsql("Host=localhost;Port=5432;Database=messagesenderdb;Username=postgres;Password=postgres"));
-        services.AddHttpClient<ITaskTrackerClient, TaskTrackerClient>((provider, client) =>
+            options.UseNpgsql(connString));
+        services.AddHttpClient<ISenderTaskTrackerClient, WebSenderTaskTrackerClient>((provider, client) =>
         {
-            client.BaseAddress = new Uri("https://localhost:7000");
+            client.BaseAddress = new Uri(baseUrl);
             client.Timeout = TimeSpan.FromSeconds(30);
-            client.DefaultRequestHeaders.Add("X-Microservice-Auth", "microservice-secret-key-2024");
+            client.DefaultRequestHeaders.Add("X-Microservice-Auth", secretKey);
         });
     }
 }

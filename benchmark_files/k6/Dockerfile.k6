@@ -1,0 +1,9 @@
+FROM grafana/k6:latest
+WORKDIR /scripts
+COPY ["benchmark_normal.js", "benchmark_normal.js"]
+COPY ["benchmark_stress.js", "benchmark_stress.js"]
+COPY ["benchmark_recovery.js", "benchmark_recovery.js"]
+USER root
+RUN apk add --no-cache curl
+# Базовый CMD, который будет переопределен
+CMD ["run", "benchmark.js"]

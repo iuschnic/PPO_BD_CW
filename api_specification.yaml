@@ -431,7 +431,7 @@ components:
 
 paths:
   # Аутентификация
-  /auth/register:
+  /api/v1/auth/register:
     post:
       summary: Создание нового пользователя
       tags: [Authentication]
@@ -476,7 +476,7 @@ paths:
         '409':
           $ref: '#/components/responses/UserAlreadyExists'
 
-  /auth/login:
+  /api/v1/auth/login:
     post:
       summary: Вход в систему
       tags: [Authentication]
@@ -507,7 +507,7 @@ paths:
           $ref: '#/components/responses/UserNotFound'
 
   # Пользователи
-  /users/{username}:
+  /api/v1/users/{username}:
     delete:
       summary: Удаление пользователя
       tags: [Users]
@@ -526,7 +526,7 @@ paths:
           $ref: '#/components/responses/RepositoryError'
 
   # Привычки
-  /users/{username}/habits:
+  /api/v1/users/{username}/habits:
     post:
       summary: Добавление привычки
       tags: [Habits]
@@ -588,7 +588,7 @@ paths:
         '500':
           $ref: '#/components/responses/HabitsNotFound'
 
-  /users/{username}/habits/{habitName}:
+  /api/v1/users/{username}/habits/{habitName}:
     delete:
       summary: Удаление конкретной привычки
       tags: [Habits]
@@ -616,7 +616,7 @@ paths:
           $ref: '#/components/responses/HabitsNotFound'
 
   # Расписание
-  /users/{username}/schedule/import:
+  /api/v1/users/{username}/schedule/import:
     post:
       summary: Импорт расписания
       tags: [Schedule]
@@ -661,55 +661,9 @@ paths:
                 repositoryError:
                   $ref: '#/components/responses/RepositoryError'
   # Настройки
-  /users/{username}/notifications/on:
+  /api/v1/users/{username}/notifications/change-settings:
     put:
-      summary: Включение уведомлений
-      tags: [Notifications]
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Уведомления включены
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/UserNotFound'
-        '500':
-          $ref: '#/components/responses/RepositoryError'
-          
-  #сделать одну ручку с patch настроек!!!!!!!!!!!!!!1
-
-  /users/{username}/notifications/off:
-    put:
-      summary: Выключение уведомлений
-      tags: [Notifications]
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      responses:
-        '200':
-          description: Уведомления выключены
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/UserNotFound'
-        '500':
-          $ref: '#/components/responses/RepositoryError'
-
-  /users/{username}/notifications/timings:
-    put:
-      summary: Обновление времени уведомлений
+      summary: Обновление настроек уведомлений
       tags: [Notifications]
       parameters:
         - name: username
@@ -722,33 +676,41 @@ paths:
         content:
           application/json:
             schema:
-              type: array
-              items:
-                type: object
-                required: [start, end]
-                properties:
-                  start:
-                    type: string
-                    format: time
-                    example: "09:00"
-                  end:
-                    type: string
-                    format: time
-                    example: "18:00"
+              type: object
+              properties:
+                newTimings:
+                  type: array
+                  items:
+                    type: object
+                    required: [start, end]
+                    properties:
+                      start:
+                        type: string
+                        format: time
+                        example: "09:00"
+                      end:
+                        type: string
+                        format: time
+                        example: "18:00"
+                notifyOn:
+                  type: boolean
+                  example: true
               example:
-                - start: "09:00"
-                  end: "12:00"
-                - start: "14:00"
-                  end: "18:00"
+                newTimings:
+                  - start: "09:00"
+                    end: "12:00"
+                  - start: "14:00"
+                    end: "18:00"
+                notifyOn: true
       responses:
         '200':
-          description: Время уведомлений обновлено
+          description: Настройки уведомлений обновлены
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/User'
         '400':
-          description: Неверный формат времени
+          description: Неверный формат времени или данных
           content:
             application/json:
               schema:
@@ -757,38 +719,9 @@ paths:
           $ref: '#/components/responses/UserNotFound'
         '500':
           $ref: '#/components/responses/RepositoryError'
-  
-  
-  /users/{username}/settings: # скорее всего нужно удалить, слишком общий метод?
-    put:
-      summary: Обновление настроек
-      tags: [Users]
-      parameters:
-        - name: username
-          in: path
-          required: true
-          schema:
-            type: string
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserSettings'
-      responses:
-        '200':
-          description: Настройки обновлены
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
-        '404':
-          $ref: '#/components/responses/UserNotFound'
-        '500':
-          $ref: '#/components/responses/RepositoryError'
           
   #Методы ТОЛЬКО для сервиса отправки уведомлений
-  /internal/check-log-in:
+  /api/v1/internal/check-log-in:
     put:
       summary: Проверка введенных пользователем логина и пароля
       tags: [MessageSender]
@@ -812,7 +745,7 @@ paths:
         '401':
           $ref: '#/components/responses/InvalidCredentials'
           
-  /internal/get-users-to-notify:
+  /api/v1/internal/get-users-to-notify:
     get:
       summary: Получение пользователей, которым требуется отправить уведомление и их привычек
       tags: [MessageSender]

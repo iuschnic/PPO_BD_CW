@@ -1,19 +1,14 @@
-﻿using Telegram.Bot;
-using Telegram.Bot.Polling;
-using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
-using MessageSenderDomain.Models;
+﻿using MessageSenderDomain.Models;
 using MessageSenderDomain.OutPorts;
 
-using TelegramMessage = Telegram.Bot.Types.Message;
 using DomainMessage = MessageSenderDomain.Models.Message;
 
 public class MessageSender
 {
-    private readonly ITelegramBotClient _botClient;
+    private readonly IBotClient _botClient;
     private readonly IMessageRepo _messageRepo;
     private readonly ISubscriberRepo _subscribersRepo;
-    private readonly ITaskTrackerClient _taskTrackerClient;
+    private readonly ISenderTaskTrackerClient _taskTrackerClient;
     private readonly CancellationTokenSource _cts = new();
 
     private enum RegistrationState
@@ -34,10 +29,10 @@ public class MessageSender
     private const int timeout_generate = 30;
     private const int timeout_err = 1;
 
-    public MessageSender(string botToken, IMessageRepo messageRepo, 
-        ISubscriberRepo subscriberRepo, ITaskTrackerClient taskTrackerClient)
+    public MessageSender(IBotClient botClient, IMessageRepo messageRepo,
+        ISubscriberRepo subscriberRepo, ISenderTaskTrackerClient taskTrackerClient)
     {
-        _botClient = new TelegramBotClient(botToken);
+        _botClient = botClient;
         _messageRepo = messageRepo;
         _subscribersRepo = subscriberRepo;
         _taskTrackerClient = taskTrackerClient;
@@ -45,17 +40,7 @@ public class MessageSender
 
     public async Task StartAsync()
     {
-        var receiverOptions = new ReceiverOptions
-        {
-            AllowedUpdates = Array.Empty<UpdateType>()
-        };
-
-        _botClient.StartReceiving(
-            updateHandler: HandleUpdateAsync,
-            errorHandler: HandleErrorAsync,
-            receiverOptions: receiverOptions,
-            cancellationToken: _cts.Token
-        );
+        await _botClient.StartReceivingAsync(HandleUpdateAsync, _cts.Token);
 
         _ = Task.Run(StartBroadcasting, _cts.Token);
         _ = Task.Run(StartCreatingMessages, _cts.Token);
@@ -76,20 +61,8 @@ public class MessageSender
                 List<DomainMessage> sentMessages = [];
                 foreach (var send in toSend)
                 {
-                    /*var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(send.TaskTrackerLogin);
-
-                    if (subscriber != null)
-                    {
-                        await _botClient.SendMessage(
-                            chatId: subscriber.Id,
-                            text: send.Text
-                        );
-                        cnt++;
-                        sentMessages.Add(new DomainMessage(send.Id, send.Text, send.TimeSent,
-                            send.TimeOutdated, send.WasSent, send.TaskTrackerLogin, send.SubscriberID));
-                    }*/
-                    await _botClient.SendMessage(
-                        chatId: send.SubscriberID,
+                    await _botClient.SendMessageAsync(
+                        chatId: send.SubscriberID ?? 0,
                         text: send.Text
                     );
                     cnt++;
@@ -144,24 +117,20 @@ public class MessageSender
         }
     }
 
-    private async Task HandleUpdateAsync(ITelegramBotClient botClient,
-        Update update, CancellationToken cancellationToken)
+    private async Task HandleUpdateAsync(IBotUpdate update)
     {
         try
         {
-            if (update.Message is not { } message)
-                return;
-
-            var chatId = message.Chat.Id;
-            var text = message.Text?.Trim() ?? string.Empty;
+            var chatId = update.ChatId;
+            var text = update.Text;
 
             if (text == "/start")
             {
-                await HandleStartCommand(botClient, message);
+                await HandleStartCommand(update);
             }
             else if (text == "/stop")
             {
-                await HandleStopCommand(botClient, message);
+                await HandleStopCommand(update);
             }
             else if (text != null && _registrationStates.TryGetValue(chatId, out var state))
             {
@@ -169,21 +138,16 @@ public class MessageSender
                 {
                     _tempLogins[chatId] = text;
                     _registrationStates[chatId] = RegistrationState.AwaitingPassword;
-                    await botClient.SendMessage(chatId, AskPasswordMessage);
+                    await _botClient.SendMessageAsync(chatId, AskPasswordMessage);
                 }
                 else if (state == RegistrationState.AwaitingPassword)
                 {
-                    /*var u = await _taskTrackerClient.TryLogInAsync(_tempLogins[chatId], text);
-                    if (u == null)
-                        await botClient.SendMessage(chatId, "Критическая ошибка, учетная запись не найдена.\n\n" + WelcomeMessage);
-                    else if (u != null && u.Password != text)
-                        await botClient.SendMessage(chatId, "Неправильный пароль, попробуйте еще раз.\n\n" + AskPasswordMessage);*/
                     if (!await _taskTrackerClient.TryLogInAsync(_tempLogins[chatId], text))
-                        await botClient.SendMessage(chatId, "Ошибка авторизации, попробуйте еще раз.\n\n" + WelcomeMessage);
+                        await _botClient.SendMessageAsync(chatId, "Ошибка авторизации, попробуйте ввести пароль еще раз.\n\n");
                     else
                     {
                         var subscriber = new Subscriber(chatId, _tempLogins[chatId], text,
-                            message.From.Username ?? message.From.FirstName, DateTime.Now);
+                            update.Username, DateTime.Now);
                         if (!_subscribersRepo.TryAdd(subscriber))
                             throw new Exception("Ошибка, пользователь существует");
 
@@ -192,7 +156,7 @@ public class MessageSender
 
                         Console.WriteLine($"Пользователь подписался: {subscriber.Username}, Логин: {subscriber.TaskTrackerLogin}");
 
-                        await botClient.SendMessage(chatId, RegistrationCompleteMessage);
+                        await _botClient.SendMessageAsync(chatId, RegistrationCompleteMessage);
                     }
                 }
             }
@@ -203,12 +167,12 @@ public class MessageSender
         }
     }
 
-    private async Task HandleStartCommand(ITelegramBotClient botClient, TelegramMessage message)
+    private async Task HandleStartCommand(IBotUpdate message)
     {
-        var chatId = message.Chat.Id;
+        var chatId = message.ChatId;
         if (_subscribersRepo.IfAnyChatID(chatId))
         {
-            await botClient.SendMessage(
+            await _botClient.SendMessageAsync(
                 chatId: chatId,
                 text: "Вы уже подписаны на рассылку"
             );
@@ -216,19 +180,19 @@ public class MessageSender
         }
 
         _registrationStates[chatId] = RegistrationState.AwaitingLogin;
-        await botClient.SendMessage(chatId, WelcomeMessage);
+        await _botClient.SendMessageAsync(chatId, WelcomeMessage);
     }
 
-    private async Task HandleStopCommand(ITelegramBotClient botClient, TelegramMessage message)
+    private async Task HandleStopCommand(IBotUpdate message)
     {
-        var chatId = message.Chat.Id;
+        var chatId = message.ChatId;
         var subscriber = _subscribersRepo.TryGetByChatID(chatId);
         if (subscriber != null)
         {
             if (!_subscribersRepo.TryRemoveByChatID(chatId))
                 throw new Exception("Ошибка, пользователь не существует");
 
-            await botClient.SendMessage(
+            await _botClient.SendMessageAsync(
                 chatId: chatId,
                 text: GoodbyeMessage
             );
@@ -238,18 +202,11 @@ public class MessageSender
         }
         else
         {
-            await botClient.SendMessage(
+            await _botClient.SendMessageAsync(
                 chatId: chatId,
                 text: "Вы не были подписаны"
             );
         }
-    }
-
-    private Task HandleErrorAsync(ITelegramBotClient botClient,
-        Exception exception, CancellationToken cancellationToken)
-    {
-        Console.WriteLine($"Ошибка: {exception.Message}");
-        return Task.CompletedTask;
     }
 
     public async Task StopAsync()

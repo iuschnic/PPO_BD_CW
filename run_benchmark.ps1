@@ -1,0 +1,309 @@
+param(
+    [Parameter(Mandatory=$true)]
+    [ValidateSet("normal", "stress", "recovery")]
+    [string]$BenchmarkType,
+    
+    [Parameter(Mandatory=$true)]
+    [ValidateRange(1, 100)]
+    [int]$RunCount
+)
+
+# Функция для валидации параметров
+function Test-InputParameters {
+    param(
+        [string]$Type,
+        [int]$Count
+    )
+    
+    $validTypes = @("normal", "stress", "recovery")
+    if ($Type -notin $validTypes) {
+        throw "Invalid benchmark type. Must be one of: $($validTypes -join ', ')"
+    }
+    
+    if ($Count -lt 1 -or $Count -gt 100) {
+        throw "Run count must be between 1 and 100"
+    }
+    
+    return $true
+}
+
+# Функция для получения имени скрипта бенчмарка
+function Get-BenchmarkScriptName {
+    param([string]$Type)
+    
+    return @{
+        "normal" = "benchmark_normal.js"
+        "stress" = "benchmark_stress.js" 
+        "recovery" = "benchmark_recovery.js"
+    }[$Type]
+}
+
+# Функция для парсинга логов k6 и извлечения времен выполнения сценариев
+function Parse-K6ScenarioTimings {
+    param(
+        [string]$RunDir,
+        [string]$ContainerName = "benchmark_files-benchmark-1"
+    )
+    
+    $logsDir = Join-Path $RunDir "http_requests_summary"
+    New-Item -ItemType Directory -Path $logsDir -Force | Out-Null
+    
+    try {
+        # Получаем логи контейнера benchmark
+        $logs = docker logs $ContainerName 2>&1
+        
+        # Ищем строки содержащие SCENARIO_TIMING
+        $scenarioLines = $logs | Where-Object { $_ -match "SCENARIO_TIMING" }
+        
+        if ($scenarioLines.Count -gt 0) {
+            # Парсим JSON из каждой строки
+            $scenarioTimings = @()
+            
+            foreach ($line in $scenarioLines) {
+                try {
+                    
+                    # Извлекаем JSON часть - все что между фигурными скобками
+                    if ($line -match '\{.*\}') {
+                        $jsonPart = $matches[0]
+						$jsonPart = $jsonPart -replace '\\"', '"'
+                        
+                        $data = $jsonPart | ConvertFrom-Json
+                        
+                        # Сохраняем для JSONL
+                        $scenarioTimings += $jsonPart
+                    }
+                    
+                } catch {
+                    Write-Host "Failed to parse line: $line" -ForegroundColor Red
+                    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+                }
+            }
+            
+            if ($scenarioTimings.Count -gt 0) {
+                Write-Host "Successfully parsed $($scenarioTimings.Count) scenario timing records" -ForegroundColor Green
+                
+                # Сохраняем как JSONL
+                $scenarioTimings | Out-File -FilePath (Join-Path $logsDir "scenario_timings.jsonl") -Encoding UTF8
+                
+            } else {
+                Write-Host "No valid scenario timing records could be parsed" -ForegroundColor Yellow
+            }
+            
+        } else {
+            Write-Host "No SCENARIO_TIMING records found in logs" -ForegroundColor Yellow
+        }
+        
+    } catch {
+        Write-Host "Failed to parse k6 logs: $($_.Exception.Message)" -ForegroundColor Red
+    }
+}
+
+# Функция для сохранения результатов бенчмарка
+function Save-BenchmarkResults {
+    param(
+        [string]$RunDir,
+        [int]$Iteration
+    )
+    
+    # Копируем результаты из временных папок в папку прогона
+    $sourceDirs = @(
+        @{Source = "./benchmark_files/temp_serialization_time_results"; Dest = "serialization_time_results"},
+        @{Source = "./benchmark_files/temp_http_requests_summary"; Dest = "http_requests_summary"},
+        @{Source = "./benchmark_files/temp_cpu_mem_results"; Dest = "cpu_mem_results"}
+    )
+    
+    foreach ($dirMapping in $sourceDirs) {
+        if (Test-Path $dirMapping.Source) {
+            $destPath = Join-Path $RunDir $dirMapping.Dest
+            Copy-Item $dirMapping.Source -Destination $destPath -Recurse -Force
+            Write-Host "Copied: $($dirMapping.Dest)" -ForegroundColor Gray
+        }
+    }
+    
+    # Парсим логи k6 и сохраняем времена выполнения сценариев
+    Parse-K6ScenarioTimings -RunDir $RunDir
+    
+    Write-Host "Results saved to: $RunDir" -ForegroundColor Green
+}
+
+# Функция для получения следующего номера run
+function Get-NextRunNumber {
+    param([string]$ResultsBaseDir)
+    
+    if (-not (Test-Path $ResultsBaseDir)) {
+        return 1
+    }
+    
+    $existingRuns = Get-ChildItem $ResultsBaseDir -Directory | Where-Object { $_.Name -match "^run_(\d+)$" }
+    
+    if ($existingRuns.Count -eq 0) {
+        return 1
+    }
+    
+    # Извлекаем номера из имен папок и находим максимальный
+    $maxNumber = 0
+    foreach ($run in $existingRuns) {
+        if ($run.Name -match "run_(\d+)") {
+            $number = [int]$matches[1]
+            if ($number -gt $maxNumber) {
+                $maxNumber = $number
+            }
+        }
+    }
+    
+    return $maxNumber + 1
+}
+
+# Основная логика выполнения
+try {
+    # Валидация параметров
+    Test-InputParameters -Type $BenchmarkType -Count $RunCount
+    
+    $benchmarkScript = Get-BenchmarkScriptName -Type $BenchmarkType
+    $resultsBaseDir = "benchmark_${BenchmarkType}_results"
+    
+    Write-Host "=== Benchmark Configuration ===" -ForegroundColor Cyan
+    Write-Host "Type: $BenchmarkType" -ForegroundColor White
+    Write-Host "Script: $benchmarkScript" -ForegroundColor White
+    Write-Host "Run Count: $RunCount" -ForegroundColor White
+    Write-Host "Results Directory: $resultsBaseDir" -ForegroundColor White
+    Write-Host "===============================" -ForegroundColor Cyan
+    
+    $successfulRuns = 0
+    $failedRuns = 0
+
+    Write-Host "Starting $RunCount benchmark iterations..." -ForegroundColor Green
+
+    # Создаем основную папку если её нет
+    if (-not (Test-Path $resultsBaseDir)) {
+        New-Item -ItemType Directory -Path $resultsBaseDir | Out-Null
+    }
+
+    # Получаем номер для первого нового run'а
+    $startRunNumber = Get-NextRunNumber -ResultsBaseDir $resultsBaseDir
+    Write-Host "Starting new runs from number: $startRunNumber" -ForegroundColor Green
+
+    for ($i = 0; $i -lt $RunCount; $i++) {
+        $currentRunNumber = $startRunNumber + $i
+        Write-Host "`n=== Iteration $($i + 1)/$RunCount (Run $currentRunNumber) ===" -ForegroundColor Yellow
+        
+        # Создаем папку для текущего прогона
+        $runDir = "$resultsBaseDir/run_$currentRunNumber"
+        New-Item -ItemType Directory -Path $runDir -Force | Out-Null
+        Write-Host "Results will be saved to: $runDir" -ForegroundColor Gray
+        
+        try {
+            # Полностью останавливаем и очищаем предыдущий запуск
+            Write-Host "Cleaning up previous run..." -ForegroundColor Gray
+            docker-compose -f ./benchmark_files/docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
+            
+            # Ждем полной остановки
+            Start-Sleep -Seconds 3
+            
+            # Запускаем все сервисы заново с указанием типа бенчмарка
+            Write-Host "Starting fresh containers with $BenchmarkType benchmark..." -ForegroundColor Gray
+            $env:BENCHMARK_SCRIPT = $benchmarkScript
+            docker-compose -f ./benchmark_files/docker-compose-benchmark.yml up --build -d 2>&1 | Out-Null
+            
+            # Ждем когда все сервисы станут здоровыми (максимум 2 минуты)
+            Write-Host "Waiting for services to be healthy..." -ForegroundColor Gray
+            $timeout = 0
+            $maxWait = 120 # 2 минуты
+            
+            do {
+                Start-Sleep -Seconds 5
+                $timeout += 5
+                
+                $webcli_healthy = docker-compose -f ./benchmark_files/docker-compose-benchmark.yml ps webcli | Select-String "healthy"
+                $postgres_healthy = docker-compose -f ./benchmark_files/docker-compose-benchmark.yml ps postgres | Select-String "healthy"
+                
+                if ($timeout -ge $maxWait) {
+                    throw "Services health check timeout"
+                }
+                
+            } while (-not $webcli_healthy -or -not $postgres_healthy)
+            
+            Write-Host "All services healthy. $BenchmarkType benchmark running..." -ForegroundColor Green
+            
+            # Ждем завершения бенчмарка (максимум 10 минут)
+            $benchmarkTimeout = 0
+            $maxBenchmarkWait = 600 # 10 минут
+            
+            do {
+                Start-Sleep -Seconds 5
+                $benchmarkTimeout += 5
+                $status = docker-compose -f ./benchmark_files/docker-compose-benchmark.yml ps benchmark | Select-String "Up"
+                
+                if ($benchmarkTimeout -ge $maxBenchmarkWait) {
+                    throw "Benchmark execution timeout"
+                }
+                
+            } while ($status)
+            
+            # Сохраняем результаты бенчмарка в папку прогона
+            Write-Host "Saving benchmark results..." -ForegroundColor Gray
+            Save-BenchmarkResults -RunDir $runDir -Iteration $currentRunNumber
+            
+            $successfulRuns++
+            Write-Host "Iteration $($i + 1) completed successfully (Run $currentRunNumber)" -ForegroundColor Green
+            
+        } catch {
+            $failedRuns++
+            Write-Host "Iteration $($i + 1) failed: $($_.Exception.Message)" -ForegroundColor Red
+            
+            # Сохраняем доступные результаты даже при ошибке
+            try {
+                Write-Host "Saving available results for failed run..." -ForegroundColor Gray
+                Save-BenchmarkResults -RunDir $runDir -Iteration $currentRunNumber
+            } catch {
+                Write-Host "Failed to save results: $($_.Exception.Message)" -ForegroundColor DarkRed
+            }
+            
+            # Принудительно останавливаем все при ошибке
+            docker-compose -f ./benchmark_files/docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
+        } finally {
+            # Очищаем временные папки
+            $tempDirs = @(
+                "./benchmark_files/temp_serialization_time_results",
+                "./benchmark_files/temp_http_requests_summary",
+                "./benchmark_files/temp_cpu_mem_results"
+            )
+            
+            foreach ($tempDir in $tempDirs) {
+                if (Test-Path $tempDir) {
+                    Remove-Item $tempDir -Recurse -Force -ErrorAction SilentlyContinue
+                }
+            }
+        }
+        
+        # Короткая пауза между запусками
+        if ($i -lt ($RunCount - 1)) {
+            Write-Host "Preparing for next iteration..." -ForegroundColor Gray
+            Start-Sleep -Seconds 2
+        }
+    }
+
+    # Подсчитываем общее количество run'ов после выполнения
+    $totalRuns = 0
+    if (Test-Path $resultsBaseDir) {
+        $allRuns = Get-ChildItem $resultsBaseDir -Directory | Where-Object { $_.Name -match "^run_\d+$" }
+        $totalRuns = $allRuns.Count
+    }
+
+    Write-Host "`nBenchmark execution completed!" -ForegroundColor Green
+    Write-Host "Benchmark Type: $BenchmarkType" -ForegroundColor White
+    Write-Host "Successful runs in this session: $successfulRuns" -ForegroundColor Green
+    Write-Host "Failed runs in this session: $failedRuns" -ForegroundColor Red
+    Write-Host "Total runs in $resultsBaseDir : $totalRuns" -ForegroundColor Cyan
+
+} catch {
+    Write-Host "Error: $($_.Exception.Message)" -ForegroundColor Red
+    Write-Host "Usage: .\run_benchmark.ps1 -BenchmarkType <normal|stress|recovery> -RunCount <number>" -ForegroundColor Yellow
+    exit 1
+} finally {
+    # Всегда очищаем окружение
+    docker-compose -f ./benchmark_files/docker-compose-benchmark.yml down --volumes --remove-orphans 2>&1 | Out-Null
+    Write-Host "Cleanup completed" -ForegroundColor Gray
+}
+
+Write-Host "Total dataset now contains $totalRuns runs for $BenchmarkType analysis" -ForegroundColor Cyan

@@ -1,0 +1,69 @@
+services:
+  # PostgreSQL база данных
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: tasktracker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # Приложение WebCLI
+  webcli:
+    build:
+      context: ../code
+      dockerfile: ../benchmark_files/webcli/Dockerfile.webcli
+    ports:
+      - "5000:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=password
+      - ENABLE_BENCHMARK=true
+      - ASPNETCORE_URLS=http://+:5234
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./temp_serialization_time_results:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  
+  # Бенчмарк k6
+  benchmark:
+    build:
+      context: ./k6
+      dockerfile: Dockerfile.k6
+    command: ["run", "${BENCHMARK_SCRIPT:-benchmark_normal.js}"]
+    depends_on:
+      webcli:
+        condition: service_healthy
+    volumes:
+      - ./temp_http_requests_summary:/scripts/results
+    environment:
+      - BENCHMARK_SCRIPT=${BENCHMARK_SCRIPT:-benchmark_normal.js}
+  
+  # Сбор метрик по CPU, RAM
+  metrics:
+    build:
+      context: ./metrics_collector
+      dockerfile: Dockerfile.metrics
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./temp_cpu_mem_results:/scripts/results
+    depends_on:
+      - benchmark
+    environment:
+      - RESULTS_DIR=/scripts/results
+
+volumes:
+  postgres_data:

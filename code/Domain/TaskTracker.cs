@@ -4,7 +4,6 @@ using Domain.Models;
 using Domain.OutPorts;
 using Microsoft.Extensions.Logging;
 using Types;
-using static Dapper.SqlMapper;
 
 namespace Domain;
 
