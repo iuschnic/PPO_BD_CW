@@ -10,15 +10,16 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      #- postgres_1_master_data:/var/lib/postgresql/data
-      - ./postgres/init-master.sql:/docker-entrypoint-initdb.d/init-master.sql
+      - postgres_1_master_data:/var/lib/postgresql/data
+      - ./postgres/master-init:/docker-entrypoint-initdb.d
     networks:
       - postgres-cluster-1
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tasktracker"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   postgres-1-replica-1:
     image: postgres:15
@@ -29,32 +30,43 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      #- postgres_1_replica1_data:/var/lib/postgresql/data
-      - ./postgres/init-replica.sql:/docker-entrypoint-initdb.d/init-replica.sql
+      - postgres_1_replica1_data:/var/lib/postgresql/data
     networks:
       - postgres-cluster-1
     depends_on:
-      - postgres-1-master
+      postgres-1-master:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     command: >
       bash -c "
-        # Ждем пока мастер запустится
-        until pg_isready -h postgres-1-master -U postgres; do
-          echo 'Waiting for master...'
-          sleep 2
+        # Ждем пока мастер полностью запустится и создаст слоты
+        until PGPASSWORD=postgres psql -h postgres-1-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
+          echo 'Waiting for master to be ready...'
+          sleep 5
         done
         
-        # Удаляем существующие данные
-        rm -rf /var/lib/postgresql/data/*
+        echo 'Master is ready. Checking replication slots...'
+        sleep 10
         
-        # Создаем реплику из мастера
-        PGPASSWORD=postgres pg_basebackup -h postgres-1-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_1
+        # Проверяем существование данных
+        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
+          echo 'Data directory already exists, skipping initialization'
+        else
+          echo 'Cleaning data directory...'
+          rm -rf /var/lib/postgresql/data/*
+          
+          echo 'Creating base backup...'
+          PGPASSWORD=postgres pg_basebackup -h postgres-1-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_1
+          
+          echo 'Base backup completed'
+        fi
         
-        # Запускаем PostgreSQL
+        echo 'Starting replica...'
         exec docker-entrypoint.sh postgres
       "
 
@@ -67,35 +79,45 @@ services:
     ports:
       - "5434:5432"
     volumes:
-      #- postgres_1_replica2_data:/var/lib/postgresql/data
-      - ./postgres/init-replica.sql:/docker-entrypoint-initdb.d/init-replica.sql
+      - postgres_1_replica2_data:/var/lib/postgresql/data
     networks:
       - postgres-cluster-1
     depends_on:
-      - postgres-1-master
+      postgres-1-master:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     command: >
       bash -c "
-        # Ждем пока мастер запустится
-        until pg_isready -h postgres-1-master -U postgres; do
-          echo 'Waiting for master...'
-          sleep 2
+        # Ждем пока мастер полностью запустится и создаст слоты
+        until PGPASSWORD=postgres psql -h postgres-1-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
+          echo 'Waiting for master to be ready...'
+          sleep 5
         done
         
-        # Удаляем существующие данные
-        rm -rf /var/lib/postgresql/data/*
+        echo 'Master is ready. Checking replication slots...'
+        sleep 10
         
-        # Создаем реплику из мастера
-        PGPASSWORD=postgres pg_basebackup -h postgres-1-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_2
+        # Проверяем существование данных
+        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
+          echo 'Data directory already exists, skipping initialization'
+        else
+          echo 'Cleaning data directory...'
+          rm -rf /var/lib/postgresql/data/*
+          
+          echo 'Creating base backup...'
+          PGPASSWORD=postgres pg_basebackup -h postgres-1-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_2
+          
+          echo 'Base backup completed'
+        fi
         
-        # Запускаем PostgreSQL
+        echo 'Starting replica...'
         exec docker-entrypoint.sh postgres
       "
-
 
   # ==================== POSTGRES CLUSTER 2 ====================
   postgres-2-master:
@@ -108,15 +130,16 @@ services:
     ports:
       - "6432:5432"
     volumes:
-      #- postgres_2_master_data:/var/lib/postgresql/data
-      - ./postgres/init-master.sql:/docker-entrypoint-initdb.d/init-master.sql
+      - postgres_2_master_data:/var/lib/postgresql/data
+      - ./postgres/master-init:/docker-entrypoint-initdb.d
     networks:
       - postgres-cluster-2
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      test: ["CMD-SHELL", "pg_isready -U postgres -d tasktracker"]
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
 
   postgres-2-replica-1:
     image: postgres:15
@@ -127,32 +150,43 @@ services:
     ports:
       - "6433:5432"
     volumes:
-      #- postgres_2_replica1_data:/var/lib/postgresql/data
-      - ./postgres/init-replica.sql:/docker-entrypoint-initdb.d/init-replica.sql
+      - postgres_2_replica1_data:/var/lib/postgresql/data
     networks:
       - postgres-cluster-2
     depends_on:
-      - postgres-2-master
+      postgres-2-master:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     command: >
       bash -c "
-        # Ждем пока мастер запустится
-        until pg_isready -h postgres-2-master -U postgres; do
-          echo 'Waiting for master...'
-          sleep 2
+        # Ждем пока мастер полностью запустится и создаст слоты
+        until PGPASSWORD=postgres psql -h postgres-2-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
+          echo 'Waiting for master to be ready...'
+          sleep 5
         done
         
-        # Удаляем существующие данные
-        rm -rf /var/lib/postgresql/data/*
+        echo 'Master is ready. Checking replication slots...'
+        sleep 10
         
-        # Создаем реплику из мастера
-        PGPASSWORD=postgres pg_basebackup -h postgres-2-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_1
+        # Проверяем существование данных
+        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
+          echo 'Data directory already exists, skipping initialization'
+        else
+          echo 'Cleaning data directory...'
+          rm -rf /var/lib/postgresql/data/*
+          
+          echo 'Creating base backup...'
+          PGPASSWORD=postgres pg_basebackup -h postgres-2-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_1
+          
+          echo 'Base backup completed'
+        fi
         
-        # Запускаем PostgreSQL
+        echo 'Starting replica...'
         exec docker-entrypoint.sh postgres
       "
 
@@ -165,32 +199,43 @@ services:
     ports:
       - "6434:5432"
     volumes:
-      #- postgres_2_replica2_data:/var/lib/postgresql/data
-      - ./postgres/init-replica.sql:/docker-entrypoint-initdb.d/init-replica.sql
+      - postgres_2_replica2_data:/var/lib/postgresql/data
     networks:
       - postgres-cluster-2
     depends_on:
-      - postgres-2-master
+      postgres-2-master:
+        condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
+      interval: 10s
       timeout: 5s
-      retries: 5
+      retries: 10
+      start_period: 30s
     command: >
       bash -c "
-        # Ждем пока мастер запустится
-        until pg_isready -h postgres-2-master -U postgres; do
-          echo 'Waiting for master...'
-          sleep 2
+        # Ждем пока мастер полностью запустится и создаст слоты
+        until PGPASSWORD=postgres psql -h postgres-2-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
+          echo 'Waiting for master to be ready...'
+          sleep 5
         done
         
-        # Удаляем существующие данные
-        rm -rf /var/lib/postgresql/data/*
+        echo 'Master is ready. Checking replication slots...'
+        sleep 10
         
-        # Создаем реплику из мастера
-        PGPASSWORD=postgres pg_basebackup -h postgres-2-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_1
+        # Проверяем существование данных
+        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
+          echo 'Data directory already exists, skipping initialization'
+        else
+          echo 'Cleaning data directory...'
+          rm -rf /var/lib/postgresql/data/*
+          
+          echo 'Creating base backup...'
+          PGPASSWORD=postgres pg_basebackup -h postgres-2-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_2
+          
+          echo 'Base backup completed'
+        fi
         
-        # Запускаем PostgreSQL
+        echo 'Starting replica...'
         exec docker-entrypoint.sh postgres
       "
 
@@ -526,13 +571,13 @@ services:
       - postgres-cluster-2
       - default
 
-#volumes:
-#  postgres_1_master_data:
-#  postgres_1_replica1_data:
-#  postgres_1_replica2_data:
-#  postgres_2_master_data:
-#  postgres_2_replica1_data:
-#  postgres_2_replica2_data:
+volumes:
+  postgres_1_master_data:
+  postgres_1_replica1_data:
+  postgres_1_replica2_data:
+  postgres_2_master_data:
+  postgres_2_replica1_data:
+  postgres_2_replica2_data:
 
 networks:
   postgres-cluster-1:
