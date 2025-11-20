@@ -21,8 +21,10 @@ class Program
             ?? configuration.GetValue<string>("BaseUrl");
         var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
             ?? configuration.GetConnectionString("PostgresConnection");
-        var secretKey = secretConfiguration.GetValue<string>("SecretKey");
-        var botToken = secretConfiguration.GetValue<string>("BotToken");
+        var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY")
+            ?? secretConfiguration.GetValue<string>("SecretKey");
+        var botToken = Environment.GetEnvironmentVariable("BOT_TOKEN")
+            ?? secretConfiguration.GetValue<string>("BotToken");
         if (baseUrl == null || connString == null || secretKey == null || botToken == null)
         {
             Console.WriteLine("Ошибка чтения конфигурации");

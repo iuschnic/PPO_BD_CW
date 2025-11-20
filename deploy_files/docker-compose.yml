@@ -33,7 +33,7 @@ services:
       timeout: 10s
       retries: 3
 
-  webcli:
+  webcli-main-1:
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.webcli
@@ -55,25 +55,94 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 1
       
-  nginx-internal:
-    image: nginx
+  webcli-reader-1-1:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5235:5235"
+    environment:
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5235
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5235/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+       
+      
+  webcli-reader-1-2:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5236:5236"
+    environment:
+      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5236
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5236/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+      
+  nginx-internal-1:
+    image: nginx:alpine
     ports:
       - "5000:5000"
     environment:
       - SECRET=$SECRET_KEY
+      - MAIN_ADDRESS=webcli-main-1
+      - MAIN_PORT=5234
+      - READER1_ADDRESS=webcli-reader-1-1
+      - READER1_PORT=5235
+      - READER2_ADDRESS=webcli-reader-1-2
+      - READER2_PORT=5236
+      - PORT=5000
     depends_on:
-      webcli:
+      webcli-main-1:
+        condition: service_healthy
+      webcli-reader-1-1:
+        condition: service_healthy
+      webcli-reader-1-2:
         condition: service_healthy
     volumes:
       - ./logs/nginx-internal:/var/log/nginx
       - ./nginx/nginx_internal.conf.template:/etc/nginx/conf.d/nginx.conf.template
-      #- ./nginx/bebra.conf:/etc/nginx/nginx.conf
-    #command: /bin/bash -c "envsubst '$$SECRET' < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf && nginx -g 'daemon off;'"
     command: >
-      /bin/bash -c "
+      /bin/sh -c "
       echo 'Starting envsubst...' &&
-      envsubst '$$SECRET' < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
+      envsubst '$$SECRET $$MAIN_ADDRESS $$MAIN_PORT $$READER1_ADDRESS $$READER1_PORT $$READER2_ADDRESS $$READER2_PORT $PORT' 
+      < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
       echo 'Configuration generated. Testing nginx config...' &&
       nginx -t &&
       echo 'Starting nginx...' &&
@@ -83,6 +152,10 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
       
   message_sender:
     build:
@@ -94,10 +167,13 @@ services:
       - SECRET_KEY=$SECRET_KEY
       - BOT_TOKEN=$BOT_TOKEN
     depends_on:
-      nginx-internal:
+      nginx-internal-1:
         condition: service_healthy
     volumes:
       - ./logs/message_sender:/app/logs
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
       
   nginx-external:
     image: nginx:alpine
@@ -112,5 +188,8 @@ services:
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
       - ./logs/nginx-external:/app/logs
     depends_on:
-      nginx-internal:
+      nginx-internal-1:
         condition: service_healthy
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5

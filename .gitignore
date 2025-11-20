@@ -244,3 +244,4 @@ benchmark_aggregate_results/libs/
 deploy_files/logs
 deploy_files/nginx/static/legacy
 deploy_files/nginx/.htpasswd
+deploy_files/.env
