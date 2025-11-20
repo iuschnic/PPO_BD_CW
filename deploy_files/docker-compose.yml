@@ -1,5 +1,5 @@
 services:
-  postgres:
+  postgres-1:
     image: postgres:15
     environment:
       POSTGRES_USER: postgres
@@ -7,6 +7,20 @@ services:
       POSTGRES_MULTIPLE_DATABASES: "tasktracker,messagesenderdb"
     ports:
       - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+      
+  postgres-2:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_MULTIPLE_DATABASES: "tasktracker,messagesenderdb"
+    ports:
+      - "5433:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U postgres"]
       interval: 5s
@@ -25,13 +39,20 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: 'False'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
     depends_on:
-      postgres:
+      postgres-1:
+        condition: service_healthy
+      postgres-2:
         condition: service_healthy
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
       interval: 30s
       timeout: 10s
       retries: 3
+      
+      
+      
+      
+      
 
   webcli-main-1:
     build:
@@ -40,16 +61,16 @@ services:
     ports:
       - "5234:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=postgres-1;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres:
+      postgres-1:
         condition: service_healthy
     volumes:
-      - ./logs/webcli:/app/logs
+      - ./logs/webcli-main-1:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
       interval: 10s
@@ -65,20 +86,20 @@ services:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.webcli
     ports:
-      - "5235:5235"
+      - "5235:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=postgres-1;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
-      - ASPNETCORE_URLS=http://+:5235
+      - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres:
+      postgres-1:
         condition: service_healthy
     volumes:
-      - ./logs/webcli:/app/logs
+      - ./logs/webcli-reader-1-1:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5235/swagger/index.html"]
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -86,27 +107,26 @@ services:
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
-       
-      
+        
   webcli-reader-1-2:
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.webcli
     ports:
-      - "5236:5236"
+      - "5236:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=postgres-1;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
-      - ASPNETCORE_URLS=http://+:5236
+      - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres:
+      postgres-1:
         condition: service_healthy
     volumes:
-      - ./logs/webcli:/app/logs
+      - ./logs/webcli-reader-1-2:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5236/swagger/index.html"]
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -114,6 +134,99 @@ services:
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
+    
+    
+    
+    
+    
+  webcli-main-2:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5237:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=postgres-2;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+    depends_on:
+      postgres-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli-main-2:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 1
+      
+  webcli-reader-2-1:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5238:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=postgres-2;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+    depends_on:
+      postgres-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli-reader-2-1:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+        
+  webcli-reader-2-2:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5239:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=postgres-2;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+    depends_on:
+      postgres-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli-reader-2-2:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    
+    
+    
+    
+    
+    
+    
+    
       
   nginx-internal-1:
     image: nginx:alpine
@@ -121,13 +234,13 @@ services:
       - "5000:5000"
     environment:
       - SECRET=$SECRET_KEY
-      - MAIN_ADDRESS=webcli-main-1
+      - MAIN_HOST=webcli-main-1
       - MAIN_PORT=5234
-      - READER1_ADDRESS=webcli-reader-1-1
-      - READER1_PORT=5235
-      - READER2_ADDRESS=webcli-reader-1-2
-      - READER2_PORT=5236
-      - PORT=5000
+      - READER1_HOST=webcli-reader-1-1
+      - READER1_PORT=5234
+      - READER2_HOST=webcli-reader-1-2
+      - READER2_PORT=5234
+      - HOST=5000
     depends_on:
       webcli-main-1:
         condition: service_healthy
@@ -136,12 +249,54 @@ services:
       webcli-reader-1-2:
         condition: service_healthy
     volumes:
-      - ./logs/nginx-internal:/var/log/nginx
+      - ./logs/nginx-internal-1:/var/log/nginx
       - ./nginx/nginx_internal.conf.template:/etc/nginx/conf.d/nginx.conf.template
     command: >
       /bin/sh -c "
       echo 'Starting envsubst...' &&
-      envsubst '$$SECRET $$MAIN_ADDRESS $$MAIN_PORT $$READER1_ADDRESS $$READER1_PORT $$READER2_ADDRESS $$READER2_PORT $PORT' 
+      envsubst '$$SECRET $$MAIN_HOST $$MAIN_PORT $$READER1_HOST $$READER1_PORT $$READER2_HOST $$READER2_PORT $$HOST' 
+      < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
+      echo 'Configuration generated. Testing nginx config...' &&
+      nginx -t &&
+      echo 'Starting nginx...' &&
+      nginx -g 'daemon off;'"
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    deploy:
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    
+  nginx-internal-2:
+    image: nginx:alpine
+    ports:
+      - "5001:5000"
+    environment:
+      - SECRET=$SECRET_KEY
+      - MAIN_HOST=webcli-main-2
+      - MAIN_PORT=5234
+      - READER1_HOST=webcli-reader-2-1
+      - READER1_PORT=5234
+      - READER2_HOST=webcli-reader-2-2
+      - READER2_PORT=5234
+      - HOST=5000
+    depends_on:
+      webcli-main-2:
+        condition: service_healthy
+      webcli-reader-2-1:
+        condition: service_healthy
+      webcli-reader-2-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/nginx-internal-2:/var/log/nginx
+      - ./nginx/nginx_internal.conf.template:/etc/nginx/conf.d/nginx.conf.template
+    command: >
+      /bin/sh -c "
+      echo 'Starting envsubst...' &&
+      envsubst '$$SECRET $$MAIN_HOST $$MAIN_PORT $$READER1_HOST $$READER1_PORT $$READER2_HOST $$READER2_PORT $$HOST' 
       < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
       echo 'Configuration generated. Testing nginx config...' &&
       nginx -t &&
@@ -157,38 +312,55 @@ services:
     mem_reservation: 128M
     cpus: 0.5
       
-  message_sender:
+  message_sender-1:
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.messagesender
     environment:
-      - BASE_URL=http://nginx-internal:5000
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=messagesenderdb;Username=postgres;Password=postgres
+      - BASE_URL=http://nginx-internal-1:5000
+      - DB_CONNECTION_STRING=Host=postgres-1;Port=5432;Database=messagesenderdb;Username=postgres;Password=postgres
       - SECRET_KEY=$SECRET_KEY
-      - BOT_TOKEN=$BOT_TOKEN
+      - BOT_TOKEN=$BOT_TOKEN1
     depends_on:
       nginx-internal-1:
         condition: service_healthy
     volumes:
-      - ./logs/message_sender:/app/logs
+      - ./logs/message_sender-1:/app/logs
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
       
   nginx-external:
     image: nginx:alpine
-    environment:
-      - LANG=ru_RU.UTF-8
-      - LC_ALL=ru_RU.UTF-8
     ports:
       - "8888:80"
+    environment:
+      - SERVICE1_HOST=nginx-internal-1
+      - SERVICE1_PORT=5000
+      - SERVICE2_HOST=nginx-internal-2
+      - SERVICE2_PORT=5000
+      - PGADMIN_HOST=pgadmin
+      - PGADMIN_PORT=80
+      - HOST=80
     volumes:
-      - ./nginx/nginx_external.conf:/etc/nginx/nginx.conf:ro
+      #- ./nginx/nginx_external.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/static:/usr/share/nginx/static:ro
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
       - ./logs/nginx-external:/app/logs
+      - ./nginx/nginx_external.conf.template:/etc/nginx/conf.d/nginx.conf.template
+    command: >
+      /bin/sh -c "
+      echo 'Starting envsubst...' &&
+      envsubst '$$SERVICE1_HOST $$SERVICE1_PORT $$SERVICE2_HOST $$SERVICE2_PORT $$PGADMIN_HOST $$PGADMIN_PORT $$HOST' 
+      < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
+      echo 'Configuration generated. Testing nginx config...' &&
+      nginx -t &&
+      echo 'Starting nginx...' &&
+      nginx -g 'daemon off;'"
     depends_on:
       nginx-internal-1:
+        condition: service_healthy
+      nginx-internal-2:
         condition: service_healthy
     mem_limit: 256M
     mem_reservation: 128M

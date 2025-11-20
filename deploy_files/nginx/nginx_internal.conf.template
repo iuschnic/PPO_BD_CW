@@ -25,23 +25,23 @@ http {
     types_hash_max_size 2048;
 
     upstream backend-main {
-        server $MAIN_ADDRESS:$MAIN_PORT;
+        server $MAIN_HOST:$MAIN_PORT;
     }
 	upstream backend-reader-1 {
-        server $READER1_ADDRESS:$READER1_PORT;
+        server $READER1_HOST:$READER1_PORT;
     }
 	upstream backend-reader-2 {
-        server $READER2_ADDRESS:$READER2_PORT;
+        server $READER2_HOST:$READER2_PORT;
     }
 	
 	upstream backend-readers {
-        server $MAIN_ADDRESS:$MAIN_PORT weight=2;
-        server $READER1_ADDRESS:$READER1_PORT weight=1;
-        server $READER2_ADDRESS:$READER2_PORT weight=1;
+        server $MAIN_HOST:$MAIN_PORT weight=2;
+        server $READER1_HOST:$READER1_PORT weight=1;
+        server $READER2_HOST:$READER2_PORT weight=1;
     }
 
     server {
-        listen $PORT;
+        listen $HOST;
         server_name localhost;
         client_max_body_size 10M;
 
