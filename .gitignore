@@ -245,3 +245,5 @@ deploy_files/logs
 deploy_files/nginx/static/legacy
 deploy_files/nginx/.htpasswd
 deploy_files/.env
+deploy_files/patroni.env
+patroni/

@@ -1,243 +1,168 @@
+networks:
+  patroni-cluster-1:
+    driver: bridge
+  patroni-cluster-2:
+    driver: bridge
+  default:
+    driver: bridge
+
 services:
-  # ==================== POSTGRES CLUSTER 1 ====================
-  postgres-1-master:
-    image: postgres:15
-    container_name: postgres-1-master
+  etcd1-1: &etcd
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: tasktracker
+        ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+        ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+        ETCD_INITIAL_CLUSTER: etcd1-1=http://etcd1-1:2380,etcd1-2=http://etcd1-2:2380,etcd1-3=http://etcd1-3:2380
+        ETCD_INITIAL_CLUSTER_STATE: new
+        ETCD_INITIAL_CLUSTER_TOKEN: tutorial
+        ETCD_UNSUPPORTED_ARCH: arm64
+    container_name: demo-etcd1-1
+    hostname: etcd1-1
+    command: etcd --name etcd1-1 --initial-advertise-peer-urls http://etcd1-1:2380
+
+  etcd1-2:
+    <<: *etcd
+    container_name: demo-etcd1-2
+    hostname: etcd1-2
+    command: etcd --name etcd1-2 --initial-advertise-peer-urls http://etcd1-2:2380
+
+  etcd1-3:
+    <<: *etcd
+    container_name: demo-etcd1-3
+    hostname: etcd1-3
+    command: etcd --name etcd1-3 --initial-advertise-peer-urls http://etcd1-3:2380
+
+  haproxy1:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: haproxy1
+    container_name: demo-haproxy1
     ports:
-      - "5432:5432"
-    volumes:
-      - postgres_1_master_data:/var/lib/postgresql/data
-      - ./postgres/master-init:/docker-entrypoint-initdb.d
-    networks:
-      - postgres-cluster-1
+        - "5000:5000"
+        - "5001:5001"
+    command: haproxy
+    environment: &haproxy_env
+        ETCDCTL_ENDPOINTS: http://etcd1-1:2379,http://etcd1-2:2379,http://etcd1-3:2379
+        PATRONI_ETCD3_HOSTS: "'etcd1-1:2379','etcd1-2:2379','etcd1-3:2379'"
+        PATRONI_SCOPE: demo
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d tasktracker"]
+      test: ["CMD", "haproxy", "-c", "-f", "/etc/haproxy/haproxy.cfg"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 3
       start_period: 30s
 
-  postgres-1-replica-1:
-    image: postgres:15
-    container_name: postgres-1-replica-1
+  patroni1-1:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: patroni1-1
+    container_name: demo-patroni1-1
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5433:5432"
-    volumes:
-      - postgres_1_replica1_data:/var/lib/postgresql/data
-    networks:
-      - postgres-cluster-1
-    depends_on:
-      postgres-1-master:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    command: >
-      bash -c "
-        # Ждем пока мастер полностью запустится и создаст слоты
-        until PGPASSWORD=postgres psql -h postgres-1-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
-          echo 'Waiting for master to be ready...'
-          sleep 5
-        done
-        
-        echo 'Master is ready. Checking replication slots...'
-        sleep 10
-        
-        # Проверяем существование данных
-        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
-          echo 'Data directory already exists, skipping initialization'
-        else
-          echo 'Cleaning data directory...'
-          rm -rf /var/lib/postgresql/data/*
-          
-          echo 'Creating base backup...'
-          PGPASSWORD=postgres pg_basebackup -h postgres-1-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_1
-          
-          echo 'Base backup completed'
-        fi
-        
-        echo 'Starting replica...'
-        exec docker-entrypoint.sh postgres
-      "
+        <<: *haproxy_env
+        PATRONI_NAME: patroni1-1
 
-  postgres-1-replica-2:
-    image: postgres:15
-    container_name: postgres-1-replica-2
+  patroni1-2:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: patroni1-2
+    container_name: demo-patroni1-2
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "5434:5432"
-    volumes:
-      - postgres_1_replica2_data:/var/lib/postgresql/data
-    networks:
-      - postgres-cluster-1
-    depends_on:
-      postgres-1-master:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    command: >
-      bash -c "
-        # Ждем пока мастер полностью запустится и создаст слоты
-        until PGPASSWORD=postgres psql -h postgres-1-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
-          echo 'Waiting for master to be ready...'
-          sleep 5
-        done
-        
-        echo 'Master is ready. Checking replication slots...'
-        sleep 10
-        
-        # Проверяем существование данных
-        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
-          echo 'Data directory already exists, skipping initialization'
-        else
-          echo 'Cleaning data directory...'
-          rm -rf /var/lib/postgresql/data/*
-          
-          echo 'Creating base backup...'
-          PGPASSWORD=postgres pg_basebackup -h postgres-1-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_2
-          
-          echo 'Base backup completed'
-        fi
-        
-        echo 'Starting replica...'
-        exec docker-entrypoint.sh postgres
-      "
+        <<: *haproxy_env
+        PATRONI_NAME: patroni1-2
 
-  # ==================== POSTGRES CLUSTER 2 ====================
-  postgres-2-master:
-    image: postgres:15
-    container_name: postgres-2-master
+  patroni1-3:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: patroni1-3
+    container_name: demo-patroni1-3
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: tasktracker
+        <<: *haproxy_env
+        PATRONI_NAME: patroni1-3
+  
+  
+  
+  
+  etcd2-1: &etcd
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    environment:
+        ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+        ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+        ETCD_INITIAL_CLUSTER: etcd2-1=http://etcd2-1:2380,etcd2-2=http://etcd2-2:2380,etcd2-3=http://etcd2-3:2380
+        ETCD_INITIAL_CLUSTER_STATE: new
+        ETCD_INITIAL_CLUSTER_TOKEN: tutorial
+        ETCD_UNSUPPORTED_ARCH: arm64
+    container_name: demo-etcd2-1
+    hostname: etcd2-1
+    command: etcd --name etcd2-1 --initial-advertise-peer-urls http://etcd2-1:2380
+
+  etcd2-2:
+    <<: *etcd
+    container_name: demo-etcd2-2
+    hostname: etcd2-2
+    command: etcd --name etcd2-2 --initial-advertise-peer-urls http://etcd2-2:2380
+
+  etcd2-3:
+    <<: *etcd
+    container_name: demo-etcd2-3
+    hostname: etcd2-3
+    command: etcd --name etcd2-3 --initial-advertise-peer-urls http://etcd2-3:2380
+
+  haproxy2:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: haproxy2
+    container_name: demo-haproxy2
     ports:
-      - "6432:5432"
-    volumes:
-      - postgres_2_master_data:/var/lib/postgresql/data
-      - ./postgres/master-init:/docker-entrypoint-initdb.d
-    networks:
-      - postgres-cluster-2
+        - "5002:5000"
+        - "5003:5001"
+    command: haproxy
+    environment: &haproxy_env
+        ETCDCTL_ENDPOINTS: http://etcd2-1:2379,http://etcd2-2:2379,http://etcd2-3:2379
+        PATRONI_ETCD3_HOSTS: "'etcd2-1:2379','etcd2-2:2379','etcd2-3:2379'"
+        PATRONI_SCOPE: demo
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d tasktracker"]
+      test: ["CMD", "haproxy", "-c", "-f", "/etc/haproxy/haproxy.cfg"]
       interval: 10s
       timeout: 5s
-      retries: 10
+      retries: 3
       start_period: 30s
 
-  postgres-2-replica-1:
-    image: postgres:15
-    container_name: postgres-2-replica-1
+  patroni2-1:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: patroni2-1
+    container_name: demo-patroni2-1
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "6433:5432"
-    volumes:
-      - postgres_2_replica1_data:/var/lib/postgresql/data
-    networks:
-      - postgres-cluster-2
-    depends_on:
-      postgres-2-master:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    command: >
-      bash -c "
-        # Ждем пока мастер полностью запустится и создаст слоты
-        until PGPASSWORD=postgres psql -h postgres-2-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
-          echo 'Waiting for master to be ready...'
-          sleep 5
-        done
-        
-        echo 'Master is ready. Checking replication slots...'
-        sleep 10
-        
-        # Проверяем существование данных
-        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
-          echo 'Data directory already exists, skipping initialization'
-        else
-          echo 'Cleaning data directory...'
-          rm -rf /var/lib/postgresql/data/*
-          
-          echo 'Creating base backup...'
-          PGPASSWORD=postgres pg_basebackup -h postgres-2-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_1
-          
-          echo 'Base backup completed'
-        fi
-        
-        echo 'Starting replica...'
-        exec docker-entrypoint.sh postgres
-      "
+        <<: *haproxy_env
+        PATRONI_NAME: patroni2-1
 
-  postgres-2-replica-2:
-    image: postgres:15
-    container_name: postgres-2-replica-2
+  patroni2-2:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: patroni2-2
+    container_name: demo-patroni2-2
     environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-    ports:
-      - "6434:5432"
-    volumes:
-      - postgres_2_replica2_data:/var/lib/postgresql/data
-    networks:
-      - postgres-cluster-2
-    depends_on:
-      postgres-2-master:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-      start_period: 30s
-    command: >
-      bash -c "
-        # Ждем пока мастер полностью запустится и создаст слоты
-        until PGPASSWORD=postgres psql -h postgres-2-master -U postgres -d tasktracker -c 'SELECT 1' > /dev/null 2>&1; do
-          echo 'Waiting for master to be ready...'
-          sleep 5
-        done
-        
-        echo 'Master is ready. Checking replication slots...'
-        sleep 10
-        
-        # Проверяем существование данных
-        if [ -f /var/lib/postgresql/data/postgresql.conf ]; then
-          echo 'Data directory already exists, skipping initialization'
-        else
-          echo 'Cleaning data directory...'
-          rm -rf /var/lib/postgresql/data/*
-          
-          echo 'Creating base backup...'
-          PGPASSWORD=postgres pg_basebackup -h postgres-2-master -U postgres -D /var/lib/postgresql/data -P -R -X stream -C -S replica_slot_2
-          
-          echo 'Base backup completed'
-        fi
-        
-        echo 'Starting replica...'
-        exec docker-entrypoint.sh postgres
-      "
+        <<: *haproxy_env
+        PATRONI_NAME: patroni2-2
+
+  patroni2-3:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: patroni2-3
+    container_name: demo-patroni2-3
+    environment:
+        <<: *haproxy_env
+        PATRONI_NAME: patroni2-3
 
   # ==================== SERVICE CONFIGURATION ====================
 
@@ -251,11 +176,11 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: 'False'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
     networks:
-      - postgres-cluster-1
-      - postgres-cluster-2
+      - patroni-cluster-1
+      - patroni-cluster-2
       - default
 
-  # Service-1 applications
+  # Service-1 applications (используют Cluster 1 через HAProxy)
   webcli-main-1:
     build:
       context: ../code
@@ -263,13 +188,13 @@ services:
     ports:
       - "5234:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres-1-master;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres-1-master:
+      haproxy1:
         condition: service_healthy
     volumes:
       - ./logs/webcli-main-1:/app/logs
@@ -279,7 +204,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - postgres-cluster-1
+      - patroni-cluster-1
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 1
@@ -291,13 +216,13 @@ services:
     ports:
       - "5235:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres-1-replica-1;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres-1-replica-1:
+      haproxy1:
         condition: service_healthy
     volumes:
       - ./logs/webcli-reader-1-1:/app/logs
@@ -307,7 +232,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - postgres-cluster-1
+      - patroni-cluster-1
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
@@ -319,13 +244,13 @@ services:
     ports:
       - "5236:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres-1-replica-2;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres-1-replica-2:
+      haproxy1:
         condition: service_healthy
     volumes:
       - ./logs/webcli-reader-1-2:/app/logs
@@ -335,12 +260,12 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - postgres-cluster-1
+      - patroni-cluster-1
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
 
-  # Service-2 applications
+  # Service-2 applications (используют Cluster 2 через HAProxy)
   webcli-main-2:
     build:
       context: ../code
@@ -348,13 +273,13 @@ services:
     ports:
       - "5237:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres-2-master;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5000;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres-2-master:
+      haproxy2:
         condition: service_healthy
     volumes:
       - ./logs/webcli-main-2:/app/logs
@@ -364,7 +289,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - postgres-cluster-2
+      - patroni-cluster-2
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 1
@@ -376,13 +301,13 @@ services:
     ports:
       - "5238:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres-2-replica-1;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres-2-replica-1:
+      haproxy2:
         condition: service_healthy
     volumes:
       - ./logs/webcli-reader-2-1:/app/logs
@@ -392,7 +317,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - postgres-cluster-2
+      - patroni-cluster-2
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
@@ -404,13 +329,13 @@ services:
     ports:
       - "5239:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres-2-replica-2;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
     depends_on:
-      postgres-2-replica-2:
+      haproxy2:
         condition: service_healthy
     volumes:
       - ./logs/webcli-reader-2-2:/app/logs
@@ -420,7 +345,7 @@ services:
       timeout: 5s
       retries: 10
     networks:
-      - postgres-cluster-2
+      - patroni-cluster-2
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
@@ -429,7 +354,7 @@ services:
   nginx-internal-1:
     image: nginx:alpine
     ports:
-      - "5000:5000"
+      - "8880:5000"
     environment:
       - SECRET=$SECRET_KEY
       - MAIN_HOST=webcli-main-1
@@ -467,12 +392,12 @@ services:
     mem_reservation: 128M
     cpus: 0.5
     networks:
-      - postgres-cluster-1
+      - patroni-cluster-1
 
   nginx-internal-2:
     image: nginx:alpine
     ports:
-      - "5001:5000"
+      - "8881:5000"
     environment:
       - SECRET=$SECRET_KEY
       - MAIN_HOST=webcli-main-2
@@ -510,15 +435,16 @@ services:
     mem_reservation: 128M
     cpus: 0.5
     networks:
-      - postgres-cluster-2
+      - patroni-cluster-2
 
+  # как лучше сделать? обращаться к тому же haproxy или отдельный постгрес?
   message_sender-1:
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.messagesender
     environment:
       - BASE_URL=http://nginx-internal-1:5000
-      - DB_CONNECTION_STRING=Host=postgres-1-replica-1;Port=5432;Database=messagesenderdb;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
       - SECRET_KEY=$SECRET_KEY
       - BOT_TOKEN=$BOT_TOKEN1
     depends_on:
@@ -530,7 +456,7 @@ services:
     mem_reservation: 128M
     cpus: 0.5
     networks:
-      - postgres-cluster-1
+      - patroni-cluster-1
 
   nginx-external:
     image: nginx:alpine
@@ -567,22 +493,6 @@ services:
     mem_reservation: 128M
     cpus: 0.5
     networks:
-      - postgres-cluster-1
-      - postgres-cluster-2
+      - patroni-cluster-1
+      - patroni-cluster-2
       - default
-
-volumes:
-  postgres_1_master_data:
-  postgres_1_replica1_data:
-  postgres_1_replica2_data:
-  postgres_2_master_data:
-  postgres_2_replica1_data:
-  postgres_2_replica2_data:
-
-networks:
-  postgres-cluster-1:
-    driver: bridge
-  postgres-cluster-2:
-    driver: bridge
-  default:
-    driver: bridge
