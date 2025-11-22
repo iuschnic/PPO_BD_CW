@@ -117,11 +117,6 @@ public class TelegramBotE2E : IAsyncLifetime
         await _testerBot.SendAndWaitResponseAsync(testPassword);
         await _testerBot.SendAndWaitResponseAsync("/stop");
         var responses = _testerBot.GetMessages();
-        Console.WriteLine("=== ALL RESPONSES ===");
-        foreach (var response in responses)
-        {
-            Console.WriteLine($"Response: {response}");
-        }
         Assert.True(responses.Count == 4, $"Expected at least 4 responses, got {responses.Count}");
         foreach (var r in responses)
             Assert.NotNull(r);

@@ -1,7 +1,5 @@
-﻿using System.Timers;
-using Telegram.Bot;
+﻿using Telegram.Bot;
 using Telegram.Bot.Types;
-using Telegram.Bot.Types.Enums;
 
 namespace Tests.E2ETests;
 
@@ -53,15 +51,6 @@ public class TesterBot
     {
         Console.WriteLine($"Error TesterBot: {exception.Message}");
         return Task.CompletedTask;
-    }
-
-    public async Task SendMessageAsync(string message)
-    {
-        await _botClient.SendMessage(
-            chatId: _chatId,
-            text: message
-        );
-        Console.WriteLine($"TesterBot sent: {message}");
     }
 
     public async Task SendAndWaitResponseAsync(string message)

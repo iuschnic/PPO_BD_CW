@@ -11,10 +11,3 @@ public interface IBotUpdate
     string Text { get; }
     string Username { get; }
 }
-
-public interface IBotMessage
-{
-    long ChatId { get; }
-    string Text { get; }
-    string Username { get; }
-}
