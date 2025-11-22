@@ -33,6 +33,10 @@ http {
 	upstream pgadmin {
         server $PGADMIN_HOST:$PGADMIN_PORT;
     }
+	
+	upstream grafana {
+		server $GRAFANA_HOST:$GRAFANA_PORT;
+	}
 
     server {
         listen $HOST;
@@ -126,6 +130,16 @@ http {
             expires 1y;
             add_header Cache-Control "public, immutable";
             access_log off;
+        }
+		
+		# ==================== MONITORING ROUTES ====================
+
+        location /monitoring/ {
+            return 302 http://localhost:3000;
+        }
+
+        location = /monitoring {
+            return 302 http://localhost:3000;
         }
 
         # ==================== MIRROR ROUTES ====================

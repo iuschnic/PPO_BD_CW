@@ -3,10 +3,63 @@ networks:
     driver: bridge
   patroni-cluster-2:
     driver: bridge
+  loki:
+    driver: bridge
   default:
     driver: bridge
 
 services:
+  # ==================== LOKI & GRAFANA ====================
+  loki:
+    image: grafana/loki:3.4.1
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log:ro
+      - ./logs:/etc/promtail/app-logs:ro
+      - ./promtail/config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - loki
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=alertingSimplifiedRouting,alertingQueryAndExpressionsStepMode
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy 
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - loki
+      
+  # ==================== FIRST CLUSTER ====================
   etcd1-1: &etcd
     image: ${PATRONI_TEST_IMAGE:-patroni}
     networks: [ patroni-cluster-1 ]
@@ -85,7 +138,7 @@ services:
         PATRONI_NAME: patroni1-3
   
   
-  
+  # ==================== SECOND CLUSTER ====================
   
   etcd2-1: &etcd
     image: ${PATRONI_TEST_IMAGE:-patroni}
@@ -175,6 +228,8 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json  # Правильный путь
     networks:
       - patroni-cluster-1
       - patroni-cluster-2
@@ -469,6 +524,8 @@ services:
       - SERVICE2_PORT=5000
       - PGADMIN_HOST=pgadmin
       - PGADMIN_PORT=80
+      - GRAFANA_HOST=grafana
+      - GRAFANA_PORT=3000
       - HOST=80
     volumes:
       - ./nginx/static:/usr/share/nginx/static:ro
@@ -478,7 +535,7 @@ services:
     command: >
       /bin/sh -c "
       echo 'Starting envsubst...' &&
-      envsubst '$$SERVICE1_HOST $$SERVICE1_PORT $$SERVICE2_HOST $$SERVICE2_PORT $$PGADMIN_HOST $$PGADMIN_PORT $$HOST' 
+      envsubst '$$SERVICE1_HOST $$SERVICE1_PORT $$SERVICE2_HOST $$SERVICE2_PORT $$PGADMIN_HOST $$PGADMIN_PORT $$GRAFANA_HOST $$GRAFANA_PORT $$HOST' 
       < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
       echo 'Configuration generated. Testing nginx config...' &&
       nginx -t &&
@@ -496,3 +553,4 @@ services:
       - patroni-cluster-1
       - patroni-cluster-2
       - default
+      - loki

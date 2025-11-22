@@ -1,19 +1,59 @@
 {
     "Servers": {
         "1": {
-            "Name": "PostgreSQL Server",
-            "Group": "Servers",
-            "Host": "postgres-1",
+            "Name": "Patroni1-1 (Direct)",
+            "Group": "Cluster 1 - Direct Nodes",
+            "Host": "patroni1-1",
             "Port": 5432,
             "MaintenanceDB": "postgres",
             "Username": "postgres",
             "Password": "postgres",
             "SSLMode": "prefer"
         },
-		"2": {
-            "Name": "PostgreSQL Server",
-            "Group": "Servers",
-            "Host": "postgres-2",
+        "2": {
+            "Name": "Patroni1-2 (Direct)", 
+            "Group": "Cluster 1 - Direct Nodes",
+            "Host": "patroni1-2",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "postgres",
+            "Password": "postgres",
+            "SSLMode": "prefer"
+        },
+        "3": {
+            "Name": "Patroni1-3 (Direct)",
+            "Group": "Cluster 1 - Direct Nodes", 
+            "Host": "patroni1-3",
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "postgres",
+            "Password": "postgres",
+            "SSLMode": "prefer"
+        },
+        "4": {
+            "Name": "Patroni2-1 (Direct)",
+            "Group": "Cluster 2 - Direct Nodes",
+            "Host": "patroni2-1", 
+            "Port": 5432,
+            "MaintenanceDB": "postgres",
+            "Username": "postgres",
+            "Password": "postgres",
+            "SSLMode": "prefer"
+        },
+        "5": {
+            "Name": "Patroni2-2 (Direct)",
+            "Group": "Cluster 2 - Direct Nodes",
+            "Host": "patroni2-2",
+            "Port": 5432,
+            "MaintenanceDB": "postgres", 
+            "Username": "postgres",
+            "Password": "postgres",
+            "SSLMode": "prefer"
+        },
+        "6": {
+            "Name": "Patroni2-3 (Direct)",
+            "Group": "Cluster 2 - Direct Nodes",
+            "Host": "patroni2-3",
             "Port": 5432,
             "MaintenanceDB": "postgres",
             "Username": "postgres",
