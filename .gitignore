@@ -237,6 +237,7 @@ _Pvt_Extensions
 allure-report/
 *.bkp
 appsettings.*.json
+secret*.json
 benchmark_results/
 benchmark_aggregate_results/final_results/
 benchmark_aggregate_results/libs/

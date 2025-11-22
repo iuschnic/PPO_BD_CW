@@ -493,7 +493,7 @@ services:
       - patroni-cluster-2
 
   # как лучше сделать? обращаться к тому же haproxy или отдельный постгрес?
-  message_sender-1:
+  message-sender-1:
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.messagesender

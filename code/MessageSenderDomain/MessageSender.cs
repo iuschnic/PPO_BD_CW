@@ -45,7 +45,7 @@ public class MessageSender
         _ = Task.Run(StartBroadcasting, _cts.Token);
         _ = Task.Run(StartCreatingMessages, _cts.Token);
 
-        Console.WriteLine("Бот запущен. Нажмите Ctrl+C для остановки.");
+        Console.WriteLine("The bot is on. Press Ctrl+C to stop it.");
         await Task.Delay(-1, _cts.Token);
     }
 
@@ -70,12 +70,12 @@ public class MessageSender
                         send.TimeOutdated, send.WasSent, send.TaskTrackerLogin, send.SubscriberID));
                 }
                 _messageRepo.MarkMessagesSent(sentMessages);
-                Console.WriteLine($"{DateTime.Now}: Отправлено {cnt} сообщений");
+                Console.WriteLine($"{DateTime.Now}: Sent {cnt} messages");
                 await Task.Delay(TimeSpan.FromMinutes(timeout_send), _cts.Token);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при рассылке: {ex.Message}");
+                Console.WriteLine($"Error broadcasting: {ex.Message}");
                 await Task.Delay(TimeSpan.FromMinutes(timeout_err), _cts.Token);
             }
         }
@@ -106,7 +106,7 @@ public class MessageSender
                             false, userHabit.UserName, subscriber.Id));
                     }
                 }
-                Console.WriteLine($"{DateTime.Now}: Создано {messages.Count} сообщений");
+                Console.WriteLine($"{DateTime.Now}: Generated {messages.Count} messages");
                 _messageRepo.TryCreateMessages(messages);
                 await Task.Delay(TimeSpan.FromMinutes(timeout_generate), _cts.Token);
             }
@@ -154,7 +154,7 @@ public class MessageSender
                         _registrationStates.Remove(chatId);
                         _tempLogins.Remove(chatId);
 
-                        Console.WriteLine($"Пользователь подписался: {subscriber.Username}, Логин: {subscriber.TaskTrackerLogin}");
+                        Console.WriteLine($"Пользователь с chatId {chatId} подписался: {subscriber.Username}, Логин: {subscriber.TaskTrackerLogin}");
 
                         await _botClient.SendMessageAsync(chatId, RegistrationCompleteMessage);
                     }
@@ -163,7 +163,7 @@ public class MessageSender
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка обработки сообщения: {ex.Message}");
+            Console.WriteLine($"Error serving message: {ex.Message}");
         }
     }
 
@@ -197,7 +197,7 @@ public class MessageSender
                 text: GoodbyeMessage
             );
 
-            Console.WriteLine($"Пользователь отписался: {subscriber.Username}, " +
+            Console.WriteLine($"User unsubscribed: {subscriber.Username}, " +
                 $"Логин: {subscriber.TaskTrackerLogin}");
         }
         else
@@ -212,6 +212,6 @@ public class MessageSender
     public async Task StopAsync()
     {
         _cts?.Cancel();
-        Console.WriteLine("Бот остановлен.");
+        Console.WriteLine("The bot is offline.");
     }
 }

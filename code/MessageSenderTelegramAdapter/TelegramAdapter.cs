@@ -1,30 +1,43 @@
-﻿using Telegram.Bot;
+﻿using MessageSenderDomain.OutPorts;
+using Telegram.Bot;
 using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
-using MessageSenderDomain.OutPorts;
 
-public class TelegramBotAdapterArgs(string botToken)
+public class TelegramBotAdapterArgs(string botToken, long overridingChatId = 0)
 {
     public string BotToken = botToken;
+    public long OverridingChatId = overridingChatId;
 }
 
+/*
+ Да простит меня Бог за этот костыль с _overridingChatId, он нужен для e2e тестирования бота с помощью другого обычного бота.
+ Так как боты не могут напрямую читать сообщения друг друга (ограничения Telegram), создается канал с двумя ботами в нем, а также 
+ привязывается чат к этому каналу, куда также добавляются боты. Боты пишут в канал по _overridingChatId, сообщения пересылаются в чат,
+ откуда боты его читают и таким образом они общаются логически также как пользователь и бот, что позволяет провести тестирование.
+*/
 public class TelegramBotAdapter : IBotClient
 {
     private readonly ITelegramBotClient _botClient;
+    private readonly long _overridingChatId;
 
     public TelegramBotAdapter(TelegramBotAdapterArgs args)
     {
         _botClient = new TelegramBotClient(args.BotToken);
+        _overridingChatId = args.OverridingChatId;
     }
 
     public async Task SendMessageAsync(long chatId, string text)
     {
-        await _botClient.SendMessage(chatId, text);
+        if (_overridingChatId != 0)
+            await _botClient.SendMessage(_overridingChatId, text);
+        else
+            await _botClient.SendMessage(chatId, text);
     }
 
-    public Task StartReceivingAsync(Func<IBotUpdate, Task> updateHandler, CancellationToken cancellationToken)
+    public async Task StartReceivingAsync(Func<IBotUpdate, Task> updateHandler, CancellationToken cancellationToken)
     {
+        await _botClient.DropPendingUpdates();
         var receiverOptions = new ReceiverOptions
         {
             AllowedUpdates = Array.Empty<UpdateType>()
@@ -36,8 +49,6 @@ public class TelegramBotAdapter : IBotClient
             receiverOptions: receiverOptions,
             cancellationToken: cancellationToken
         );
-
-        return Task.CompletedTask;
     }
 
     private async Task HandleUpdateAsync(Update update, Func<IBotUpdate, Task> updateHandler)

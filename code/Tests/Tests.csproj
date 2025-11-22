@@ -22,12 +22,17 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
+    <PackageReference Include="Telegram.Bot" Version="22.5.1" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Domain\Domain.csproj" />
+    <ProjectReference Include="..\MessageSenderDomain\MessageSenderDomain.csproj" />
+    <ProjectReference Include="..\MessageSenderStorage\MessageSenderStorage.csproj" />
+    <ProjectReference Include="..\MessageSenderTaskTrackerClient\MessageSenderTaskTrackerClient.csproj" />
+    <ProjectReference Include="..\MessageSenderTelegramAdapter\MessageSenderTelegramAdapter.csproj" />
     <ProjectReference Include="..\ShedLoadAdapter\ShedLoadAdapter.csproj" />
 	<ProjectReference Include="..\Storage\Storage.csproj" />
   </ItemGroup>
@@ -37,6 +42,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="secret_tests_settings.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="tests_settings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
