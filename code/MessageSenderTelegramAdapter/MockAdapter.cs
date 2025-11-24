@@ -1,86 +1,80 @@
-﻿using MessageSenderDomain.OutPorts;
+﻿using System.Collections.Concurrent;
+using MessageSenderDomain.OutPorts;
 using System.Net;
-
-namespace MessageSenderTelegramAdapter;
 
 public class MockWebBotAdapterArgs(string baseUrl)
 {
     public string BaseUrl = baseUrl;
 }
 
-public class MockWebApiBotAdapter : IBotClient
+public class MockWebBotAdapter : IBotClient
 {
-    private readonly string _baseUrl;
-    private Func<IBotUpdate, Task>? _updateHandler;
+    private HttpListener? _httpListener;
+    private string _baseUrl;
+    private readonly ConcurrentDictionary<long, HttpResponse> _pendingResponses = new();
 
-    public MockWebApiBotAdapter(MockWebBotAdapterArgs args)
+    public MockWebBotAdapter(MockWebBotAdapterArgs args)
     {
         _baseUrl = args.BaseUrl;
     }
 
-    public async Task SendMessageAsync(long chatId, string text)
+    public async Task StartReceivingAsync(Func<IBotUpdate, Task> updateHandler, CancellationToken cancellationToken)
     {
-        // Логируем в консоль и можно отправлять куда-то еще
-        Console.WriteLine($"[API] 🤖 → User{chatId}: {text}");
-
-        // Можно добавить запрос к реальному API для тестирования
-        using var client = new HttpClient();
-        var payload = new { ChatId = chatId, Message = text, Timestamp = DateTime.Now };
-        var json = System.Text.Json.JsonSerializer.Serialize(payload);
-
-        // await client.PostAsync($"{_baseUrl}/api/messages", 
-        //     new StringContent(json, Encoding.UTF8, "application/json"));
-
-        await Task.CompletedTask;
+        await StartHttpServer(updateHandler, cancellationToken);
     }
 
-    public Task StartReceivingAsync(Func<IBotUpdate, Task> updateHandler, CancellationToken cancellationToken)
+    private async Task StartHttpServer(Func<IBotUpdate, Task> updateHandler, CancellationToken cancellationToken)
     {
-        _updateHandler = updateHandler;
-        _ = Task.Run(async () => await StartMockServer(cancellationToken), cancellationToken);
+        _httpListener = new HttpListener();
+        _httpListener.Prefixes.Add(_baseUrl);
+        _httpListener.Start();
 
-        return Task.CompletedTask;
-    }
-
-    private async Task StartMockServer(CancellationToken cancellationToken)
-    {
-        using var listener = new HttpListener();
-        listener.Prefixes.Add($"{_baseUrl}/");
-        listener.Start();
+        Console.WriteLine($"HTTP сервер запущен на {_baseUrl}");
 
         while (!cancellationToken.IsCancellationRequested)
         {
-            var context = await listener.GetContextAsync();
-            _ = Task.Run(() => ProcessRequest(context));
+            try
+            {
+                var context = await _httpListener.GetContextAsync();
+                _ = Task.Run(() => HandleHttpRequest(context, updateHandler));
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"HTTP ошибка: {ex.Message}");
+            }
         }
     }
 
-    private async Task ProcessRequest(HttpListenerContext context)
+    private async Task HandleHttpRequest(HttpListenerContext context, Func<IBotUpdate, Task> updateHandler)
     {
-        if (_updateHandler == null) return;
         var request = context.Request;
         var response = context.Response;
 
         try
         {
-            if (request.HttpMethod == "POST" && request.Url?.AbsolutePath == "/api/messages")
+            if (request.Url.AbsolutePath == "/send" && request.HttpMethod == "POST")
             {
-                using var reader = new StreamReader(request.InputStream);
-                var body = await reader.ReadToEndAsync();
-
-                var messageData = System.Text.Json.JsonSerializer.Deserialize<MessageData>(body);
-                if (messageData != null)
+                await HandleSendMessage(request, response, updateHandler);
+            }
+            else if (request.Url.AbsolutePath == "/status")
+            {
+                await WriteJsonResponse(response, new
                 {
-                    var update = new MockBotUpdate(messageData.ChatId, messageData.Text, messageData.Username);
-                    await _updateHandler(update);
-                }
-
-                response.StatusCode = 200;
+                    status = "Bot running",
+                    time = DateTime.Now,
+                    pendingResponses = _pendingResponses.Count
+                });
             }
             else
             {
                 response.StatusCode = 404;
+                await WriteJsonResponse(response, new { error = "Not found" });
             }
+        }
+        catch (Exception ex)
+        {
+            response.StatusCode = 500;
+            await WriteJsonResponse(response, new { error = ex.Message });
         }
         finally
         {
@@ -88,12 +82,100 @@ public class MockWebApiBotAdapter : IBotClient
         }
     }
 
-    private class MessageData
+    private async Task HandleSendMessage(HttpListenerRequest request, HttpListenerResponse response, Func<IBotUpdate, Task> updateHandler)
     {
-        public long ChatId { get; set; }
-        public string Text { get; set; } = string.Empty;
-        public string Username { get; set; } = string.Empty;
+        using var reader = new StreamReader(request.InputStream);
+        var json = await reader.ReadToEndAsync();
+        var sendRequest = System.Text.Json.JsonSerializer.Deserialize<SendMessageRequest>(json);
+
+        if (sendRequest != null)
+        {
+            var responseContext = new HttpResponse(response);
+            _pendingResponses[sendRequest.ChatId] = responseContext;
+
+            try
+            {
+                await updateHandler(new MockBotUpdate(sendRequest.ChatId, sendRequest.Text, sendRequest.UserName));
+
+                var botResponse = await responseContext.WaitForResponseAsync(TimeSpan.FromSeconds(30));
+
+                if (botResponse != null)
+                {
+                    await WriteJsonResponse(response, new
+                    {
+                        status = "Message processed",
+                        botResponse = botResponse
+                    });
+                }
+                else
+                {
+                    await WriteJsonResponse(response, new
+                    {
+                        status = "Message received but no response from bot",
+                        note = "Bot processed message but didn't send response"
+                    });
+                }
+            }
+            finally
+            {
+                _pendingResponses.TryRemove(sendRequest.ChatId, out _);
+            }
+        }
     }
+
+    public async Task SendMessageAsync(long chatId, string text)
+    {
+        if (_pendingResponses.TryGetValue(chatId, out var responseContext))
+        {
+            await responseContext.SetResponse(text);
+        }
+        else
+        {
+            Console.WriteLine($"Bot response for user {chatId}: {text}");
+        }
+    }
+
+    private async Task WriteJsonResponse(HttpListenerResponse response, object data)
+    {
+        if (!response.OutputStream.CanWrite)
+            return;
+
+        var json = System.Text.Json.JsonSerializer.Serialize(data);
+        var buffer = System.Text.Encoding.UTF8.GetBytes(json);
+
+        response.ContentType = "application/json";
+        response.ContentLength64 = buffer.Length;
+        await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+    }
+}
+
+public class HttpResponse
+{
+    private readonly HttpListenerResponse _response;
+    private readonly TaskCompletionSource<string?> _responseTcs = new();
+
+    public HttpResponse(HttpListenerResponse response)
+    {
+        _response = response;
+    }
+
+    public Task<string?> WaitForResponseAsync(TimeSpan timeout)
+    {
+        return _responseTcs.Task.WaitAsync(timeout);
+    }
+
+    public Task SetResponse(string responseText)
+    {
+        _responseTcs.TrySetResult(responseText);
+        return Task.CompletedTask;
+    }
+}
+
+public class SendMessageRequest
+{
+    public long ChatId { get; set; }
+    public string Text { get; set; } = string.Empty;
+    public string UserName { get; set; } = string.Empty;
 }
 
 public class MockBotUpdate : IBotUpdate
@@ -102,10 +184,10 @@ public class MockBotUpdate : IBotUpdate
     public string Text { get; }
     public string Username { get; }
 
-    public MockBotUpdate(long chatId, string text, string username)
+    public MockBotUpdate(long chatId, string text, string userName)
     {
         ChatId = chatId;
         Text = text;
-        Username = username;
+        Username = userName;
     }
 }
