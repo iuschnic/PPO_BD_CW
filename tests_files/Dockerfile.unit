@@ -7,17 +7,38 @@ COPY ["Domain/", "Domain/"]
 COPY ["Storage/", "Storage/"]
 COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
 COPY ["Tests/", "Tests/"]
+COPY ["Tests/", "Tests/"]
+COPY ["MessageSenderDomain/", "MessageSenderDomain/"]
+COPY ["MessageSenderStorage/", "MessageSenderStorage/"]
+COPY ["MessageSenderService/", "MessageSenderService/"]
+COPY ["MessageSenderTaskTrackerClient/", "MessageSenderTaskTrackerClient/"]
+COPY ["MessageSenderTelegramAdapter/", "MessageSenderTelegramAdapter/"]
+COPY ["TaskTrackerDtoModels/", "TaskTrackerDtoModels/"]
 
 # Восстанавливаем и строим только нужные проекты
 RUN dotnet restore "Domain/Domain.csproj" && \
     dotnet restore "Storage/Storage.csproj" && \
     dotnet restore "ShedLoadAdapter/ShedLoadAdapter.csproj" && \
-    dotnet restore "Tests/Tests.csproj"
+    dotnet restore "Tests/Tests.csproj" && \
+    dotnet restore "Tests/Tests.csproj" && \
+	dotnet restore "MessageSenderDomain/MessageSenderDomain.csproj" && \
+	dotnet restore "MessageSenderStorage/MessageSenderStorage.csproj" && \
+	dotnet restore "MessageSenderTaskTrackerClient/MessageSenderTaskTrackerClient.csproj" && \
+	dotnet restore "MessageSenderTelegramAdapter/MessageSenderTelegramAdapter.csproj" && \
+	dotnet restore "MessageSenderService/MessageSenderService.csproj" && \
+	dotnet restore "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj"
 
 RUN dotnet build "Domain/Domain.csproj" -c Release --no-restore && \
     dotnet build "Storage/Storage.csproj" -c Release --no-restore && \
     dotnet build "ShedLoadAdapter/ShedLoadAdapter.csproj" -c Release --no-restore && \
-    dotnet build "Tests/Tests.csproj" -c Release --no-restore
+    dotnet build "Tests/Tests.csproj" -c Release --no-restore && \
+    dotnet build "Tests/Tests.csproj" -c Release --no-restore && \
+	dotnet build "MessageSenderDomain/MessageSenderDomain.csproj" -c Release --no-restore && \
+	dotnet build "MessageSenderStorage/MessageSenderStorage.csproj" -c Release --no-restore && \
+	dotnet build "MessageSenderTaskTrackerClient/MessageSenderTaskTrackerClient.csproj" -c Release --no-restore && \
+	dotnet build "MessageSenderTelegramAdapter/MessageSenderTelegramAdapter.csproj" -c Release --no-restore && \
+	dotnet build "MessageSenderService/MessageSenderService.csproj" -c Release --no-restore && \
+	dotnet build "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj" -c Release --no-restore
 
 # Запуск unit-тестов
 ENTRYPOINT ["sh", "-c", \

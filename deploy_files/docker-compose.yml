@@ -491,14 +491,15 @@ services:
     cpus: 0.5
     networks:
       - patroni-cluster-2
-
-  # как лучше сделать? обращаться к тому же haproxy или отдельный постгрес?
+      
   message-sender-1:
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.messagesender
     environment:
       - BASE_URL=http://nginx-internal-1:5000
+      - MOCK_BASE_URL=http://localhost:5000/
+      - USE_MOCK=false
       - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
       - SECRET_KEY=$SECRET_KEY
       - BOT_TOKEN=$BOT_TOKEN1
