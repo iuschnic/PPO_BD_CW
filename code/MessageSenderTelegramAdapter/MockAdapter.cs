@@ -1,13 +1,15 @@
 ﻿using System.Collections.Concurrent;
-using MessageSenderDomain.OutPorts;
 using System.Net;
+using MessageSenderDomain.OutPorts;
+
+namespace MessageSenderBotAdapters;
 
 public class MockWebBotAdapterArgs(string baseUrl)
 {
     public string BaseUrl = baseUrl;
 }
 
-public class MockWebBotAdapter : IBotClient
+public class MockWebBotAdapter : IBotClient, IDisposable
 {
     private HttpListener? _httpListener;
     private string _baseUrl;
@@ -27,22 +29,59 @@ public class MockWebBotAdapter : IBotClient
     {
         _httpListener = new HttpListener();
         _httpListener.Prefixes.Add(_baseUrl);
-        _httpListener.Start();
 
-        Console.WriteLine($"HTTP сервер запущен на {_baseUrl}");
-
-        while (!cancellationToken.IsCancellationRequested)
+        try
         {
-            try
+            _httpListener.Start();
+            Console.WriteLine($"HTTP сервер запущен на {_baseUrl}");
+
+            while (!cancellationToken.IsCancellationRequested)
             {
-                var context = await _httpListener.GetContextAsync();
-                _ = Task.Run(() => HandleHttpRequest(context, updateHandler));
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"HTTP ошибка: {ex.Message}");
+                try
+                {
+                    var context = await _httpListener.GetContextAsync().ConfigureAwait(false);
+                    _ = Task.Run(() => HandleHttpRequest(context, updateHandler));
+                }
+                catch (HttpListenerException) when (cancellationToken.IsCancellationRequested)
+                {
+                    // Корректное завершение при отмене
+                    break;
+                }
+                catch (ObjectDisposedException)
+                {
+                    // Сервер был disposed
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"HTTP ошибка: {ex.Message}");
+                }
             }
         }
+        finally
+        {
+            StopHttpServer();
+        }
+    }
+
+    private void StopHttpServer()
+    {
+        try
+        {
+            _httpListener?.Stop();
+            _httpListener?.Close();
+            Console.WriteLine("HTTP сервер остановлен");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Ошибка при остановке HTTP сервера: {ex.Message}");
+        }
+    }
+
+    public void Dispose()
+    {
+        StopHttpServer();
+        _httpListener = null;
     }
 
     private async Task HandleHttpRequest(HttpListenerContext context, Func<IBotUpdate, Task> updateHandler)

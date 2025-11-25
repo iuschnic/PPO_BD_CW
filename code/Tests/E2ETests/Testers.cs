@@ -2,6 +2,7 @@
 using System.Text.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
+using MessageSenderBotAdapters;
 
 namespace Tests.E2ETests;
 

@@ -4,6 +4,8 @@ using Telegram.Bot.Polling;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
 
+namespace MessageSenderBotAdapters;
+
 public class TelegramBotAdapterArgs(string botToken, long overridingChatId = 0)
 {
     public string BotToken = botToken;

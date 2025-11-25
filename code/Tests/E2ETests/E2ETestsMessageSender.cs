@@ -5,6 +5,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Text;
+using MessageSenderBotAdapters;
 
 namespace Tests.E2ETests;
 
@@ -107,6 +108,7 @@ public class TelegramBotE2E : IAsyncLifetime
     }
 
     [Fact]
+    [Trait("Category", "E2E")]
     public async Task FullRegistrationWithTestEnvironment()
     {
         var testLogin = "test_user1";
@@ -192,6 +194,7 @@ public class MockBotE2E : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await CleanDatabaseAsync();
+        _botClient.Dispose();
         await _dbContext.DisposeAsync();
     }
 
@@ -207,6 +210,7 @@ public class MockBotE2E : IAsyncLifetime
     }
 
     [Fact]
+    [Trait("Category", "E2E")]
     public async Task FullRegistrationWithTestEnvironment()
     {
         var testLogin = "test_user2";

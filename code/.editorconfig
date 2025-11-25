@@ -1,0 +1,11 @@
+root = true
+
+[*.{cs,vb}]
+
+# Цикломатическая сложность
+dotnet_diagnostic.CA1502.severity = error
+roslynator.CC_MAX = 2
+
+# Code style
+dotnet_style_object_initializer = true:suggestion
+dotnet_style_collection_initializer = true:suggestion
