@@ -54,7 +54,7 @@ public class MockWebBotAdapter : IBotClient, IDisposable
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"HTTP ошибка: {ex.Message}");
+                    break;
                 }
             }
         }
