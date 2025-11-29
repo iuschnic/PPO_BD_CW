@@ -13,10 +13,7 @@ class Program
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-            .Build();
-        var secretConfiguration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.secrets.json", optional: false, reloadOnChange: true)
+            .AddUserSecrets<Program>()
             .Build();
 
         var services = new ServiceCollection();
@@ -30,9 +27,9 @@ class Program
             var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                 ?? configuration.GetConnectionString("PostgresConnection");
             var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY")
-                ?? secretConfiguration.GetValue<string>("SecretKey");
+                ?? configuration.GetValue<string>("SecretKey");
             var botToken = Environment.GetEnvironmentVariable("BOT_TOKEN")
-                ?? secretConfiguration.GetValue<string>("BotToken");
+                ?? configuration.GetValue<string>("BotToken");
             if (baseUrl == null || connString == null || secretKey == null || botToken == null)
             {
                 Console.WriteLine("Ошибка чтения конфигурации");
@@ -49,9 +46,9 @@ class Program
             var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                 ?? configuration.GetConnectionString("PostgresConnection");
             var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY")
-                ?? secretConfiguration.GetValue<string>("SecretKey");
+                ?? configuration.GetValue<string>("SecretKey");
             var botToken = Environment.GetEnvironmentVariable("BOT_TOKEN")
-                ?? secretConfiguration.GetValue<string>("BotToken");
+                ?? configuration.GetValue<string>("BotToken");
             if (baseUrl == null || connString == null || secretKey == null || botToken == null)
             {
                 Console.WriteLine("Ошибка чтения конфигурации");
