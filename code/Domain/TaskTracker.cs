@@ -339,66 +339,6 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Изменение настроек для пользователя {user_name} произведено успешно");
         return GetUser(user_name);
     }
-    public async Task<User> NotificationsOnAsync(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил включение уведомлений");
-        if (await _userRepo.TryGetAsync(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!await _userRepo.TryNotificationsOnAsync(user_name))
-            throw new RepositoryOperationException("включения", "уведомлений", user_name);
-        _logger.LogInformation($"Включение уведомлений для пользователя {user_name} произведено успешно");
-        return await GetUserAsync(user_name);
-    }
-    public User NotificationsOn(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил включение уведомлений");
-        if (_userRepo.TryGet(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!_userRepo.TryNotificationsOn(user_name))
-            throw new RepositoryOperationException("включения", "уведомлений", user_name);
-        _logger.LogInformation($"Включение уведомлений для пользователя {user_name} произведено успешно");
-        return GetUser(user_name);
-    }
-    public async Task<User> NotificationsOffAsync(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил выключение уведомлений");
-        if (await _userRepo.TryGetAsync(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!await _userRepo.TryNotificationsOffAsync(user_name))
-            throw new RepositoryOperationException("выключения", "уведомлений", user_name);
-        _logger.LogInformation($"Выключение уведомлений для пользователя {user_name} произведено успешно");
-        return await GetUserAsync(user_name);
-    }
-    public User NotificationsOff(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил выключение уведомлений");
-        if (_userRepo.TryGet(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!_userRepo.TryNotificationsOff(user_name))
-            throw new RepositoryOperationException("выключения", "уведомлений", user_name);
-        _logger.LogInformation($"Выключение уведомлений для пользователя {user_name} произведено успешно");
-        return GetUser(user_name);
-    }
-    public async Task<User> UpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил обновление времени запрета уведомлений");
-        if (await _userRepo.TryGetAsync(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!await _userRepo.TryUpdateNotificationTimingsAsync(newTimings, user_name))
-            throw new RepositoryOperationException("обновления", "времени уведомлений", user_name);
-        _logger.LogInformation($"Обновление времени запрета уведомлений для пользователя {user_name} произведено успешно");
-        return await GetUserAsync(user_name);
-    }
-    public User UpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил обновление времени запрета уведомлений");
-        if (_userRepo.TryGet(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!_userRepo.TryUpdateNotificationTimings(newTimings, user_name))
-            throw new RepositoryOperationException("обновления", "времени уведомлений", user_name);
-        _logger.LogInformation($"Обновление времени запрета уведомлений для пользователя {user_name} произведено успешно");
-        return GetUser(user_name);
-    }
     public async Task DeleteUserAsync(string user_name)
     {
         _logger.LogInformation($"Пользователь с именем {user_name} запросил удаление своей учетной записи");
