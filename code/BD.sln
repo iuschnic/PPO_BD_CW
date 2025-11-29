@@ -31,8 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderService", "Mes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderDomain", "MessageSenderDomain\MessageSenderDomain.csproj", "{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{34F2F393-0A18-4BD8-9A60-8AA835417A2E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderTaskTrackerClient", "MessageSenderTaskTrackerClient\MessageSenderTaskTrackerClient.csproj", "{EBCAC2AB-A009-4F95-936E-040CA37DF15C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI", "WebAPI\WebAPI.csproj", "{8D6B33C5-CEE1-20B5-A207-99CBB61F699C}"
@@ -91,10 +89,6 @@ Global
 		{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EBCAC2AB-A009-4F95-936E-040CA37DF15C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EBCAC2AB-A009-4F95-936E-040CA37DF15C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBCAC2AB-A009-4F95-936E-040CA37DF15C}.Release|Any CPU.ActiveCfg = Release|Any CPU
