@@ -53,11 +53,11 @@ public class DBUserSettings
     public bool TwoFactorEnabled { get; set; }
     public string? TwoFactorCurrentCode { get; set; }
     public DateTime? TwoFactorValidUntil { get; set; }
-    public int? PasswordAttempts { get; set; }
+    public int PasswordAttempts { get; set; }
     public DateTime? BlockedUntil { get; set; }
     public DateTime? PasswordLastChanged { get; set; }
     public DBUserSettings(Guid id, bool notifyOn, string dBUserID, bool twoFactorEnabled = false,
-        string? twoFactorCurrentCode = null, DateTime? twoFactorValidUntil = null, int? passwordAttempts = null,
+        string? twoFactorCurrentCode = null, DateTime? twoFactorValidUntil = null, int passwordAttempts = 0,
         DateTime? blockedUntil = null, DateTime? passwordLastChanged = null)
     {
         Id = id;
@@ -87,7 +87,7 @@ public class DBUserSettings
         List<SettingsTime> times = [];
         foreach (var t in forbiddenTimings)
             times.Add(t.ToModel());
-        return new UserSettings(Id, NotifyOn, DBUserID, times, TwoFactorEnabled, TwoFactorCurrentCode, TwoFactorValidUntil, 
-            PasswordAttempts, BlockedUntil, PasswordLastChanged);
+        return new UserSettings(Id, NotifyOn, DBUserID, times, TwoFactorEnabled, TwoFactorCurrentCode, 
+            TwoFactorValidUntil, PasswordAttempts, BlockedUntil, PasswordLastChanged);
     }
 }

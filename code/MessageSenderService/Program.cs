@@ -72,7 +72,7 @@ class Program
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<ISubscriberRepo>(),
             serviceProvider.GetRequiredService<ISenderTaskTrackerClient>(),
-            new MessageSenderArgs() { BaseUrl = httpListenerBaseUrl});
+            new MessageSenderArgs(httpListenerBaseUrl));
 
         Console.CancelKeyPress += async (sender, e) =>
         {

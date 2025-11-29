@@ -14,6 +14,7 @@ public class LoginRequestDto
 {
     public string UserName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string? TwoFactorCode { get; set; } = string.Empty;
 }
 
 public class PhoneNumberDto
@@ -460,4 +461,18 @@ public static class TimeExtensions
     {
         return new TimeOnly(timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
     }
+}
+
+public class TwoFactorRequestDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; }
+}
+
+public class TwoFactorResponseDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
 }

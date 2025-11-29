@@ -5,9 +5,9 @@ using System.Text;
 
 using DomainMessage = MessageSenderDomain.Models.Message;
 
-public class MessageSenderArgs
+public class MessageSenderArgs(string baseUrl)
 {
-    public string BaseUrl { get; set; }
+    public string BaseUrl { get; set; } = baseUrl;
 }
 
 public class MessageSender
@@ -416,6 +416,8 @@ public class MessageSender
         var subscriber = _subscribersRepo.TryGetByChatID(chatId);
         if (subscriber != null)
         {
+            var ans = await _taskTrackerClient.TryUnableTwoFactor(subscriber.TaskTrackerLogin);
+
             if (!_subscribersRepo.TryRemoveByChatID(chatId))
                 throw new Exception("Ошибка, пользователь не существует");
 

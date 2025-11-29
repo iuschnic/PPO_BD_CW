@@ -7,6 +7,13 @@ using Types;
 
 namespace Domain;
 
+public class TaskTrackerArgs(int passwordMaxAttempts = 5, int twoFactorValidMinutes = 5, int blockMinutes = 5)
+{
+    public int PasswordMaxAttempts { get; set; } = passwordMaxAttempts;
+    public int TwoFactorValidMinutes { get; set; } = twoFactorValidMinutes;
+    public int BlockMinutes { get; set; } = blockMinutes;
+}
+
 public class TaskTracker : ITaskTracker
 {
     private readonly IEventRepo _eventRepo;
@@ -16,10 +23,13 @@ public class TaskTracker : ITaskTracker
     private readonly IHabitDistributor _distributer;
     private readonly ILogger<TaskTracker> _logger;
     private readonly IMessageSenderClient _messageSenderClient;
+    private readonly int _passwordMaxAttempts;
+    private readonly int _twoFactorValidMinutes;
+    private readonly int _blockMinutes;
 
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo,
         IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer, ILogger<TaskTracker> logger,
-        IMessageSenderClient messageSenderClient)
+        IMessageSenderClient messageSenderClient, TaskTrackerArgs args)
     {
         _eventRepo = eventRepo;
         _habitRepo = habitRepo;
@@ -28,6 +38,9 @@ public class TaskTracker : ITaskTracker
         _distributer = distributer;
         _logger = logger;
         _messageSenderClient = messageSenderClient;
+        _blockMinutes = args.BlockMinutes;
+        _passwordMaxAttempts = args.PasswordMaxAttempts;
+        _twoFactorValidMinutes = args.TwoFactorValidMinutes;
         _logger.LogInformation("TaskTracker был успешно инициализирован");
     }
     private async Task<User> GetUserAsync(string user_name)
@@ -75,16 +88,38 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Аккаунт {user_name} был успешно создан");
         return GetUser(u.NameID);
     }
-    public async Task<User> LogInAsync(string user_name, string password)
+    public async Task<User> LogInAsync(string user_name, string password, string? twoFactorCode = null)
     {
         _logger.LogInformation($"Пользователь запросил вход в аккаунт с именем {user_name}");
         var u = await _userRepo.TryGetAsync(user_name);
         if (u == null)
             throw new UserNotFoundException(user_name);
+        if (u.Settings.BlockedUntil >  DateTime.Now)
+            throw new UserBlockedException(user_name);
         if (u.PasswordHash != password)
-            throw new InvalidCredentialsException(user_name);
+        {
+            if (await _userRepo.TryCheckPasswordAttemptAsync(user_name, _passwordMaxAttempts, _blockMinutes))
+                throw new InvalidCredentialsException(user_name);
+            else
+                throw new UserBlockedException(user_name);
+        }
+        await _userRepo.TryResetPasswordAttemptsAsync(user_name);
+        if (u.Settings.TwoFactorEnabled)
+        {
+            if (u.Settings.TwoFactorValidUntil < DateTime.Now || u.Settings.TwoFactorCurrentCode == null)
+            {
+                var rand = new Random();
+                string code = rand.Next(10000, 99999).ToString();
+                await _userRepo.TryUpdateTwoFactorAsync(user_name, code, _twoFactorValidMinutes);
+                await _messageSenderClient.SendTwoFactorMessageAsync(user_name, code);
+                throw new WrongTwoFactorException(user_name);
+            }
+            if (u.Settings.TwoFactorCurrentCode != twoFactorCode)
+            {
+                throw new WrongTwoFactorException(user_name);
+            }
+        }
         _logger.LogInformation($"Вход в аккаунт {user_name} был успешно выполнен");
-        await _messageSenderClient.SendTwoFactorMessageAsync(user_name, "AAA");
         return await GetUserAsync(u.NameID);
     }
     public User LogIn(string user_name, string password)
@@ -342,5 +377,17 @@ public class TaskTracker : ITaskTracker
         }
         //await _messageSenderClient.DeleteUserAccountAsync(user_name);
         _logger.LogInformation($"Удаление учетной записи пользователя {user_name} произведено успешно");
+    }
+
+    public async Task ChangeTwoFactorAuthAsync(string user_name, bool state)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил изменение двухфакторной аутентификации");
+        var exists = await _messageSenderClient.CheckUserExistsAsync(user_name);
+        if (!exists)
+            throw new MessageSenderAccountNotFoundException(user_name);
+        var ret = await _userRepo.TryChangeTwoFactorAsync(user_name, state);
+        if (!ret)
+            throw new UserNotFoundException(user_name);
+        _logger.LogInformation($"Изменение двухфакторной аутентификации пользователя {user_name} произведено успешно");
     }
 }

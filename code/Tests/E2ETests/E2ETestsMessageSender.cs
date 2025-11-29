@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using System.Text;
 using MessageSenderBotAdapters;
+using Domain.OutPorts;
 
 namespace Tests.E2ETests;
 
@@ -73,8 +74,18 @@ public class TelegramBotE2E : IAsyncLifetime
             .ReturnsAsync([]);
         mocktaskTrackerClient.Setup(client => client.TryLogInAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(true);
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
 
-        _messageSender = new MessageSender(_botClient, messageRepo, subscriberRepo, mocktaskTrackerClient.Object);
+        var httpListenerBaseUrl = Environment.GetEnvironmentVariable("HTTP_LISTENER_BASE_URL")
+                ?? configuration.GetValue<string>("HttpListenerBaseUrl");
+        if (httpListenerBaseUrl == null)
+        {
+            Console.WriteLine("Ошибка чтения конфигурации");
+            return;
+        }
+
+        _messageSender = new MessageSender(_botClient, messageRepo, subscriberRepo, mocktaskTrackerClient.Object,
+            new MessageSenderArgs(httpListenerBaseUrl));
     }
 
     public async Task InitializeAsync()
@@ -172,7 +183,16 @@ public class MockBotE2E : IAsyncLifetime
         mocktaskTrackerClient.Setup(client => client.TryLogInAsync(It.IsAny<string>(), It.IsAny<string>()))
             .ReturnsAsync(true);
 
-        _messageSender = new MessageSender(_botClient, messageRepo, subscriberRepo, mocktaskTrackerClient.Object);
+        var httpListenerBaseUrl = Environment.GetEnvironmentVariable("HTTP_LISTENER_BASE_URL")
+                ?? configuration.GetValue<string>("HttpListenerBaseUrl");
+        if (httpListenerBaseUrl == null)
+        {
+            Console.WriteLine("Ошибка чтения конфигурации");
+            return;
+        }
+
+        _messageSender = new MessageSender(_botClient, messageRepo, subscriberRepo, mocktaskTrackerClient.Object,
+            new MessageSenderArgs(httpListenerBaseUrl));
     }
 
     public async Task InitializeAsync()

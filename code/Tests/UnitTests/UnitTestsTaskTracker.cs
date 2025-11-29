@@ -25,13 +25,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var phoneNumber = new PhoneNumber("+71111111111");
@@ -63,13 +65,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var phoneNumber = new PhoneNumber("+71111111111");
@@ -101,13 +105,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "existingtest";
         var phoneNumber = new PhoneNumber("+71111111111");
@@ -132,13 +138,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "existingtest";
         var phoneNumber = new PhoneNumber("+71111111111");
@@ -163,13 +171,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var password = "correctPassword";
@@ -197,13 +207,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var password = "correctPassword";
@@ -231,13 +243,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var correctPassword = "correctPassword";
@@ -264,13 +278,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var correctPassword = "correctPassword";
@@ -297,13 +313,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var path = "valid_file.json";
@@ -342,13 +360,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var path = "valid_file.json";
@@ -387,13 +407,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var invalidFilePath = "invalid_file.json";
@@ -421,13 +443,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var invalidFilePath = "invalid_file.json";
@@ -455,13 +479,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var habit = new Habit(Guid.NewGuid(), "Чтение", 30, TimeOption.NoMatter, userName, [], [], 1);
@@ -501,13 +527,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var habit = new Habit(Guid.NewGuid(), "Чтение", 30, TimeOption.NoMatter, userName, [], [], 1);
@@ -548,13 +576,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var notExistUserName = "not_exists";
         var habit = new Habit(Guid.NewGuid(), "Спорт", 30, TimeOption.NoMatter, notExistUserName, [], [], 1);
@@ -577,13 +607,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var notExistUserName = "not_exists";
         var habit = new Habit(Guid.NewGuid(), "Спорт", 30, TimeOption.NoMatter, notExistUserName, [], [], 1);
@@ -606,13 +638,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var habitName = "Чтение";
@@ -659,13 +693,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         var habitName = "Чтение";
@@ -712,13 +748,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var notExistUserName = "not_exists";
         var habitName = "Чтение";
@@ -743,13 +781,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var notExistUserName = "not_exists";
         var habitName = "Чтение";
@@ -774,13 +814,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "testUser";
         var user = new User(userName, "password", new PhoneNumber("+71111111111"),
@@ -815,13 +857,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "testUser";
         var user = new User(userName, "password", new PhoneNumber("+71111111111"),
@@ -856,13 +900,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var notExistUserName = "not_exists";
         mockUserRepo.Setup(r => r.TryGet(notExistUserName)).Returns((User?)null);
@@ -885,13 +931,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var notExistUserName = "not_exists";
         mockUserRepo.Setup(r => r.TryGetAsync(notExistUserName)).ReturnsAsync((User?)null);
@@ -914,13 +962,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         mockUserRepo.Setup(r => r.TryDelete(userName)).Returns(true);
@@ -940,13 +990,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         mockUserRepo.Setup(r => r.TryDeleteAsync(userName)).ReturnsAsync(true);
@@ -966,13 +1018,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         mockUserRepo.Setup(r => r.TryDelete(userName)).Returns(false);
@@ -996,13 +1050,15 @@ public class UnitTestsTaskTracker
         var mockShedLoader = new Mock<ISheduleLoad>();
         var mockDistributor = new Mock<IHabitDistributor>();
         var mockLogger = new Mock<ILogger<TaskTracker>>();
+        var mockMessageSenderClient = new Mock<IMessageSenderClient>();
         var taskTracker = new TaskTracker(
             mockEventRepo.Object,
             mockHabitRepo.Object,
             mockUserRepo.Object,
             mockShedLoader.Object,
             mockDistributor.Object,
-            mockLogger.Object
+            mockLogger.Object,
+            mockMessageSenderClient.Object
         );
         var userName = "test";
         mockUserRepo.Setup(r => r.TryDeleteAsync(userName)).ReturnsAsync(false);

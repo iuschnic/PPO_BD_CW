@@ -245,4 +245,63 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         var dbu = _dbContext.Users.Find(login);
         return dbu != null && dbu.PasswordHash == password;
     }
+    public async Task<bool> TryChangeTwoFactorAsync(string username, bool state)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.Settings.TwoFactorEnabled = state;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    //Функция проверяет, может ли пользователь получить доступ к аккаунту на n-й попытке(не заблокирован ли он)
+    public async Task<bool> TryCheckPasswordAttemptAsync(string username, int maxAttempts, int minutesBlocked)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        //Если пользователь еще заблокирован - false
+        if (dbu.Settings.BlockedUntil > DateTime.Now)
+            return false;
+        dbu.Settings.PasswordAttempts++;
+        //Если превышено количество попыток - блокируем (false)
+        if (dbu.Settings.PasswordAttempts >= maxAttempts)
+        {
+            dbu.Settings.PasswordAttempts = 0;
+            dbu.Settings.BlockedUntil = DateTime.Now.AddMinutes(minutesBlocked);
+            await _dbContext.SaveChangesAsync();
+            return false;
+        }
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> TryResetPasswordAttemptsAsync(string username)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.Settings.PasswordAttempts = 0;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> TryUpdateTwoFactorAsync(string username, string newTwoFactorCode, int twoFactorValidMinutes)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.Settings.TwoFactorCurrentCode = newTwoFactorCode;
+        dbu.Settings.TwoFactorValidUntil = DateTime.Now.AddMinutes(twoFactorValidMinutes);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
 }

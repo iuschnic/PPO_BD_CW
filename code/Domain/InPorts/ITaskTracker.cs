@@ -5,7 +5,7 @@ namespace Domain.InPorts;
 public interface ITaskTracker
 {
     Task<User> CreateUserAsync(string username, PhoneNumber phone_number, string password);
-    Task<User> LogInAsync(string username, string password);
+    Task<User> LogInAsync(string user_name, string password, string? twoFactorCode = null);
     Task<Tuple<User, List<Habit>>> ImportNewSheduleAsync(string user_name, string path);
     Task<Tuple<User, List<Habit>>> ImportNewSheduleAsync(string user_name, Stream stream, string extension);
     Task<Tuple<User, List<Habit>>> AddHabitAsync(Habit habit);
@@ -13,6 +13,7 @@ public interface ITaskTracker
     Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string name);
     Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name);
     Task DeleteUserAsync(string username);
+    Task ChangeTwoFactorAuthAsync(string user_name, bool state);
 
     //По имени пользователя, телефону и паролю создает нового пользователя
     User CreateUser(string username, PhoneNumber phone_number, string password);

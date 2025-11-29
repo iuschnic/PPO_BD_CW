@@ -8,5 +8,6 @@
   "TestToken": "PlaceholderTestToken",
   "TesterToken": "PlaceholderTesterToken",
   "TestChatId": "PlaceholderTestChatId",
-  "TesterChatId": "PlaceholderTesterChatId"
+  "TesterChatId": "PlaceholderTesterChatId",
+  "HttpListenerBaseUrl": "http://localhost:5002"
 }

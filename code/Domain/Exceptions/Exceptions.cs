@@ -17,6 +17,17 @@ public class UserNotFoundException : TaskTrackerException
     }
 }
 
+public class MessageSenderAccountNotFoundException : TaskTrackerException
+{
+    public string UserName { get; }
+
+    public MessageSenderAccountNotFoundException(string userName)
+        : base($"Аккаунта пользователя с именем {userName} не существует в боте")
+    {
+        UserName = userName;
+    }
+}
+
 public class UserAlreadyExistsException : TaskTrackerException
 {
     public string UserName { get; }
@@ -38,6 +49,29 @@ public class InvalidCredentialsException : TaskTrackerException
         UserName = userName;
     }
 }
+
+public class UserBlockedException : TaskTrackerException
+{
+    public string UserName { get; }
+
+    public UserBlockedException(string userName)
+        : base($"Аккаунт {userName} временно заблокирован (слишком много попыток ввода пароля)")
+    {
+        UserName = userName;
+    }
+}
+
+public class WrongTwoFactorException : TaskTrackerException
+{
+    public string UserName { get; }
+
+    public WrongTwoFactorException(string userName)
+        : base($"Неправильный код двухфакторной аутентификации аккаунта {userName}")
+    {
+        UserName = userName;
+    }
+}
+
 
 public class ScheduleLoadException : TaskTrackerException
 {

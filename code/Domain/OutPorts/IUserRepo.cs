@@ -9,6 +9,10 @@ public interface IUserRepo
     Task<bool> TryUpdateSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name);
     Task<bool> TryDeleteAsync(string username);
     Task<bool> TryCheckLogInAsync(string login, string password);
+    Task<bool> TryChangeTwoFactorAsync(string username, bool state);
+    Task<bool> TryCheckPasswordAttemptAsync(string username, int maxAttempts, int minutesBlocked);
+    Task<bool> TryResetPasswordAttemptsAsync(string username);
+    Task<bool> TryUpdateTwoFactorAsync(string username, string newTwoFactorCode, int twoFactorValidMinutes);
 
     User? TryGet(string username);
     User? TryFullGet(string username);

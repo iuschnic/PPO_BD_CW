@@ -48,6 +48,26 @@ public class WebSenderTaskTrackerClient : ISenderTaskTrackerClient
         return isValid;
     }
 
+    public async Task<bool> TryUnableTwoFactor(string taskTrackerLogin)
+    {
+        var request = new TwoFactorRequestDto
+        {
+            UserName = taskTrackerLogin,
+            IsEnabled = false
+        };
+
+        var jsonContent = JsonSerializer.Serialize(request);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PutAsync("/api/v1/auth/two-factor", content);
+
+        Console.WriteLine("RESPONSE: " + response.ToString());
+
+        var isValid = response.IsSuccessStatusCode;
+
+        return isValid;
+    }
+
     private UserHabitInfo MapToDomain(UserHabitInfoDto dto)
     {
         return new UserHabitInfo(

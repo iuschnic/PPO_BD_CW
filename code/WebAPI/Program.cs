@@ -49,6 +49,7 @@ builder.Services.AddDbContext<EfDbContext>(options =>
                     options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                           ?? builder.Configuration.GetConnectionString("PostgresConnection")));
 builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
+builder.Services.AddSingleton(new TaskTrackerArgs(5, 1, 1));
 builder.Services.AddScoped<ITaskTracker, TaskTracker>();
 builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();
 builder.Services.AddScoped<IMessageSenderProvider, MessageSenderProvider>();

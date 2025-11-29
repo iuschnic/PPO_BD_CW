@@ -29,12 +29,12 @@ public class UserSettings
     public bool TwoFactorEnabled { get; }
     public string? TwoFactorCurrentCode { get; }
     public DateTime? TwoFactorValidUntil { get; }
-    public int? PasswordAttempts { get; }
+    public int PasswordAttempts { get; }
     public DateTime? BlockedUntil { get; }
     public DateTime? PasswordLastChanged { get; }
 
     public UserSettings(Guid id, bool notifyOn, string userName, List<SettingsTime> settingsTimes, bool twoFactorEnabled = false,
-        string? twoFactorCurrentCode = null, DateTime? twoFactorValidUntil = null, int? passwordAttempts = null,
+        string? twoFactorCurrentCode = null, DateTime? twoFactorValidUntil = null, int passwordAttempts = 0,
         DateTime? blockedUntil = null, DateTime? passwordLastChanged = null)
     {
         Id = id;
