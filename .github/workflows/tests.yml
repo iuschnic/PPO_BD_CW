@@ -105,6 +105,10 @@ jobs:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
           POSTGRES_DB: E2Edb
+          TEST_TOKEN: ${{ secrets.TEST_TOKEN }}
+          TESTER_TOKEN: ${{ secrets.TESTER_TOKEN }}
+          TEST_CHAT_ID: ${{ secrets.TEST_CHAT_ID }}
+          TESTER_CHAT_ID: ${{ secrets.TESTER_CHAT_ID }}
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
