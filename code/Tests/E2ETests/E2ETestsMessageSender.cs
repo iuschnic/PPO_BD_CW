@@ -27,11 +27,7 @@ public class TelegramBotE2E : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("tests_settings.json", optional: false, reloadOnChange: true)
-            .Build();
-
-        var secret_configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("secret_tests_settings.json", optional: false, reloadOnChange: true)
+            .AddUserSecrets<TelegramBotE2E>()
             .Build();
 
         string? connString;
@@ -40,23 +36,23 @@ public class TelegramBotE2E : IAsyncLifetime
             throw new InvalidDataException("Не найдена строка подключения к тестовой базе данных");
 
         if ((_testToken = Environment.GetEnvironmentVariable("TEST_TOKEN")
-                          ?? secret_configuration.GetValue<string>("TestToken")) == null)
+                          ?? configuration.GetValue<string>("TestToken")) == null)
             throw new InvalidDataException("Не найдена строка токена тестируемого бота");
 
         if ((_testerToken = Environment.GetEnvironmentVariable("TESTER_TOKEN")
-                          ?? secret_configuration.GetValue<string>("TesterToken")) == null)
+                          ?? configuration.GetValue<string>("TesterToken")) == null)
             throw new InvalidDataException("Не найдена строка токена тестирующего бота");
 
         string? testChatId;
         if ((testChatId = Environment.GetEnvironmentVariable("TEST_CHAT_ID")
-                          ?? secret_configuration.GetValue<string>("TestChatId")) == null)
+                          ?? configuration.GetValue<string>("TestChatId")) == null)
             throw new InvalidDataException("Не найден Id чата для тестов");
         if (!long.TryParse(testChatId, out _testChatId))
             throw new InvalidDataException("Неверный Id чата для тестов");
 
         string? testerChatId;
         if ((testerChatId = Environment.GetEnvironmentVariable("TESTER_CHAT_ID")
-                          ?? secret_configuration.GetValue<string>("TesterChatId")) == null)
+                          ?? configuration.GetValue<string>("TesterChatId")) == null)
             throw new InvalidDataException("Не найден Id чата для тестов");
         if (!long.TryParse(testerChatId, out _testerChatId))
             throw new InvalidDataException("Неверный Id чата для тестов");
@@ -144,11 +140,6 @@ public class MockBotE2E : IAsyncLifetime
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("tests_settings.json", optional: false, reloadOnChange: true)
-            .Build();
-
-        var secret_configuration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("secret_tests_settings.json", optional: false, reloadOnChange: true)
             .Build();
 
         string? connString;

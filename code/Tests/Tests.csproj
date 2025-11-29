@@ -11,6 +11,7 @@
 	<XUnitMaxParallelThreads>4</XUnitMaxParallelThreads>
 	<XUnitParallelizeTestCollections>true</XUnitParallelizeTestCollections>
 	<XUnitDiagnosticMessages>false</XUnitDiagnosticMessages>
+	<UserSecretsId>0bcc184c-5e62-46ac-a0d1-e42ee2a8c317</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,6 +21,7 @@
     <PackageReference Include="EntityFrameworkCore.Testing.Moq" Version="9.0.1" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.9" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.9" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.UserSecrets" Version="6.0.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="Telegram.Bot" Version="22.5.1" />
@@ -42,9 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="secret_tests_settings.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
     <None Update="tests_settings.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

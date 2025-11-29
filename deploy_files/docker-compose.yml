@@ -515,7 +515,7 @@ services:
       - patroni-cluster-1
 
   nginx-external:
-    image: nginx:alpine
+    image: nginx
     ports:
       - "8888:80"
     environment:
@@ -535,6 +535,7 @@ services:
       - ./nginx/nginx_external.conf.template:/etc/nginx/conf.d/nginx.conf.template
     command: >
       /bin/sh -c "
+      apt-get update && apt-get install -y nginx-extras &&
       echo 'Starting envsubst...' &&
       envsubst '$$SERVICE1_HOST $$SERVICE1_PORT $$SERVICE2_HOST $$SERVICE2_PORT $$PGADMIN_HOST $$PGADMIN_PORT $$GRAFANA_HOST $$GRAFANA_PORT $$HOST' 
       < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&

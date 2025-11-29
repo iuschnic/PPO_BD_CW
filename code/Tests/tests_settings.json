@@ -4,5 +4,9 @@
     "E2ETestsConnection": "Host=localhost;Port=5432;Database=E2Edb;Username=postgres;Password=postgres",
     "E2EMessageSenderTestsConnection": "Host=localhost;Port=5432;Database=E2EMessageSenderdb;Username=postgres;Password=postgres"
   },
-  "MockBaseUrl": "http://localhost:5000/"
+  "MockBaseUrl": "http://localhost:5000/",
+  "TestToken": "PlaceholderTestToken",
+  "TesterToken": "PlaceholderTesterToken",
+  "TestChatId": "PlaceholderTestChatId",
+  "TesterChatId": "PlaceholderTesterChatId"
 }
