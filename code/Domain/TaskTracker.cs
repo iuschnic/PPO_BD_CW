@@ -302,26 +302,6 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Удаление привычек для пользователя {user_name} произведено успешно");
         return new Tuple<User, List<Habit>>(GetUser(user_name), []);
     }
-    public async Task<User> ChangeSettingsAsync(UserSettings settings)
-    {
-        _logger.LogInformation($"Пользователь с именем {settings.UserNameID} запросил изменение своих настроек");
-        if (await _userRepo.TryGetAsync(settings.UserNameID) == null)
-            throw new UserNotFoundException(settings.UserNameID);
-        if (!await _userRepo.TryUpdateSettingsAsync(settings))
-            throw new RepositoryOperationException("обновления", "настроек", settings.UserNameID);
-        _logger.LogInformation($"Изменение настроек для пользователя {settings.UserNameID} произведено успешно");
-        return await GetUserAsync(settings.UserNameID);
-    }
-    public User ChangeSettings(UserSettings settings)
-    {
-        _logger.LogInformation($"Пользователь с именем {settings.UserNameID} запросил изменение своих настроек");
-        if (_userRepo.TryGet(settings.UserNameID) == null)
-            throw new UserNotFoundException(settings.UserNameID);
-        if (!_userRepo.TryUpdateSettings(settings))
-            throw new RepositoryOperationException("обновления", "настроек", settings.UserNameID);
-        _logger.LogInformation($"Изменение настроек для пользователя {settings.UserNameID} произведено успешно");
-        return GetUser(settings.UserNameID);
-    }
 
     public async Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name)
     {

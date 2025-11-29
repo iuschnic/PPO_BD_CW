@@ -192,9 +192,7 @@ class Program
 
                     try
                     {
-                        var settings = new UserSettings(user.Settings.Id, true, user.Settings.UserNameID,
-                            user.Settings.SettingsTimes);
-                        user = task_service.ChangeSettings(settings);
+                        user = task_service.ChangeSettings(null, true, user.NameID);
                         Console.WriteLine("\nУведомления разрешены\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -208,9 +206,7 @@ class Program
 
                     try
                     {
-                        var settings = new UserSettings(user.Settings.Id, false, user.Settings.UserNameID,
-                            user.Settings.SettingsTimes);
-                        user = task_service.ChangeSettings(settings);
+                        user = task_service.ChangeSettings(null, true, user.NameID);
                         Console.WriteLine("\nУведомления запрещены\n");
                         Console.WriteLine();
                         Console.Write(user);
@@ -224,7 +220,7 @@ class Program
 
                     try
                     {
-                        List<SettingsTime> timings = [];
+                        List<Tuple<TimeOnly, TimeOnly>> timings = [];
                         Console.WriteLine("\nВведите новые временные интервалы запрета уведомлений по одному в строке (hh:mm hh:mm):\n");
                         while (true)
                         {
@@ -249,10 +245,9 @@ class Program
                             {
                                 break;
                             }
-                            timings.Add(new SettingsTime(Guid.NewGuid(), start, end, user.Settings.Id));
+                            timings.Add(Tuple.Create(start, end));
                         }
-                        var settings = new UserSettings(user.Settings.Id, user.Settings.NotifyOn, user.Settings.UserNameID, timings);
-                        user = task_service.ChangeSettings(settings);
+                        user = task_service.ChangeSettings(timings, null, user.NameID);
                         Console.WriteLine("\nЗапрещенное время посылки уведомлений изменено\n");
                         Console.WriteLine();
                         Console.Write(user);

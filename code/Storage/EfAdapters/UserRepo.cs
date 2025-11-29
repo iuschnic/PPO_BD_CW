@@ -112,26 +112,6 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         _dbContext.SaveChanges();
         return true;
     }
-    public async Task<bool> TryUpdateUserAsync(User u)
-    {
-        var dbu = await _dbContext.Users.FindAsync(u.NameID);
-        if (dbu == null)
-            return false;
-        dbu.Number = u.Number.StringNumber;
-        dbu.PasswordHash = u.PasswordHash;
-        await _dbContext.SaveChangesAsync();
-        return true;
-    }
-    public bool TryUpdateUser(User u)
-    {
-        var dbu = _dbContext.Users.Find(u.NameID);
-        if (dbu == null)
-            return false;
-        dbu.Number = u.Number.StringNumber;
-        dbu.PasswordHash = u.PasswordHash;
-        _dbContext.SaveChanges();
-        return true;
-    }
     public async Task<bool> TryUpdateSettingsAsync(UserSettings us)
     {
         var dbs = await _dbContext.USettings.FindAsync(us.Id);

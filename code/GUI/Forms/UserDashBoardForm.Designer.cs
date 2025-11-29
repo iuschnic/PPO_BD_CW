@@ -285,15 +285,9 @@ namespace HabitTrackerGUI
         {
             if (_isInitializing)
                 return;
-            var settings = new UserSettings(
-                _user.Settings.Id,
-                chkNotifications.Checked,
-                _user.Settings.UserNameID,
-                _user.Settings.SettingsTimes);
-
             try
             {
-                var user = _taskService.ChangeSettings(settings);
+                var user = _taskService.ChangeSettings(null, chkNotifications.Checked, _user.Settings.UserNameID);
                 if (user == null)
                 {
                     MessageBox.Show("Ошибка обновления настроек уведомлений", "Ошибка",
@@ -323,7 +317,9 @@ namespace HabitTrackerGUI
 
                 try
                 {
-                    var user = _taskService.ChangeSettings(settings);
+                    var times = new List<Tuple<TimeOnly, TimeOnly>>(form.GetTimes().Select(t => new Tuple<TimeOnly, TimeOnly>(t.Start, t.End)));
+                    var user = _taskService.ChangeSettings(times,
+                        null, _user.Settings.UserNameID);
                     if (user == null)
                     {
                         MessageBox.Show("Ошибка обновления временных интервалов", "Ошибка",
