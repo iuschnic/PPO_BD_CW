@@ -499,6 +499,8 @@ services:
       - patroni-cluster-2
       
   message-sender-1:
+    ports:
+      - "5010:5002"
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.messagesender
@@ -509,7 +511,7 @@ services:
       - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
       - SECRET_KEY=$SECRET_KEY
       - BOT_TOKEN=$BOT_TOKEN1
-      - HTTP_LISTENER_BASE_URL=http://localhost:5002
+      - HTTP_LISTENER_BASE_URL=http://+:5002
     depends_on:
       nginx-internal-1:
         condition: service_healthy
@@ -520,6 +522,7 @@ services:
     cpus: 0.5
     networks:
       - patroni-cluster-1
+      - default
 
   nginx-external:
     image: nginx
