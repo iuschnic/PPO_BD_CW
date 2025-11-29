@@ -248,6 +248,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
       haproxy1:
         condition: service_healthy
@@ -276,6 +277,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
       haproxy1:
         condition: service_healthy
@@ -304,6 +306,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
       haproxy1:
         condition: service_healthy
@@ -333,6 +336,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
       haproxy2:
         condition: service_healthy
@@ -361,6 +365,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
       haproxy2:
         condition: service_healthy
@@ -389,6 +394,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
       haproxy2:
         condition: service_healthy
@@ -503,6 +509,7 @@ services:
       - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
       - SECRET_KEY=$SECRET_KEY
       - BOT_TOKEN=$BOT_TOKEN1
+      - HTTP_LISTENER_BASE_URL=http://localhost:5002
     depends_on:
       nginx-internal-1:
         condition: service_healthy
@@ -535,7 +542,6 @@ services:
       - ./nginx/nginx_external.conf.template:/etc/nginx/conf.d/nginx.conf.template
     command: >
       /bin/sh -c "
-      apt-get update && apt-get install -y nginx-extras &&
       echo 'Starting envsubst...' &&
       envsubst '$$SERVICE1_HOST $$SERVICE1_PORT $$SERVICE2_HOST $$SERVICE2_PORT $$PGADMIN_HOST $$PGADMIN_PORT $$GRAFANA_HOST $$GRAFANA_PORT $$HOST' 
       < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&

@@ -50,23 +50,44 @@ public class DBUserSettings
     public string DBUserID { get; set; }
     public DBUser? DBUser { get; set; }
     public List<DBSTime> ForbiddenTimings { get; set; } = [];
-    public DBUserSettings(Guid id, bool notifyOn, string dBUserID)
+    public bool TwoFactorEnabled { get; set; }
+    public string? TwoFactorCurrentCode { get; set; }
+    public DateTime? TwoFactorValidUntil { get; set; }
+    public int? PasswordAttempts { get; set; }
+    public DateTime? BlockedUntil { get; set; }
+    public DateTime? PasswordLastChanged { get; set; }
+    public DBUserSettings(Guid id, bool notifyOn, string dBUserID, bool twoFactorEnabled = false,
+        string? twoFactorCurrentCode = null, DateTime? twoFactorValidUntil = null, int? passwordAttempts = null,
+        DateTime? blockedUntil = null, DateTime? passwordLastChanged = null)
     {
         Id = id;
         NotifyOn = notifyOn;
         DBUserID = dBUserID;
+        TwoFactorEnabled = twoFactorEnabled;
+        TwoFactorCurrentCode = twoFactorCurrentCode;
+        TwoFactorValidUntil = twoFactorValidUntil;
+        PasswordAttempts = passwordAttempts;
+        BlockedUntil = blockedUntil;
+        PasswordLastChanged = passwordLastChanged;
     }
     public DBUserSettings(UserSettings userSettings)
     {
         Id = userSettings.Id;
         NotifyOn = userSettings.NotifyOn;
         DBUserID = userSettings.UserNameID;
+        TwoFactorEnabled = userSettings.TwoFactorEnabled;
+        TwoFactorCurrentCode = userSettings.TwoFactorCurrentCode;
+        TwoFactorValidUntil = userSettings.TwoFactorValidUntil;
+        PasswordAttempts = userSettings.PasswordAttempts;
+        BlockedUntil = userSettings.BlockedUntil;
+        PasswordLastChanged = userSettings.PasswordLastChanged;
     }
     public UserSettings ToModel(List<DBSTime> forbiddenTimings)
     {
         List<SettingsTime> times = [];
         foreach (var t in forbiddenTimings)
             times.Add(t.ToModel());
-        return new UserSettings(Id, NotifyOn, DBUserID, times);
+        return new UserSettings(Id, NotifyOn, DBUserID, times, TwoFactorEnabled, TwoFactorCurrentCode, TwoFactorValidUntil, 
+            PasswordAttempts, BlockedUntil, PasswordLastChanged);
     }
 }

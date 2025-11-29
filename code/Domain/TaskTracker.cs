@@ -15,9 +15,11 @@ public class TaskTracker : ITaskTracker
     private readonly ISheduleLoad _shedLoader;
     private readonly IHabitDistributor _distributer;
     private readonly ILogger<TaskTracker> _logger;
+    private readonly IMessageSenderClient _messageSenderClient;
 
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo,
-        IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer, ILogger<TaskTracker> logger)
+        IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer, ILogger<TaskTracker> logger,
+        IMessageSenderClient messageSenderClient)
     {
         _eventRepo = eventRepo;
         _habitRepo = habitRepo;
@@ -25,6 +27,7 @@ public class TaskTracker : ITaskTracker
         _shedLoader = shedLoader;
         _distributer = distributer;
         _logger = logger;
+        _messageSenderClient = messageSenderClient;
         _logger.LogInformation("TaskTracker был успешно инициализирован");
     }
     private async Task<User> GetUserAsync(string user_name)
@@ -81,6 +84,7 @@ public class TaskTracker : ITaskTracker
         if (u.PasswordHash != password)
             throw new InvalidCredentialsException(user_name);
         _logger.LogInformation($"Вход в аккаунт {user_name} был успешно выполнен");
+        await _messageSenderClient.SendTwoFactorMessageAsync(user_name, "AAA");
         return await GetUserAsync(u.NameID);
     }
     public User LogIn(string user_name, string password)
@@ -325,6 +329,7 @@ public class TaskTracker : ITaskTracker
         var ret = await _userRepo.TryDeleteAsync(user_name);
         if (!ret)
             throw new UserNotFoundException(user_name);
+        await _messageSenderClient.DeleteUserAccountAsync(user_name);
         _logger.LogInformation($"Удаление учетной записи пользователя {user_name} произведено успешно");
     }
     public void DeleteUser(string user_name)
@@ -335,6 +340,7 @@ public class TaskTracker : ITaskTracker
         {
             throw new UserNotFoundException(user_name);
         }
+        //await _messageSenderClient.DeleteUserAccountAsync(user_name);
         _logger.LogInformation($"Удаление учетной записи пользователя {user_name} произведено успешно");
     }
 }

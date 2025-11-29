@@ -340,9 +340,9 @@ public static class DtoMapper
     {
         return new UserSettings(
             id: dto.Id,
-            notify_on: dto.NotifyOn,
-            user_name: dto.UserNameID,
-            settings_times: dto.SettingsTimes.Select(MapToDomain).ToList()
+            notifyOn: dto.NotifyOn,
+            userName: dto.UserNameID,
+            settingsTimes: dto.SettingsTimes.Select(MapToDomain).ToList()
         );
     }
 

@@ -43,6 +43,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleWebCLI", "ConsoleWeb
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderTelegramAdapter", "MessageSenderTelegramAdapter\MessageSenderTelegramAdapter.csproj", "{6BB863A2-13F6-4054-9A9A-D52CD12CF852}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrackerMessageSenderClient", "TaskTrackerMessageSenderClient\TaskTrackerMessageSenderClient.csproj", "{93B7E262-6E88-486E-AC5F-772B1C1EF645}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{6BB863A2-13F6-4054-9A9A-D52CD12CF852}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BB863A2-13F6-4054-9A9A-D52CD12CF852}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BB863A2-13F6-4054-9A9A-D52CD12CF852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

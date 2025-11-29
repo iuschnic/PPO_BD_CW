@@ -8,19 +8,22 @@ COPY ["Storage/", "Storage/"]
 COPY ["ShedLoadAdapter/", "ShedLoadAdapter/"]
 COPY ["WebAPI/", "WebAPI/"]
 COPY ["TaskTrackerDtoModels/", "TaskTrackerDtoModels/"]
+COPY ["TaskTrackerMessageSenderClient/", "TaskTrackerMessageSenderClient/"]
 
 # Восстанавливаем и строим
 RUN dotnet restore "Domain/Domain.csproj" && \
     dotnet restore "Storage/Storage.csproj" && \
     dotnet restore "ShedLoadAdapter/ShedLoadAdapter.csproj" && \
     dotnet restore "WebAPI/WebAPI.csproj" && \
-	dotnet restore "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj"
+	dotnet restore "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj" && \
+	dotnet restore "TaskTrackerMessageSenderClient/TaskTrackerMessageSenderClient.csproj"
 
 RUN dotnet build "Domain/Domain.csproj" -c Release --no-restore && \
     dotnet build "Storage/Storage.csproj" -c Release --no-restore && \
     dotnet build "ShedLoadAdapter/ShedLoadAdapter.csproj" -c Release --no-restore && \
     dotnet build "WebAPI/WebAPI.csproj" -c Release --no-restore && \
-	dotnet build "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj" -c Release --no-restore
+	dotnet build "TaskTrackerDtoModels/TaskTrackerDtoModels.csproj" -c Release --no-restore && \
+	dotnet build "TaskTrackerMessageSenderClient/TaskTrackerMessageSenderClient.csproj" -c Release --no-restore
 
 # Публикуем приложение
 RUN dotnet publish "WebAPI/WebAPI.csproj" -c Release -o /app/publish --no-restore --no-build

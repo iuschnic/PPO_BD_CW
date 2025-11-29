@@ -1,10 +1,11 @@
-﻿using MessageSenderDomain.OutPorts;
+﻿using MessageSenderBotAdapters;
+using MessageSenderDomain.OutPorts;
 using MessageSenderStorage.EfAdapters;
 using MessageSenderTaskTrackerClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using MessageSenderBotAdapters;
+using System.Buffers.Text;
 
 class Program
 {
@@ -56,6 +57,13 @@ class Program
             }
             ConfigureServicesMock(services, baseUrl, connString, mockBaseUrl, secretKey);
         }
+        var httpListenerBaseUrl = Environment.GetEnvironmentVariable("HTTP_LISTENER_BASE_URL")
+                ?? configuration.GetValue<string>("HttpListenerBaseUrl");
+        if (httpListenerBaseUrl == null)
+        {
+            Console.WriteLine("Ошибка чтения конфигурации");
+            return;
+        }
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -63,7 +71,8 @@ class Program
             serviceProvider.GetRequiredService<IBotClient>(),
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<ISubscriberRepo>(),
-            serviceProvider.GetRequiredService<ISenderTaskTrackerClient>());
+            serviceProvider.GetRequiredService<ISenderTaskTrackerClient>(),
+            new MessageSenderArgs() { BaseUrl = httpListenerBaseUrl});
 
         Console.CancelKeyPress += async (sender, e) =>
         {

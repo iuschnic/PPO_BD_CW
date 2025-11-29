@@ -2,13 +2,14 @@ using Domain;
 using Domain.InPorts;
 using Domain.OutPorts;
 using LoadAdapters;
+using MessageSenderClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using NodaTime.Extensions;
 using Serilog;
 using Storage.EfAdapters;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -31,6 +32,14 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
     .CreateLogger();
 
+var messageSenderBaseUrl = Environment.GetEnvironmentVariable("MESSAGE_SENDER_BASE_URL")
+                ?? builder.Configuration.GetValue<string>("MessageSenderBaseUrl");
+if (messageSenderBaseUrl == null)
+{
+    Console.WriteLine("Ошибка чтения конфигурации");
+    return;
+}
+
 builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
 builder.Services.AddScoped<IEventRepo, EfEventRepo>();
 builder.Services.AddScoped<IHabitRepo, EfHabitRepo>();
@@ -43,6 +52,8 @@ builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
 builder.Services.AddScoped<ITaskTracker, TaskTracker>();
 builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();
 builder.Services.AddScoped<IMessageSenderProvider, MessageSenderProvider>();
+builder.Services.AddSingleton(new MessageSenderHttpClientArgs(messageSenderBaseUrl));
+builder.Services.AddScoped<IMessageSenderClient, MessageSenderHttpClient>();
 builder.Services.AddLogging(loggingBuilder =>
                  {
                      loggingBuilder.AddSerilog();

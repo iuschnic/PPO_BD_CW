@@ -42,4 +42,8 @@ public class EfSubscriberRepo(MessageSenderDBContext dbContext) : ISubscriberRep
         _dbContext.SaveChanges();
         return true;
     }
+    public bool IfAnyTaskTrackerLogin(string task_tracker_login)
+    {
+        return _dbContext.Subscribers.Any(s => s.TaskTrackerLogin == task_tracker_login);
+    }
 }
