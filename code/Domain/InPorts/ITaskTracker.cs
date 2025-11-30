@@ -14,6 +14,7 @@ public interface ITaskTracker
     Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name);
     Task DeleteUserAsync(string username);
     Task ChangeTwoFactorAuthAsync(string user_name, bool state);
+    Task ChangePasswordAsync(string user_name, string password, string new_password, string? twoFactorCode = null);
 
     //По имени пользователя, телефону и паролю создает нового пользователя
     User CreateUser(string username, PhoneNumber phone_number, string password);

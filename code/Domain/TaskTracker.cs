@@ -7,11 +7,11 @@ using Types;
 
 namespace Domain;
 
-public class TaskTrackerArgs(int passwordMaxAttempts = 5, int twoFactorValidMinutes = 5, int blockMinutes = 5)
+public class TaskTrackerArgs(int passwordMaxAttempts = 5, int twoFactorValidSeconds = 120, int blockSeconds =60)
 {
     public int PasswordMaxAttempts { get; set; } = passwordMaxAttempts;
-    public int TwoFactorValidMinutes { get; set; } = twoFactorValidMinutes;
-    public int BlockMinutes { get; set; } = blockMinutes;
+    public int TwoFactorValidSeconds { get; set; } = twoFactorValidSeconds;
+    public int BlockSeconds { get; set; } = blockSeconds;
 }
 
 public class TaskTracker : ITaskTracker
@@ -24,8 +24,8 @@ public class TaskTracker : ITaskTracker
     private readonly ILogger<TaskTracker> _logger;
     private readonly IMessageSenderClient _messageSenderClient;
     private readonly int _passwordMaxAttempts;
-    private readonly int _twoFactorValidMinutes;
-    private readonly int _blockMinutes;
+    private readonly int _twoFactorValidSeconds;
+    private readonly int _blockSeconds;
 
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo,
         IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer, ILogger<TaskTracker> logger,
@@ -38,9 +38,9 @@ public class TaskTracker : ITaskTracker
         _distributer = distributer;
         _logger = logger;
         _messageSenderClient = messageSenderClient;
-        _blockMinutes = args.BlockMinutes;
+        _blockSeconds = args.BlockSeconds;
         _passwordMaxAttempts = args.PasswordMaxAttempts;
-        _twoFactorValidMinutes = args.TwoFactorValidMinutes;
+        _twoFactorValidSeconds = args.TwoFactorValidSeconds;
         _logger.LogInformation("TaskTracker был успешно инициализирован");
     }
     private async Task<User> GetUserAsync(string user_name)
@@ -98,7 +98,7 @@ public class TaskTracker : ITaskTracker
             throw new UserBlockedException(user_name);
         if (u.PasswordHash != password)
         {
-            if (await _userRepo.TryCheckPasswordAttemptAsync(user_name, _passwordMaxAttempts, _blockMinutes))
+            if (await _userRepo.TryCheckPasswordAttemptAsync(user_name, _passwordMaxAttempts, _blockSeconds))
                 throw new InvalidCredentialsException(user_name);
             else
                 throw new UserBlockedException(user_name);
@@ -110,7 +110,7 @@ public class TaskTracker : ITaskTracker
             {
                 var rand = new Random();
                 string code = rand.Next(10000, 99999).ToString();
-                await _userRepo.TryUpdateTwoFactorAsync(user_name, code, _twoFactorValidMinutes);
+                await _userRepo.TryUpdateTwoFactorAsync(user_name, code, _twoFactorValidSeconds);
                 await _messageSenderClient.SendTwoFactorMessageAsync(user_name, code);
                 throw new WrongTwoFactorException(user_name);
             }
@@ -389,5 +389,42 @@ public class TaskTracker : ITaskTracker
         if (!ret)
             throw new UserNotFoundException(user_name);
         _logger.LogInformation($"Изменение двухфакторной аутентификации пользователя {user_name} произведено успешно");
+    }
+
+    public async Task ChangePasswordAsync(string user_name, string password, string new_password,
+        string? twoFactorCode = null)
+    {
+        _logger.LogInformation($"Пользователь {user_name} запросил изменение пароля");
+        var u = await _userRepo.TryGetAsync(user_name);
+        if (u == null)
+            throw new UserNotFoundException(user_name);
+        if (u.Settings.BlockedUntil > DateTime.Now)
+            throw new UserBlockedException(user_name);
+        if (u.PasswordHash != password)
+        {
+            if (await _userRepo.TryCheckPasswordAttemptAsync(user_name, _passwordMaxAttempts, _blockSeconds))
+                throw new InvalidCredentialsException(user_name);
+            else
+                throw new UserBlockedException(user_name);
+        }
+        await _userRepo.TryResetPasswordAttemptsAsync(user_name);
+        if (u.Settings.TwoFactorEnabled)
+        {
+            if (u.Settings.TwoFactorValidUntil < DateTime.Now || u.Settings.TwoFactorCurrentCode == null)
+            {
+                var rand = new Random();
+                string code = rand.Next(10000, 99999).ToString();
+                await _userRepo.TryUpdateTwoFactorAsync(user_name, code, _twoFactorValidSeconds);
+                await _messageSenderClient.SendTwoFactorMessageAsync(user_name, code);
+                throw new WrongTwoFactorException(user_name);
+            }
+            if (u.Settings.TwoFactorCurrentCode != twoFactorCode)
+            {
+                throw new WrongTwoFactorException(user_name);
+            }
+        }
+        if (!await _userRepo.TryChangePasswordAsync(user_name, new_password))
+            throw new UserNotFoundException(user_name);
+        _logger.LogInformation($"Изменение пароля для {user_name} было успешно выполнено");
     }
 }

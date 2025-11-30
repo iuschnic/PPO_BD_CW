@@ -10,9 +10,10 @@ public interface IUserRepo
     Task<bool> TryDeleteAsync(string username);
     Task<bool> TryCheckLogInAsync(string login, string password);
     Task<bool> TryChangeTwoFactorAsync(string username, bool state);
-    Task<bool> TryCheckPasswordAttemptAsync(string username, int maxAttempts, int minutesBlocked);
+    Task<bool> TryCheckPasswordAttemptAsync(string username, int maxAttempts, int secondsBlocked);
     Task<bool> TryResetPasswordAttemptsAsync(string username);
-    Task<bool> TryUpdateTwoFactorAsync(string username, string newTwoFactorCode, int twoFactorValidMinutes);
+    Task<bool> TryUpdateTwoFactorAsync(string username, string newTwoFactorCode, int twoFactorValidSeconds);
+    Task<bool> TryChangePasswordAsync(string username, string new_password);
 
     User? TryGet(string username);
     User? TryFullGet(string username);

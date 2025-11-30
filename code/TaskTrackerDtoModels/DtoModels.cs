@@ -17,6 +17,20 @@ public class LoginRequestDto
     public string? TwoFactorCode { get; set; } = string.Empty;
 }
 
+public class CheckLoginRequestDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public class ChangePasswordRequestDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string? TwoFactorCode { get; set; } = string.Empty;
+}
+
 public class PhoneNumberDto
 {
     public string StringNumber { get; set; } = string.Empty;
@@ -473,6 +487,13 @@ public class TwoFactorResponseDto
 {
     public string UserName { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
+}
+
+public class ChangePasswordResponseDto
+{
+    public string UserName { get; set; } = string.Empty;
     public string Message { get; set; } = string.Empty;
     public DateTime Timestamp { get; set; }
 }

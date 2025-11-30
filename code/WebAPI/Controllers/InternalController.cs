@@ -20,7 +20,7 @@ public class InternalController : ControllerBase
     }
 
     [HttpPut("check-log-in")]
-    public async Task<ActionResult> CheckLogin([FromBody] LoginRequestDto request)
+    public async Task<ActionResult> CheckLogin([FromBody] CheckLoginRequestDto request)
     {
         try
         {

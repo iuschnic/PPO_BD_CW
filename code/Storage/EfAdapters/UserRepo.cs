@@ -257,7 +257,7 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         return true;
     }
     //Функция проверяет, может ли пользователь получить доступ к аккаунту на n-й попытке(не заблокирован ли он)
-    public async Task<bool> TryCheckPasswordAttemptAsync(string username, int maxAttempts, int minutesBlocked)
+    public async Task<bool> TryCheckPasswordAttemptAsync(string username, int maxAttempts, int secondsBlocked)
     {
         var dbu = await _dbContext.Users
             .Include(u => u.Settings)
@@ -272,7 +272,7 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         if (dbu.Settings.PasswordAttempts >= maxAttempts)
         {
             dbu.Settings.PasswordAttempts = 0;
-            dbu.Settings.BlockedUntil = DateTime.Now.AddMinutes(minutesBlocked);
+            dbu.Settings.BlockedUntil = DateTime.Now.AddSeconds(secondsBlocked);
             await _dbContext.SaveChangesAsync();
             return false;
         }
@@ -291,7 +291,7 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         return true;
     }
 
-    public async Task<bool> TryUpdateTwoFactorAsync(string username, string newTwoFactorCode, int twoFactorValidMinutes)
+    public async Task<bool> TryUpdateTwoFactorAsync(string username, string newTwoFactorCode, int twoFactorValidSeconds)
     {
         var dbu = await _dbContext.Users
             .Include(u => u.Settings)
@@ -299,7 +299,18 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         if (dbu == null)
             return false;
         dbu.Settings.TwoFactorCurrentCode = newTwoFactorCode;
-        dbu.Settings.TwoFactorValidUntil = DateTime.Now.AddMinutes(twoFactorValidMinutes);
+        dbu.Settings.TwoFactorValidUntil = DateTime.Now.AddSeconds(twoFactorValidSeconds);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> TryChangePasswordAsync(string username, string new_password)
+    {
+        var dbu = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.PasswordHash = new_password;
         await _dbContext.SaveChangesAsync();
         return true;
     }

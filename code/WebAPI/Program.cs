@@ -48,7 +48,7 @@ builder.Services.AddDbContext<EfDbContext>(options =>
                     options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                           ?? builder.Configuration.GetConnectionString("PostgresConnection")));
 builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
-builder.Services.AddSingleton(new TaskTrackerArgs(5, 1, 1));
+builder.Services.AddSingleton(new TaskTrackerArgs(5, 120, 60)); //œ≈–≈Ã≈ÕÕ€≈ Œ –”∆≈Õ»ﬂ !!!
 builder.Services.AddScoped<ITaskTracker, TaskTracker>();
 builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();
 builder.Services.AddScoped<IMessageSenderProvider, MessageSenderProvider>();
@@ -63,7 +63,7 @@ if (Environment.GetEnvironmentVariable("ENABLE_BENCHMARK") is string envVar &&
     bool.TryParse(envVar, out isBenchmark)) { }
 else
 {
-    isBenchmark = builder.Configuration.GetValue<bool>("Enable_benchmark");
+    isBenchmark = builder.Configuration.GetValue<bool>("EnableBenchmark");
 }
 if (isBenchmark)
     builder.Services.AddTransient<IConfigureOptions<MvcOptions>, BenchmarkFormattersOptions>();

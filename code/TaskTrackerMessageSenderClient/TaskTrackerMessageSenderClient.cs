@@ -53,9 +53,8 @@ public class MessageSenderHttpClient: IMessageSenderClient
 
         try
         {
-            var url = $"{_baseUrl}/delete_account";
-            var content = new StringContent(taskTrackerLogin, Encoding.UTF8, "text/plain");
-            var response = await _httpClient.PostAsync(url, content);
+            var url = $"{_baseUrl}/delete_account/{taskTrackerLogin}";
+            var response = await _httpClient.DeleteAsync(url);
 
             if (!response.IsSuccessStatusCode)
             {

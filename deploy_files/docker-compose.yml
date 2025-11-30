@@ -336,7 +336,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
-      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-2:5002
     depends_on:
       haproxy2:
         condition: service_healthy
@@ -365,7 +365,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
-      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-2:5002
     depends_on:
       haproxy2:
         condition: service_healthy
@@ -394,7 +394,7 @@ services:
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
-      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-2:5002
     depends_on:
       haproxy2:
         condition: service_healthy
@@ -522,7 +522,31 @@ services:
     cpus: 0.5
     networks:
       - patroni-cluster-1
-      - default
+  
+  message-sender-2:
+    ports:
+      - "5011:5002"
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.messagesender
+    environment:
+      - BASE_URL=http://nginx-internal-2:5000
+      - MOCK_BASE_URL=http://localhost:5000/
+      - USE_MOCK=false
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
+      - SECRET_KEY=$SECRET_KEY
+      - BOT_TOKEN=$BOT_TOKEN2
+      - HTTP_LISTENER_BASE_URL=http://+:5002
+    depends_on:
+      nginx-internal-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/message_sender-2:/app/logs
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-2
 
   nginx-external:
     image: nginx

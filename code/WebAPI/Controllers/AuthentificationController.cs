@@ -201,9 +201,107 @@ public class AuthenticationController : ControllerBase
                 Timestamp = DateTime.UtcNow
             });
         }
+        catch (RepositoryOperationException ex)
+        {
+            _logger.LogError(ex, "Repository error during login for user {UserName}", request.UserName);
+            return StatusCode(500, new ErrorResponseDto
+            {
+                Error = "REPOSITORY_ERROR",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
         catch (Exception ex)
         {
             _logger.LogError(ex, "Unexpected error during two-factor change for user {UserName}", request.UserName);
+            return StatusCode(500, new ErrorResponseDto
+            {
+                Error = "INTERNAL_ERROR",
+                Message = "Внутренняя ошибка сервера",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+    }
+
+    [HttpPost("auth/change-password")]
+    public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
+    {
+        try
+        {
+            await _taskTracker.ChangePasswordAsync(request.UserName, request.Password, request.NewPassword, 
+                request.TwoFactorCode);
+
+            _logger.LogInformation("User {UserName} changed password successfully", request.UserName);
+            return Ok(new ChangePasswordResponseDto
+            {
+                UserName = request.UserName,
+                Message = $"Пароль для {request.UserName} успешно изменен",
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (UserNotFoundException ex)
+        {
+            _logger.LogWarning("User {UserName} not found", request.UserName);
+            return NotFound(new ErrorResponseDto
+            {
+                Error = "USER_NOT_FOUND",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (InvalidCredentialsException ex)
+        {
+            _logger.LogWarning("Invalid credentials for user {UserName}", request.UserName);
+            return Unauthorized(new ErrorResponseDto
+            {
+                Error = "INVALID_CREDENTIALS",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (UserBlockedException ex)
+        {
+            _logger.LogWarning("User temporarily blocked {UserName}", request.UserName);
+            return Unauthorized(new ErrorResponseDto
+            {
+                Error = "USER_BLOCKED",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (WrongTwoFactorException ex)
+        {
+            _logger.LogWarning("Wrong TwoFactor code for {UserName}", request.UserName);
+            return Unauthorized(new ErrorResponseDto
+            {
+                Error = "WRONG_TWO_FACTOR",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (RepositoryOperationException ex)
+        {
+            _logger.LogError(ex, "Repository error during login for user {UserName}", request.UserName);
+            return StatusCode(500, new ErrorResponseDto
+            {
+                Error = "REPOSITORY_ERROR",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (EventsNotFoundException ex)
+        {
+            _logger.LogError(ex, "Events not found for user {UserName}", request.UserName);
+            return StatusCode(500, new ErrorResponseDto
+            {
+                Error = "EVENTS_NOT_FOUND",
+                Message = ex.Message,
+                Timestamp = DateTime.UtcNow
+            });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Unexpected error during login for user {UserName}", request.UserName);
             return StatusCode(500, new ErrorResponseDto
             {
                 Error = "INTERNAL_ERROR",

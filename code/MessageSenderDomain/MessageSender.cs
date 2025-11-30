@@ -104,7 +104,7 @@ public class MessageSender
 
         try
         {
-            if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/delete_account")
+            if (request.HttpMethod == "DELETE" && request.Url.AbsolutePath.Contains("/delete_account"))
             {
                 await HandleDeleteAccountRequest(request, response);
             }
@@ -136,7 +136,8 @@ public class MessageSender
 
     private async Task HandleDeleteAccountRequest(HttpListenerRequest request, HttpListenerResponse response)
     {
-        string taskTrackerLogin = await GetRequestBody(request);
+        var pathSegments = request.Url.Segments;
+        var taskTrackerLogin = pathSegments.Last().Trim('/');
 
         if (string.IsNullOrEmpty(taskTrackerLogin))
         {
@@ -145,10 +146,10 @@ public class MessageSender
             return;
         }
 
-        Console.WriteLine($"Обработка запроса DELETE /delete_account для пользователя: {taskTrackerLogin}");
+        Console.WriteLine($"Обработка запроса DELETE /accounts для пользователя: {taskTrackerLogin}");
         await HandleDeleteAccount(taskTrackerLogin);
         response.StatusCode = 200;
-        await SendResponse(response, "");
+        await SendResponse(response, "Account deleted successfully");
     }
 
     private async Task HandleCheckExistsRequest(HttpListenerRequest request, HttpListenerResponse response)
