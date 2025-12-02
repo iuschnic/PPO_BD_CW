@@ -4,6 +4,9 @@
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
 		<IsPackable>false</IsPackable>
+		<PreserveCompilationContext>true</PreserveCompilationContext>
+		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+		<EnableDynamicLoading>true</EnableDynamicLoading>
 	</PropertyGroup>
 
 	<PropertyGroup>
@@ -39,6 +42,7 @@
 		<ProjectReference Include="..\ShedLoadAdapter\ShedLoadAdapter.csproj" />
 		<ProjectReference Include="..\Storage\Storage.csproj" />
 		<ProjectReference Include="..\TaskTrackerMessageSenderClient\TaskTrackerMessageSenderClient.csproj" />
+		<ProjectReference Include="..\WebAPI\WebAPI.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>

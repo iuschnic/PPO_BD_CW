@@ -1,24 +1,15 @@
-﻿using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Mvc.Testing;
-using Microsoft.VisualStudio.TestPlatform.TestHost;
+﻿using Microsoft.AspNetCore.Mvc.Testing;
 
-public class ApiWebApplicationFactory : WebApplicationFactory<Program>
-{
-    protected override void ConfigureWebHost(IWebHostBuilder builder)
-    {
-        builder.UseEnvironment("Testing");
-    }
-}
 
-public class ApiIntegrationTests : IClassFixture<ApiWebApplicationFactory>
+public class ApiIntegrationTests : IClassFixture<WebApplicationFactory<Program>>
 {
-    private readonly ApiWebApplicationFactory _factory;
+    private readonly WebApplicationFactory<Program> _factory;
     private readonly HttpClient _client;
 
-    public ApiIntegrationTests(ApiWebApplicationFactory factory)
+    public ApiIntegrationTests(WebApplicationFactory<Program> factory)
     {
         _factory = factory;
-        _client = factory.CreateClient();
+        _client = _factory.CreateClient();
     }
 
     [Fact]

@@ -16,7 +16,7 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
-class Program
+public abstract class Program
 {
     public static void Main(string[] args)
     {
