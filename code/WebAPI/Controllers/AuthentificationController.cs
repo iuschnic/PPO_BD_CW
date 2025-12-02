@@ -165,7 +165,7 @@ public class AuthenticationController : ControllerBase
         }
     }
 
-    [HttpPut("auth/two-factor")]
+    [HttpPatch("auth/two-factor")]
     public async Task<ActionResult> ChangeTwoFactorAuth([FromBody] TwoFactorRequestDto request)
     {
         try
@@ -223,7 +223,7 @@ public class AuthenticationController : ControllerBase
         }
     }
 
-    [HttpPost("auth/change-password")]
+    [HttpPatch("auth/change-password")]
     public async Task<ActionResult> ChangePassword([FromBody] ChangePasswordRequestDto request)
     {
         try

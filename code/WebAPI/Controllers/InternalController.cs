@@ -19,7 +19,7 @@ public class InternalController : ControllerBase
         _logger = logger;
     }
 
-    [HttpPut("check-log-in")]
+    [HttpPost("check-log-in")]
     public async Task<ActionResult> CheckLogin([FromBody] CheckLoginRequestDto request)
     {
         try
