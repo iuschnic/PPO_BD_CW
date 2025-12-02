@@ -50,7 +50,7 @@ public class WebSenderTaskTrackerClient : ISenderTaskTrackerClient
 
     public async Task<bool> TryUnableTwoFactor(string taskTrackerLogin)
     {
-        var request = new TwoFactorRequestDto
+        var request = new ChangeTwoFactorRequestDto
         {
             UserName = taskTrackerLogin,
             IsEnabled = false

@@ -477,13 +477,13 @@ public static class TimeExtensions
     }
 }
 
-public class TwoFactorRequestDto
+public class ChangeTwoFactorRequestDto
 {
     public string UserName { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }
 }
 
-public class TwoFactorResponseDto
+public class ChangeTwoFactorResponseDto
 {
     public string UserName { get; set; } = string.Empty;
     public bool IsEnabled { get; set; }

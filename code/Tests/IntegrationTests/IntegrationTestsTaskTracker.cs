@@ -14,6 +14,7 @@ using Storage.EfAdapters;
 using Storage.Models;
 using Tests.ObjectMothers;
 using Types;
+using MessageSenderClient;
 
 namespace Tests.IntegrationTests;
 
@@ -66,6 +67,10 @@ public class IntegrationTestsTaskTracker : IAsyncLifetime
                 .AddTransient<ISheduleLoad, ShedAdapter>()
                 .AddTransient<IHabitDistributor, HabitDistributor>()
                 .AddTransient<ITaskTracker, TaskTracker>()
+                .AddScoped<IMessageSenderProvider, MessageSenderProvider>()
+                .AddScoped<IMessageSenderClient, MessageSenderHttpClient>()
+                .AddSingleton(new MessageSenderHttpClientArgs("PlaceHolder"))
+                .AddSingleton(new TaskTrackerArgs(5, 120, 60))
                 .BuildServiceProvider();
     }
 

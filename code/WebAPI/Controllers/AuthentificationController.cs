@@ -166,14 +166,14 @@ public class AuthenticationController : ControllerBase
     }
 
     [HttpPatch("auth/two-factor")]
-    public async Task<ActionResult> ChangeTwoFactorAuth([FromBody] TwoFactorRequestDto request)
+    public async Task<ActionResult> ChangeTwoFactorAuth([FromBody] ChangeTwoFactorRequestDto request)
     {
         try
         {
             await _taskTracker.ChangeTwoFactorAuthAsync(request.UserName, request.IsEnabled);
 
             _logger.LogInformation("Two-factor authentication changed successfully for user {UserName}", request.UserName);
-            return Ok(new TwoFactorResponseDto
+            return Ok(new ChangeTwoFactorResponseDto
             {
                 UserName = request.UserName,
                 IsEnabled = request.IsEnabled,
