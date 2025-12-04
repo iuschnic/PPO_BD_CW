@@ -549,7 +549,7 @@ services:
       - patroni-cluster-2
 
   nginx-external:
-    image: nginx
+    image: ubuntu
     ports:
       - "8888:80"
     environment:
@@ -569,6 +569,10 @@ services:
       - ./nginx/nginx_external.conf.template:/etc/nginx/conf.d/nginx.conf.template
     command: >
       /bin/sh -c "
+      apt-get update && 
+      apt-get install -y nginx && 
+      apt-get install libnginx-mod-http-headers-more-filter &&
+      apt-get install gettext-base &&
       echo 'Starting envsubst...' &&
       envsubst '$$SERVICE1_HOST $$SERVICE1_PORT $$SERVICE2_HOST $$SERVICE2_PORT $$PGADMIN_HOST $$PGADMIN_PORT $$GRAFANA_HOST $$GRAFANA_PORT $$HOST' 
       < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
