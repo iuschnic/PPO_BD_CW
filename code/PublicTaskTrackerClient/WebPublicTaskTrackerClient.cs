@@ -4,7 +4,7 @@ using System.Text;
 using System.Text.Json;
 using TaskTrackerDtoModels;
 using Types;
-namespace MessageSenderTaskTrackerClient;
+namespace PublicTaskTrackerClient;
 
 public interface IPublicTaskTrackerClient
 {

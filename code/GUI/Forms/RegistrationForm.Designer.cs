@@ -1,28 +1,26 @@
 ﻿using System;
 using System.Windows.Forms;
-using Domain;
-using Domain.InPorts;
-using Domain.Models;
+using PublicTaskTrackerClient;
 using Types;
 
 namespace HabitTrackerGUI
 {
     public partial class RegistrationForm : Form
     {
-        private readonly ITaskTracker _taskService;
+        private readonly IPublicTaskTrackerClient _taskService;
 
-        public RegistrationForm(ITaskTracker taskService)
+        public RegistrationForm(IPublicTaskTrackerClient taskService)
         {
             _taskService = taskService;
             InitializeComponent();
         }
 
-        private void btnRegister_Click(object sender, EventArgs e)
+        private async void btnRegister_Click(object sender, EventArgs e)
         {
             try
             {
                 var phoneNumber = new PhoneNumber(txtPhone.Text);
-                var user = _taskService.CreateUser(txtUsername.Text, phoneNumber, txtPassword.Text);
+                var user = await _taskService.CreateUserAsync(txtUsername.Text, phoneNumber, txtPassword.Text);
 
                 if (user == null)
                 {

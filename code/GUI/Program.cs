@@ -1,13 +1,8 @@
-﻿using Domain;
-using Domain.InPorts;
-using Domain.OutPorts;
-using LoadAdapters;
-using Microsoft.Extensions.DependencyInjection;
-using Storage.EfAdapters;
-using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
+using PublicTaskTrackerClient;
 
 namespace HabitTrackerGUI
 {
@@ -26,25 +21,16 @@ namespace HabitTrackerGUI
                 .CreateLogger();
             try
             {
-                var serviceProvider = new ServiceCollection()
-                    .AddSingleton<IConfiguration>(configuration)
-                    .AddLogging(loggingBuilder =>
-                    {
-                        loggingBuilder.ClearProviders();
-                        loggingBuilder.AddSerilog();
-                    })
-                    .AddSingleton<IEventRepo, EfEventRepo>()
-                    .AddSingleton<IHabitRepo, EfHabitRepo>()
-                    .AddSingleton<IUserRepo, EfUserRepo>()
-                    .AddSingleton<ITaskTrackerContext, EfDbContext>()
-                    .AddDbContext<EfDbContext>(options =>
-                        options.UseNpgsql(configuration.GetConnectionString("PostgresConnection")))
-                    .AddTransient<ISheduleLoad, ShedAdapter>()
-                    .AddTransient<ITaskTracker, TaskTracker>()
-                    .AddTransient<IHabitDistributor, HabitDistributor>()
-                    .BuildServiceProvider();
-
-                var taskService = serviceProvider.GetRequiredService<ITaskTracker>();
+                var baseUrl = configuration.GetValue<string>("BaseUrl");
+                if (baseUrl == null)
+                {
+                    Console.WriteLine("Ошибка чтения конфигурации");
+                    return;
+                }
+                var services = new ServiceCollection();
+                ConfigureServices(services, baseUrl, configuration);
+                var serviceProvider = services.BuildServiceProvider();
+                var taskService = serviceProvider.GetRequiredService<IPublicTaskTrackerClient>();
                 Application.Run(new MainForm(taskService));
             }
             catch (Exception ex)
@@ -55,6 +41,20 @@ namespace HabitTrackerGUI
             {
                 Log.CloseAndFlush();
             }
+        }
+        static void ConfigureServices(IServiceCollection services, string baseUrl, IConfigurationRoot configuration)
+        {
+            services.AddSingleton<IConfiguration>(configuration)
+                    .AddLogging(loggingBuilder =>
+                    {
+                        loggingBuilder.ClearProviders();
+                        loggingBuilder.AddSerilog();
+                    });
+            services.AddHttpClient<IPublicTaskTrackerClient, WebPublicTaskTrackerClient>((provider, client) =>
+            {
+                client.BaseAddress = new Uri(baseUrl);
+                client.Timeout = TimeSpan.FromSeconds(10);
+            });
         }
     }
 }
