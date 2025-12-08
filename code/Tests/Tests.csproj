@@ -39,6 +39,7 @@
 		<ProjectReference Include="..\MessageSenderStorage\MessageSenderStorage.csproj" />
 		<ProjectReference Include="..\MessageSenderTaskTrackerClient\MessageSenderTaskTrackerClient.csproj" />
 		<ProjectReference Include="..\MessageSenderTelegramAdapter\MessageSenderTelegramAdapter.csproj" />
+		<ProjectReference Include="..\PublicTaskTrackerClient\PublicTaskTrackerClient.csproj" />
 		<ProjectReference Include="..\ShedLoadAdapter\ShedLoadAdapter.csproj" />
 		<ProjectReference Include="..\Storage\Storage.csproj" />
 		<ProjectReference Include="..\TaskTrackerMessageSenderClient\TaskTrackerMessageSenderClient.csproj" />

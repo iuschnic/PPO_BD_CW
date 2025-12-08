@@ -19,7 +19,7 @@ export const options = {
   },
 };
 
-const BASE_URL = 'http://localhost:8888/api/v1';
+const BASE_URL = 'http://localhost:5234/api/v1';
 
 const commonParams = {
   headers: {

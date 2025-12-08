@@ -43,12 +43,12 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         var response = await _httpClient.PostAsync("/api/v1/auth/register", content);
 
         if (!response.IsSuccessStatusCode)
-            throw new Exception("Ошибка создания пользорвателя");
+            throw new Exception($"Ошибка создания пользователя");
 
         var userDto = await response.Content.ReadFromJsonAsync<UserDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (userDto == null)
-            throw new Exception("Ошибка создания пользорвателя");
+            throw new Exception("Ошибка создания пользователя");
         return DtoMapper.MapToDomain(userDto);
     }
 

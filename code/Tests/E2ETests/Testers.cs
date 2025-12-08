@@ -24,6 +24,11 @@ public class TesterTelegram
         return _receivedMessages;
     }
 
+    public string GetLastMessage()
+    {
+        return _receivedMessages.Last();
+    }
+
     public async Task StartListeningAsync()
     {
         await _botClient.DropPendingUpdates();
@@ -61,6 +66,18 @@ public class TesterTelegram
         var cnt = _receivedMessages.Count;
         await _botClient.SendMessage(_chatId, message);
         Console.WriteLine($"TesterBot sent: {message}");
+        for (int i = 0; i < 100; i++)
+        {
+            if (_receivedMessages.Count > cnt)
+                return;
+            await Task.Delay(100);
+        }
+        Console.WriteLine("Timeout waiting for response");
+    }
+
+    public async Task WaitResponseAsync()
+    {
+        var cnt = _receivedMessages.Count;
         for (int i = 0; i < 100; i++)
         {
             if (_receivedMessages.Count > cnt)
