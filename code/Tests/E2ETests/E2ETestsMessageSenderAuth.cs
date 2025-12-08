@@ -3,7 +3,6 @@ using Domain.OutPorts;
 using MessageSenderBotAdapters;
 using MessageSenderDomain.OutPorts;
 using MessageSenderStorage.EfAdapters;
-using MessageSenderTaskTrackerClient;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
