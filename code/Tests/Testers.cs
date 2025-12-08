@@ -4,7 +4,7 @@ using Telegram.Bot;
 using Telegram.Bot.Types;
 using MessageSenderBotAdapters;
 
-namespace Tests.E2ETests;
+namespace Tests;
 
 public class TesterTelegram
 {
