@@ -189,6 +189,7 @@ public partial class TwoFactorAuthFeature : FeatureFixture, IAsyncLifetime
     {
         await _tester.StopListeningAsync();
         await _factory.DisposeAsync();
+        await _messageSender.StopAsync();
         await CleanDatabasesAsync();
         await _dbContextTaskTracker.DisposeAsync();
         await _dbContextMessageSender.DisposeAsync();

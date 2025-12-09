@@ -201,6 +201,7 @@ public partial class BlockedAfterTooManyPasswordAttemptsFeature : FeatureFixture
     {
         await _tester.StopListeningAsync();
         await _factory.DisposeAsync();
+        await _messageSender.StopAsync();
         await CleanDatabasesAsync();
         await _dbContextTaskTracker.DisposeAsync();
         await _dbContextMessageSender.DisposeAsync();

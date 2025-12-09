@@ -99,6 +99,7 @@ public class TelegramBotE2E : IAsyncLifetime
     public async Task DisposeAsync()
     {
         await _tester.StopListeningAsync();
+        await _messageSender.StopAsync();
         await CleanDatabaseAsync();
         await _dbContext.DisposeAsync();
     }
@@ -206,6 +207,7 @@ public class MockBotE2E : IAsyncLifetime
     {
         await CleanDatabaseAsync();
         _botClient.Dispose();
+        await _messageSender.StopAsync();
         await _dbContext.DisposeAsync();
     }
 
