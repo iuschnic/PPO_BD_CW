@@ -20,7 +20,7 @@ COPY ["Tests/", "Tests/"]
 # Восстанавливаем и строим только нужные проекты
 RUN dotnet restore "Tests/Tests.csproj"
 
-RUN "Tests/Tests.csproj" -c Release --no-restore
+RUN dotnet build "Tests/Tests.csproj" -c Release --no-restore
 
 # Запуск unit-тестов
 ENTRYPOINT ["sh", "-c", \
