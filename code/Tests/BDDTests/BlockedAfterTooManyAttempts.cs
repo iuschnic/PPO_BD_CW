@@ -19,7 +19,7 @@ using System.Text;
 
 [assembly: LightBddScope]
 
-namespace Tests.BDDTests;
+namespace Tests.E2ETests;
 
 [FeatureDescription(
 @"As a user
@@ -30,7 +30,7 @@ too many times")]
 [Label("Story-1")]
 public partial class BlockedAfterTooManyPasswordAttemptsFeature
 {
-    [Trait("Category", "BDD")]
+    [Trait("Category", "E2E")]
     [Scenario]
     [Label("Recovery")]
     public async Task TooManyPasswordAttemptsWithRecovery()

@@ -18,7 +18,7 @@ using Storage.EfAdapters;
 using System.Text;
 using System.Text.RegularExpressions;
 
-namespace Tests.BDDTests;
+namespace Tests.E2ETests;
 
 [FeatureDescription(
 @"As a user
@@ -28,7 +28,7 @@ secured")]
 [Label("Story-2")]
 public partial class TwoFactorAuthFeature
 {
-    [Trait("Category", "BDD")]
+    [Trait("Category", "E2E")]
     [Scenario]
     [Label("Two-Factor")]
     public async Task TwoFactorAuth()

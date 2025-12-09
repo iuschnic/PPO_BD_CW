@@ -17,7 +17,7 @@ using PublicTaskTrackerClient;
 using Storage.EfAdapters;
 using System.Text;
 
-namespace Tests.BDDTests;
+namespace Tests.E2ETests;
 
 [FeatureDescription(
 @"As a user
@@ -29,7 +29,7 @@ secured")]
 [Label("Story-3")]
 public partial class ChangePasswordFeature
 {
-    [Trait("Category", "BDD")]
+    [Trait("Category", "E2E")]
     [Scenario]
     [Label("Change-Password")]
     public async Task ChangePassword()
