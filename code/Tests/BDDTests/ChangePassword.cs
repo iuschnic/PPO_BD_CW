@@ -15,38 +15,36 @@ using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using PublicTaskTrackerClient;
 using Storage.EfAdapters;
-using System.Numerics;
 using System.Text;
 using System.Text.RegularExpressions;
 using Tests.E2ETests;
-
-[assembly: LightBddScope]
 
 namespace Tests.BDDTests;
 
 [FeatureDescription(
 @"As a user
-I may be blocked
-if I try to log in
-with invalid password
-too many times")]
-[Label("Story-1")]
-public partial class BlockedAfterTooManyAttemptsFeature
+I want to be able
+to change my password
+if I want to,
+for my account to be
+secured")]
+[Label("Story-3")]
+public partial class ChangePasswordFeature
 {
     [Scenario]
-    [Label("Recovery")]
-    public async Task TooManyPasswordAttemptsWithRecovery()
+    [Label("Change-Password")]
+    public async Task ChangePassword()
     {
+        string userName = "test_bdd_user";
         await Runner.RunScenarioAsync(
-            _ => GivenUserHasCreatedAccount(),
-            _ => UserMakesTooManyInvalidPasswordAttempts(),
-            _ => AndThenUserIsBlocked(),
-            _ => AndUserWaitsForAccountToBeUnblocked(),
-            _ => AndThenHeSuccessfullyLogsInWithValidPassword());
+            _ => GivenUserHasCreatedAccountInTaskTracker(userName),
+            _ => AndUserRequestsPasswordToBeChanged(userName),
+            _ => AndThenHeUnsuccessfullyTriesToLogInWithOldPassword(userName),
+            _ => FinallyHeSuccessfullyLogsInWithNewPassword(userName));
     }
 }
 
-public partial class BlockedAfterTooManyAttemptsFeature : FeatureFixture
+public partial class ChangePasswordFeature : FeatureFixture, IAsyncLifetime
 {
 
     private readonly WebApplicationFactory<Program> _factory;
@@ -61,13 +59,13 @@ public partial class BlockedAfterTooManyAttemptsFeature : FeatureFixture
     private MessageSender _messageSender;
     private readonly int _port = 5234;
     private readonly string _url = $"http://localhost:5234";
-    private string _userName = "test_user_10";
-    private string _password = "test_password_10";
+    private string _password = "test_password";
+    private string _newPassword = "new_test_password";
     private string _twoFactor = "";
     private Types.PhoneNumber _phone = new Types.PhoneNumber("+79999999999");
 
 
-    public Basket_feature()
+    public ChangePasswordFeature()
     {
         Console.OutputEncoding = Encoding.UTF8;
         Console.InputEncoding = Encoding.UTF8;
@@ -192,7 +190,7 @@ public partial class BlockedAfterTooManyAttemptsFeature : FeatureFixture
     {
         await _tester.StopListeningAsync();
         await _factory.DisposeAsync();
-        //await CleanDatabasesAsync();
+        await CleanDatabasesAsync();
         await _dbContextTaskTracker.DisposeAsync();
         await _dbContextMessageSender.DisposeAsync();
     }
@@ -217,46 +215,31 @@ public partial class BlockedAfterTooManyAttemptsFeature : FeatureFixture
         await _dbContextMessageSender.Messages.ExecuteDeleteAsync();
         await _dbContextMessageSender.SaveChangesAsync();
         _dbContextMessageSender.ChangeTracker.Clear();
-
     }
 
-    private async Task GivenUserHasCreatedAccount()
+    private async Task GivenUserHasCreatedAccountInTaskTracker(string userName)
     {
-        var response = await _taskTrackerClient.CreateUserAsync(_userName, _phone, _password);
+        var response = await _taskTrackerClient.CreateUserAsync(userName, _phone, _password);
         Assert.NotNull(response);
     }
-    private async Task UserMakesTooManyInvalidPasswordAttempts()
+    private async Task AndUserRequestsPasswordToBeChanged(string userName)
     {
-        for (int i = 0; i < 6; i++)
-        {
-            try
-            {
-                var response = await _taskTrackerClient.LogInAsync(_userName, _password + "a");
-            }
-            catch (Exception ex)
-            {
-                Assert.Contains(ex.Message, "Ошибка входа");
-            }
-        }
+        await _taskTrackerClient.ChangePasswordAsync(userName, _password, _newPassword);
     }
-    private async Task AndThenUserIsBlocked()
+    private async Task AndThenHeUnsuccessfullyTriesToLogInWithOldPassword(string userName)
     {
         try
         {
-            var response = await _taskTrackerClient.LogInAsync(_userName, _password + "a");
+            var response = await _taskTrackerClient.LogInAsync(userName, _password);
         }
         catch (Exception ex)
         {
             Assert.Contains(ex.Message, "Ошибка входа");
         }
     }
-    private async Task AndUserWaitsForAccountToBeUnblocked()
+    private async Task FinallyHeSuccessfullyLogsInWithNewPassword(string userName)
     {
-        await Task.Delay(2000);
-    }
-    private async Task AndThenHeSuccessfullyLogsInWithValidPassword()
-    {
-        var response = await _taskTrackerClient.LogInAsync(_userName, _password);
+        var response = await _taskTrackerClient.LogInAsync(userName, _newPassword);
         Assert.NotNull(response);
     }
 }

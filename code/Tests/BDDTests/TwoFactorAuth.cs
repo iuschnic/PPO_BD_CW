@@ -1,5 +1,8 @@
 ﻿using Domain;
 using Domain.OutPorts;
+using LightBDD.Framework;
+using LightBDD.Framework.Scenarios;
+using LightBDD.XUnit2;
 using MessageSenderBotAdapters;
 using MessageSenderDomain.OutPorts;
 using MessageSenderStorage.EfAdapters;
@@ -14,11 +17,36 @@ using PublicTaskTrackerClient;
 using Storage.EfAdapters;
 using System.Text;
 using System.Text.RegularExpressions;
+using Tests.E2ETests;
 
-namespace Tests.E2ETests;
+namespace Tests.BDDTests;
 
-public class AuthentificationTests : IClassFixture<WebApplicationFactory<Program>>, IAsyncLifetime
+[FeatureDescription(
+@"As a user
+I want to have two-factor
+auth for my account to be
+secured")]
+[Label("Story-2")]
+public partial class TwoFactorAuthFeature
 {
+    [Scenario]
+    [Label("Two-Factor")]
+    public async Task TwoFactorAuth()
+    {
+        string userName = "test_bdd_user";
+        await Runner.RunScenarioAsync(
+            _ => GivenUserHasCreatedAccountInTaskTracker(userName),
+            _ => AndUserHasCreatedAccountInMessageSender(userName),
+            _ => UserRequestsTwoFactorAuthEnabled(userName),
+            _ => AndThenUserMakesAnUnsuccessfulAttemptToLogInWithoutTwoFactor(userName),
+            _ => AndThenUserAwaitsForTwoFactorCodeFromMessageSender(),
+            _ => AndThenHeSuccessfullyLogsInWithValidPasswordAndTwoFactorCode(userName));
+    }
+}
+
+public partial class TwoFactorAuthFeature : FeatureFixture, IAsyncLifetime
+{
+
     private readonly WebApplicationFactory<Program> _factory;
     private readonly string _testToken;
     private readonly string _testerToken;
@@ -31,9 +59,12 @@ public class AuthentificationTests : IClassFixture<WebApplicationFactory<Program
     private MessageSender _messageSender;
     private readonly int _port = 5234;
     private readonly string _url = $"http://localhost:5234";
+    private string _password = "test_password";
+    private string _twoFactor = "";
+    private Types.PhoneNumber _phone = new Types.PhoneNumber("+79999999999");
 
 
-    public AuthentificationTests(WebApplicationFactory<Program> factory)
+    public TwoFactorAuthFeature()
     {
         Console.OutputEncoding = Encoding.UTF8;
         Console.InputEncoding = Encoding.UTF8;
@@ -46,6 +77,7 @@ public class AuthentificationTests : IClassFixture<WebApplicationFactory<Program
         if ((connStringTaskTracker = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
                           ?? configuration.GetConnectionString("E2ETestsConnection")) == null)
             throw new InvalidDataException("Не найдена строка подключения к тестовой базе данных");
+        var factory = new WebApplicationFactory<Program>();
         _factory = factory.WithWebHostBuilder(builder =>
         {
             builder.ConfigureTestServices(services =>
@@ -71,7 +103,7 @@ public class AuthentificationTests : IClassFixture<WebApplicationFactory<Program
                 services.AddSingleton(new TaskTrackerArgs(5, 120, 1));
             });
         });
-        
+
         // Конфигурация клиента основного сервиса TaskTracker WebAPI
         _taskTrackerClient = new WebPublicTaskTrackerClient(_factory.CreateClient());
 
@@ -157,7 +189,7 @@ public class AuthentificationTests : IClassFixture<WebApplicationFactory<Program
     {
         await _tester.StopListeningAsync();
         await _factory.DisposeAsync();
-        //await CleanDatabasesAsync();
+        await CleanDatabasesAsync();
         await _dbContextTaskTracker.DisposeAsync();
         await _dbContextMessageSender.DisposeAsync();
     }
@@ -182,129 +214,47 @@ public class AuthentificationTests : IClassFixture<WebApplicationFactory<Program
         await _dbContextMessageSender.Messages.ExecuteDeleteAsync();
         await _dbContextMessageSender.SaveChangesAsync();
         _dbContextMessageSender.ChangeTracker.Clear();
-
     }
 
-    [Fact]
-    public async Task LogInWithTwoFactor()
+    private async Task GivenUserHasCreatedAccountInTaskTracker(string userName)
     {
-        var userName = "test_user";
-        var password = "test_password";
-        var twoFactorCode = "";
-        var phone = new Types.PhoneNumber("+79999999999");
-        // Пользователь регистрируется в приложении
-        var response1 = await _taskTrackerClient.CreateUserAsync(userName, phone, password);
-        Assert.NotNull(response1);
-        // Пользователь регистрируется в телеграмм боте тремя командами
+        var response = await _taskTrackerClient.CreateUserAsync(userName, _phone, _password);
+        Assert.NotNull(response);
+    }
+    private async Task AndUserHasCreatedAccountInMessageSender(string userName)
+    {
         await _tester.SendAndWaitResponseAsync("/start");
         await _tester.SendAndWaitResponseAsync(userName);
-        await _tester.SendAndWaitResponseAsync(password);
-        // Пользователь запрашивает включение двухфакторной аутентификации
+        await _tester.SendAndWaitResponseAsync(_password);
+    }
+    private async Task UserRequestsTwoFactorAuthEnabled(string userName)
+    {
         await _taskTrackerClient.ChangeTwoFactorAuthAsync(userName, true);
-        // Пользователь делает попытку входа, не зная кода двухфакторной аутентификации, получает ошибку
+    }
+
+    private async Task AndThenUserMakesAnUnsuccessfulAttemptToLogInWithoutTwoFactor(string userName)
+    {
         try
         {
-            var response2 = await _taskTrackerClient.LogInAsync(userName, password);
+            var response = await _taskTrackerClient.LogInAsync(userName, _password);
         }
         catch (Exception ex)
         {
             Assert.Contains(ex.Message, "Ошибка входа");
         }
-        // Пользователь получает от бота код двухфакторной аутентификации
+    }
+    private async Task AndThenUserAwaitsForTwoFactorCodeFromMessageSender()
+    {
         await _tester.WaitResponseAsync();
         string ans = _tester.GetLastMessage();
         string pattern = @"\d+";
         Regex regex = new Regex(pattern);
         var matches = regex.Matches(ans);
-        twoFactorCode = matches[0].Value;
-        Console.WriteLine(twoFactorCode);
-        // Пользователь делает успешную попытку входа, зная код двухфакторной аутентификации
-        var response3 = await _taskTrackerClient.LogInAsync(userName, password, twoFactorCode);
-        Assert.NotNull(response3);
+        _twoFactor = matches[0].Value;
     }
-    [Fact]
-    public async Task LogInTooManyFailedAttempts()
+    private async Task AndThenHeSuccessfullyLogsInWithValidPasswordAndTwoFactorCode(string userName)
     {
-        var userName = "test_user1";
-        var password = "test_password1";
-        var twoFactorCode = "";
-        var phone = new Types.PhoneNumber("+79999999999");
-        // Пользователь регистрируется в приложении
-        var response1 = await _taskTrackerClient.CreateUserAsync(userName, phone, password);
-        Assert.NotNull(response1);
-        // Делается несколько попыток входа с неправильным паролем
-        for (int i = 0; i < 6; i++)
-        {
-            try
-            {
-                var response3 = await _taskTrackerClient.LogInAsync(userName, password + "a");
-            }
-            catch (Exception ex)
-            {
-                Assert.Contains(ex.Message, "Ошибка входа");
-            }
-        }
-        // Попытка входа с правильным паролем дает ошибку, так как пользователь в данный момент заблокирован
-        try
-        {
-            var response4 = await _taskTrackerClient.LogInAsync(userName, password);
-        }
-        catch (Exception ex)
-        {
-            Assert.Contains(ex.Message, "Ошибка входа");
-        }
-    }
-    [Fact]
-    public async Task LogInTooManyFailedAttemptsWithRecovery()
-    {
-        var userName = "test_user2";
-        var password = "test_password2";
-        var twoFactorCode = "";
-        var phone = new Types.PhoneNumber("+79999999999");
-        // Пользователь регистрируется в приложении
-        var response1 = await _taskTrackerClient.CreateUserAsync(userName, phone, password);
-        Assert.NotNull(response1);
-        // Делается несколько попыток входа с неправильным паролем
-        for (int i = 0; i < 6; i++)
-        {
-            try
-            {
-                var response3 = await _taskTrackerClient.LogInAsync(userName, password + "a");
-            }
-            catch (Exception ex)
-            {
-                Assert.Contains(ex.Message, "Ошибка входа");
-            }
-        }
-        // Пользователь ждет пока его аккаунт будет разблокирован
-        await Task.Delay(2000);
-        // Попытка входа с правильным паролем не дает ошибку так как пользователь уже разблокирован
-        var response4 = await _taskTrackerClient.LogInAsync(userName, password);
-    }
-    [Fact]
-    public async Task ChangePassword()
-    {
-        var userName = "test_user3";
-        var password = "test_password3";
-        var newPassword = password + "a";
-        var twoFactorCode = "";
-        var phone = new Types.PhoneNumber("+79999999999");
-        // Пользователь регистрируется в приложении
-        var response1 = await _taskTrackerClient.CreateUserAsync(userName, phone, password);
-        Assert.NotNull(response1);
-        // Пользователь запрашивает изменение пароля
-        await _taskTrackerClient.ChangePasswordAsync(userName, password, newPassword);
-        // Пользователь пытается зайти со старым паролем после изменения
-        try
-        {
-            var response2 = await _taskTrackerClient.LogInAsync(userName, password);
-        }
-        catch (Exception ex)
-        {
-            Assert.Contains(ex.Message, "Ошибка входа");
-        }
-        // Пользователь успешно входит с новым паролем
-        var response3 = await _taskTrackerClient.LogInAsync(userName, newPassword);
-        Assert.NotNull(response3);
+        var response = await _taskTrackerClient.LogInAsync(userName, _password, _twoFactor);
+        Assert.NotNull(response);
     }
 }
