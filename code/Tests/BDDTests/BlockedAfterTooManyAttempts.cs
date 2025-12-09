@@ -16,11 +16,10 @@ using Moq;
 using PublicTaskTrackerClient;
 using Storage.EfAdapters;
 using System.Text;
-using Tests.E2ETests;
 
 [assembly: LightBddScope]
 
-namespace Tests.BDDTests;
+namespace Tests.E2ETests;
 
 [FeatureDescription(
 @"As a user
@@ -37,7 +36,7 @@ public partial class BlockedAfterTooManyPasswordAttemptsFeature
     {
         string userName = "test_bdd_user1";
         await Runner.RunScenarioAsync(
-            _ => GivenUserHasCreatedAccount(userName),
+            _ => GivenUserHasCreatedAccountInTaskTracker(userName),
             _ => UserMakesTooManyInvalidPasswordAttempts(userName),
             _ => AndThenUserIsBlocked(userName),
             _ => AndUserWaitsForAccountToBeUnblocked(),
@@ -49,7 +48,7 @@ public partial class BlockedAfterTooManyPasswordAttemptsFeature
     {
         string userName = "test_bdd_user2";
         await Runner.RunScenarioAsync(
-            _ => GivenUserHasCreatedAccount(userName),
+            _ => GivenUserHasCreatedAccountInTaskTracker(userName),
             _ => UserMakesTooManyInvalidPasswordAttempts(userName),
             _ => AndThenUserIsBlocked(userName),
             _ => AndThenHeCanNotSuccessfullyLogsInWithValidPassword(userName));
@@ -228,7 +227,7 @@ public partial class BlockedAfterTooManyPasswordAttemptsFeature : FeatureFixture
         _dbContextMessageSender.ChangeTracker.Clear();
     }
 
-    private async Task GivenUserHasCreatedAccount(string userName)
+    private async Task GivenUserHasCreatedAccountInTaskTracker(string userName)
     {
         var response = await _taskTrackerClient.CreateUserAsync(userName, _phone, _password);
         Assert.NotNull(response);

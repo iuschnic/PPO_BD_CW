@@ -16,10 +16,8 @@ using Moq;
 using PublicTaskTrackerClient;
 using Storage.EfAdapters;
 using System.Text;
-using System.Text.RegularExpressions;
-using Tests.E2ETests;
 
-namespace Tests.BDDTests;
+namespace Tests.E2ETests;
 
 [FeatureDescription(
 @"As a user
