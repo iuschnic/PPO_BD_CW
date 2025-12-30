@@ -1,20 +1,20 @@
-﻿using System;
+﻿using Domain.Models;
+using PublicTaskTrackerClient;
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Windows.Forms;
-using Domain;
-using Domain.InPorts;
-using Domain.Models;
 using Types;
 
 namespace HabitTrackerGUI
 {
     public partial class UserDashboardForm : Form
     {
-        private readonly ITaskTracker _taskService;
+        private readonly IPublicTaskTrackerClient _taskService;
         private User _user;
         private bool _isInitializing = true;
 
-        public UserDashboardForm(ITaskTracker taskService, User user)
+        public UserDashboardForm(IPublicTaskTrackerClient taskService, User user)
         {
             _taskService = taskService;
             _user = user;
@@ -148,7 +148,7 @@ namespace HabitTrackerGUI
             };
         }
 
-        private void btnImportSchedule_Click(object sender, EventArgs e)
+        private async void btnImportSchedule_Click(object sender, EventArgs e)
         {
             var openFileDialog = new OpenFileDialog
             {
@@ -160,7 +160,18 @@ namespace HabitTrackerGUI
             {
                 try
                 {
-                    var result = _taskService.ImportNewShedule(_user.NameID, openFileDialog.FileName);
+                    if (!File.Exists(openFileDialog.FileName))
+                    {
+                        throw new Exception("Файл не существует");
+                    }
+                    var extension = Path.GetExtension(openFileDialog.FileName).ToLowerInvariant();
+                    if (extension != ".csv" && extension != ".ics")
+                    {
+                        throw new Exception($"\nНеподдерживаемый формат файла: {extension}. Поддерживаются только .csv и .ics\n");
+                    }
+                    using var stream = File.OpenRead(openFileDialog.FileName);
+
+                    var result = await _taskService.ImportNewScheduleAsync(_user.NameID, stream, extension);
                     if (result == null)
                     {
                         MessageBox.Show("Ошибка при импорте расписания", "Ошибка",
@@ -186,7 +197,7 @@ namespace HabitTrackerGUI
             }
         }
 
-        private void btnAddHabit_Click(object sender, EventArgs e)
+        private async void btnAddHabit_Click(object sender, EventArgs e)
         {
             var form = new AddHabitForm();
             if (form.ShowDialog() == DialogResult.OK)
@@ -194,7 +205,7 @@ namespace HabitTrackerGUI
                 try
                 {
                     var habit = form.GetHabit(_user.NameID);
-                    var result = _taskService.AddHabit(habit);
+                    var result = await _taskService.AddHabitAsync(habit);
 
                     if (result == null)
                     {
@@ -221,7 +232,7 @@ namespace HabitTrackerGUI
             }
         }
 
-        private void btnDeleteHabit_Click(object sender, EventArgs e)
+        private async void btnDeleteHabit_Click(object sender, EventArgs e)
         {
             if (lstHabits.SelectedIndex == -1)
             {
@@ -232,7 +243,7 @@ namespace HabitTrackerGUI
             var habitName = lstHabits.SelectedItem.ToString().Split(' ')[1];
             try
             {
-                var result = _taskService.DeleteHabit(_user.NameID, habitName);
+                var result = await _taskService.DeleteHabitAsync(_user.NameID, habitName);
                 if (result == null)
                 {
                     MessageBox.Show("Ошибка при удалении привычки", "Ошибка",
@@ -252,14 +263,14 @@ namespace HabitTrackerGUI
             }
         }
 
-        private void btnDeleteAllHabits_Click(object sender, EventArgs e)
+        private async void btnDeleteAllHabits_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Вы действительно хотите удалить все привычки?", "Подтверждение",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
             {
                 try
                 {
-                    var result = _taskService.DeleteHabits(_user.NameID);
+                    var result = await _taskService.DeleteHabitsAsync(_user.NameID);
 
                     if (result == null)
                     {
@@ -281,19 +292,13 @@ namespace HabitTrackerGUI
             }
         }
 
-        private void chkNotifications_CheckedChanged(object sender, EventArgs e)
+        private async void chkNotifications_CheckedChanged(object sender, EventArgs e)
         {
             if (_isInitializing)
                 return;
-            var settings = new UserSettings(
-                _user.Settings.Id,
-                chkNotifications.Checked,
-                _user.Settings.UserNameID,
-                _user.Settings.SettingsTimes);
-
             try
             {
-                var user = _taskService.ChangeSettings(settings);
+                var user = await _taskService.ChangeSettingsAsync(null, chkNotifications.Checked, _user.Settings.UserNameID);
                 if (user == null)
                 {
                     MessageBox.Show("Ошибка обновления настроек уведомлений", "Ошибка",
@@ -310,7 +315,7 @@ namespace HabitTrackerGUI
             }
         }
 
-        private void btnNotificationTimes_Click(object sender, EventArgs e)
+        private async void btnNotificationTimes_Click(object sender, EventArgs e)
         {
             var form = new NotificationTimesForm(_user.Settings.SettingsTimes);
             if (form.ShowDialog() == DialogResult.OK)
@@ -323,7 +328,9 @@ namespace HabitTrackerGUI
 
                 try
                 {
-                    var user = _taskService.ChangeSettings(settings);
+                    var times = new List<Tuple<TimeOnly, TimeOnly>>(form.GetTimes().Select(t => new Tuple<TimeOnly, TimeOnly>(t.Start, t.End)));
+                    var user = await _taskService.ChangeSettingsAsync(times,
+                        null, _user.Settings.UserNameID);
                     if (user == null)
                     {
                         MessageBox.Show("Ошибка обновления временных интервалов", "Ошибка",
@@ -341,14 +348,14 @@ namespace HabitTrackerGUI
             }
         }
 
-        private void btnDeleteAccount_Click(object sender, EventArgs e)
+        private async void btnDeleteAccount_Click(object sender, EventArgs e)
         {
             if (MessageBox.Show("Вы действительно хотите удалить свою учетную запись?", "Подтверждение",
                 MessageBoxButtons.YesNo, MessageBoxIcon.Warning) == DialogResult.Yes)
             {
                 try
                 {
-                    _taskService.DeleteUser(_user.NameID);
+                    await _taskService.DeleteUserAsync(_user.NameID);
                     MessageBox.Show("Учетная запись успешно удалена", "Успех",
                         MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.Close();

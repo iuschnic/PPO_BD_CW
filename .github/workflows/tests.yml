@@ -138,13 +138,41 @@ jobs:
         exit 1
 
     - name: Run e2e tests with HTML output
+      env:
+        TEST_TOKEN: ${{ secrets.TEST_TOKEN }}
+        TESTER_TOKEN: ${{ secrets.TESTER_TOKEN }}
+        TEST_CHAT_ID: ${{ secrets.TEST_CHAT_ID }}
+        TESTER_CHAT_ID: ${{ secrets.TESTER_CHAT_ID }}
+        DB_CONNECTION_STRING: "Host=localhost;Port=5432;Database=E2Edb;Username=postgres;Password=postgres"
+        DB_MESSAGE_SENDER_CONNECTION_STRING: "Host=localhost;Port=5432;Database=E2EMessageSenderdb;Username=postgres;Password=postgres"
+        ASPNETCORE_ENVIRONMENT: Docker
+        DOTNET_ENVIRONMENT: Docker
       run: |
         mkdir -p test-results
         docker run --rm \
           --network host \
           -v $(pwd)/test-results:/test-results \
+          -e TEST_TOKEN="$TEST_TOKEN" \
+          -e TESTER_TOKEN="$TESTER_TOKEN" \
+          -e TEST_CHAT_ID="$TEST_CHAT_ID" \
+          -e TESTER_CHAT_ID="$TESTER_CHAT_ID" \
+          -e DB_CONNECTION_STRING="$DB_CONNECTION_STRING" \
+          -e DB_MESSAGE_SENDER_CONNECTION_STRING="$DB_MESSAGE_SENDER_CONNECTION_STRING" \
+          -e ASPNETCORE_ENVIRONMENT="$ASPNETCORE_ENVIRONMENT" \
+          -e DOTNET_ENVIRONMENT="$DOTNET_ENVIRONMENT" \
           bd-e2e-tests \
-          --logger "html;LogFileName=/test-results/e2e-report.html"
+          sh -c "
+            echo 'Waiting for PostgreSQL...' &&
+            until pg_isready -h localhost -p 5432 -U postgres; do
+              sleep 2
+            done &&
+            echo 'Running tests...' &&
+            dotnet test Tests/Tests.csproj -c Release \
+              --filter 'Category=E2E' \
+              --logger 'html;LogFileName=/test-results/e2e-report.html' \
+              --verbosity detailed \
+              --logger 'console;verbosity=detailed'
+          "
 
     - name: Upload E2E test results
       if : always()

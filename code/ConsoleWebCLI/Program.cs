@@ -4,7 +4,7 @@ using Types;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Serilog;
-using MessageSenderTaskTrackerClient;
+using PublicTaskTrackerClient;
 class Program
 {
     private static Habit? ParseHabit(string user_name)

@@ -26,13 +26,27 @@ public class UserSettings
     public bool NotifyOn { get; }
     public List<SettingsTime> SettingsTimes { get; }
     public string UserNameID { get; }
+    public bool TwoFactorEnabled { get; }
+    public string? TwoFactorCurrentCode { get; }
+    public DateTime? TwoFactorValidUntil { get; }
+    public int PasswordAttempts { get; }
+    public DateTime? BlockedUntil { get; }
+    public DateTime? PasswordLastChanged { get; }
 
-    public UserSettings(Guid id, bool notify_on, string user_name, List<SettingsTime> settings_times)
+    public UserSettings(Guid id, bool notifyOn, string userName, List<SettingsTime> settingsTimes, bool twoFactorEnabled = false,
+        string? twoFactorCurrentCode = null, DateTime? twoFactorValidUntil = null, int passwordAttempts = 0,
+        DateTime? blockedUntil = null, DateTime? passwordLastChanged = null)
     {
         Id = id;
-        SettingsTimes = settings_times;
-        NotifyOn = notify_on;
-        UserNameID = user_name;
+        SettingsTimes = settingsTimes;
+        NotifyOn = notifyOn;
+        UserNameID = userName;
+        TwoFactorEnabled = twoFactorEnabled;
+        TwoFactorCurrentCode = twoFactorCurrentCode;
+        TwoFactorValidUntil = twoFactorValidUntil;
+        PasswordAttempts = passwordAttempts;
+        BlockedUntil = blockedUntil;
+        PasswordLastChanged = passwordLastChanged;
     }
     public override string ToString()
     {

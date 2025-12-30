@@ -2,13 +2,13 @@ using Domain;
 using Domain.InPorts;
 using Domain.OutPorts;
 using LoadAdapters;
+using MessageSenderClient;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
-using NodaTime.Extensions;
 using Serilog;
 using Storage.EfAdapters;
 using Swashbuckle.AspNetCore.SwaggerGen;
@@ -16,81 +16,103 @@ using System.Diagnostics;
 using System.Text;
 using System.Text.Json;
 
-var builder = WebApplication.CreateBuilder(args);
-
-var threadPoolSettings = builder.Configuration.GetSection("ThreadPoolSettings");
-ThreadPool.SetMinThreads(
-    threadPoolSettings.GetValue<int>("MinWorkerThreads"),
-    threadPoolSettings.GetValue<int>("MinCompletionPortThreads"));
-ThreadPool.SetMaxThreads(
-    threadPoolSettings.GetValue<int>("MaxWorkerThreads"),
-    threadPoolSettings.GetValue<int>("MaxCompletionPortThreads"));
-
-Log.Logger = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
-    .CreateLogger();
-
-builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
-builder.Services.AddScoped<IEventRepo, EfEventRepo>();
-builder.Services.AddScoped<IHabitRepo, EfHabitRepo>();
-builder.Services.AddScoped<IUserRepo, EfUserRepo>();
-builder.Services.AddScoped<ITaskTrackerContext, EfDbContext>();
-builder.Services.AddDbContext<EfDbContext>(options =>
-                    options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-                          ?? builder.Configuration.GetConnectionString("PostgresConnection")));
-builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
-builder.Services.AddScoped<ITaskTracker, TaskTracker>();
-builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();
-builder.Services.AddScoped<IMessageSenderProvider, MessageSenderProvider>();
-builder.Services.AddLogging(loggingBuilder =>
-                 {
-                     loggingBuilder.AddSerilog();
-                 });
-bool isBenchmark;
-if (Environment.GetEnvironmentVariable("ENABLE_BENCHMARK") is string envVar &&
-    bool.TryParse(envVar, out isBenchmark)) { }
-else
+public abstract class Program
 {
-    isBenchmark = builder.Configuration.GetValue<bool>("Enable_benchmark");
+    public static void Main(string[] args)
+    {
+        var builder = CreateWebApplicationBuilder(args);
+        var app = builder.Build();
+
+        app.UseSwagger();
+        app.UseSwaggerUI();
+        app.UseRouting();
+        app.MapControllers();
+        app.UseCors("AllowAll");
+
+        app.Run();
+    }
+    public static WebApplicationBuilder CreateWebApplicationBuilder(string[] args)
+    {
+        var builder = WebApplication.CreateBuilder(args);
+
+        var threadPoolSettings = builder.Configuration.GetSection("ThreadPoolSettings");
+        ThreadPool.SetMinThreads(
+            threadPoolSettings.GetValue<int>("MinWorkerThreads"),
+            threadPoolSettings.GetValue<int>("MinCompletionPortThreads"));
+        ThreadPool.SetMaxThreads(
+            threadPoolSettings.GetValue<int>("MaxWorkerThreads"),
+            threadPoolSettings.GetValue<int>("MaxCompletionPortThreads"));
+
+        Log.Logger = new LoggerConfiguration()
+            .ReadFrom.Configuration(builder.Configuration)
+            .MinimumLevel.Override("Microsoft.EntityFrameworkCore.Database.Command", Serilog.Events.LogEventLevel.Error)
+            .CreateLogger();
+
+        var messageSenderBaseUrl = Environment.GetEnvironmentVariable("MESSAGE_SENDER_BASE_URL")
+                        ?? builder.Configuration.GetValue<string>("MessageSenderBaseUrl");
+        if (messageSenderBaseUrl == null)
+        {
+            Console.WriteLine("Ошибка чтения конфигурации");
+            throw new InvalidOperationException("Ошибка чтения конфигурации");
+        }
+
+        builder.Services.AddSingleton<IConfiguration>(builder.Configuration);
+        builder.Services.AddScoped<IEventRepo, EfEventRepo>();
+        builder.Services.AddScoped<IHabitRepo, EfHabitRepo>();
+        builder.Services.AddScoped<IUserRepo, EfUserRepo>();
+        builder.Services.AddScoped<ITaskTrackerContext, EfDbContext>();
+        builder.Services.AddDbContext<EfDbContext>(options =>
+                            options.UseNpgsql(Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+                                  ?? builder.Configuration.GetConnectionString("PostgresConnection")));
+        builder.Services.AddScoped<ISheduleLoad, ShedAdapter>();
+        builder.Services.AddSingleton(new TaskTrackerArgs(5, 120, 60)); //ПЕРЕМЕННЫЕ ОКРУЖЕНИЯ !!!
+        builder.Services.AddScoped<ITaskTracker, TaskTracker>();
+        builder.Services.AddScoped<IHabitDistributor, HabitDistributor>();
+        builder.Services.AddScoped<IMessageSenderProvider, MessageSenderProvider>();
+        builder.Services.AddSingleton(new MessageSenderHttpClientArgs(messageSenderBaseUrl));
+        builder.Services.AddScoped<IMessageSenderClient, MessageSenderHttpClient>();
+        builder.Services.AddLogging(loggingBuilder =>
+        {
+            loggingBuilder.AddSerilog();
+        });
+        bool isBenchmark;
+        if (Environment.GetEnvironmentVariable("ENABLE_BENCHMARK") is string envVar &&
+            bool.TryParse(envVar, out isBenchmark)) { }
+        else
+        {
+            isBenchmark = builder.Configuration.GetValue<bool>("EnableBenchmark");
+        }
+        if (isBenchmark)
+            builder.Services.AddTransient<IConfigureOptions<MvcOptions>, BenchmarkFormattersOptions>();
+        builder.Services.AddControllers();
+
+        builder.Services.AddSwaggerGen(c =>
+        {
+            c.SwaggerDoc("v1", new OpenApiInfo
+            {
+                Title = "TaskTracker API",
+                Version = "v1",
+                Description = "Асинхронный API для работы с привычками"
+            });
+            c.UseInlineDefinitionsForEnums();
+            c.SchemaFilter<EnumSchemaFilter>();
+            c.EnableAnnotations();
+            c.OperationFilter<AsyncOperationFilter>();
+        });
+
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowAll", policy =>
+            {
+                policy.AllowAnyOrigin()
+                      .AllowAnyMethod()
+                      .AllowAnyHeader();
+            });
+        });
+        return builder;
+    }
 }
-if (isBenchmark)
-    builder.Services.AddTransient<IConfigureOptions<MvcOptions>, BenchmarkFormattersOptions>();
-builder.Services.AddControllers();
 
-builder.Services.AddSwaggerGen(c =>
-{
-    c.SwaggerDoc("v1", new OpenApiInfo
-    {
-        Title = "TaskTracker API",
-        Version = "v1",
-        Description = "Асинхронный API для работы с привычками"
-    });
-    c.UseInlineDefinitionsForEnums();
-    c.SchemaFilter<EnumSchemaFilter>();
-    c.EnableAnnotations();
-    c.OperationFilter<AsyncOperationFilter>();
-});
-
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
-
-var app = builder.Build();
-
-app.UseSwagger();
-app.UseSwaggerUI();
-app.UseRouting();
-app.MapControllers();
-app.UseCors("AllowAll");
-
-app.Run();
 public class EnumSchemaFilter : ISchemaFilter
 {
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)

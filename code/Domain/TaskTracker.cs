@@ -7,6 +7,13 @@ using Types;
 
 namespace Domain;
 
+public class TaskTrackerArgs(int passwordMaxAttempts = 5, int twoFactorValidSeconds = 120, int blockSeconds =60)
+{
+    public int PasswordMaxAttempts { get; set; } = passwordMaxAttempts;
+    public int TwoFactorValidSeconds { get; set; } = twoFactorValidSeconds;
+    public int BlockSeconds { get; set; } = blockSeconds;
+}
+
 public class TaskTracker : ITaskTracker
 {
     private readonly IEventRepo _eventRepo;
@@ -15,9 +22,14 @@ public class TaskTracker : ITaskTracker
     private readonly ISheduleLoad _shedLoader;
     private readonly IHabitDistributor _distributer;
     private readonly ILogger<TaskTracker> _logger;
+    private readonly IMessageSenderClient _messageSenderClient;
+    private readonly int _passwordMaxAttempts;
+    private readonly int _twoFactorValidSeconds;
+    private readonly int _blockSeconds;
 
     public TaskTracker(IEventRepo eventRepo, IHabitRepo habitRepo,
-        IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer, ILogger<TaskTracker> logger)
+        IUserRepo userRepo, ISheduleLoad shedLoader, IHabitDistributor distributer, ILogger<TaskTracker> logger,
+        IMessageSenderClient messageSenderClient, TaskTrackerArgs args)
     {
         _eventRepo = eventRepo;
         _habitRepo = habitRepo;
@@ -25,6 +37,10 @@ public class TaskTracker : ITaskTracker
         _shedLoader = shedLoader;
         _distributer = distributer;
         _logger = logger;
+        _messageSenderClient = messageSenderClient;
+        _blockSeconds = args.BlockSeconds;
+        _passwordMaxAttempts = args.PasswordMaxAttempts;
+        _twoFactorValidSeconds = args.TwoFactorValidSeconds;
         _logger.LogInformation("TaskTracker был успешно инициализирован");
     }
     private async Task<User> GetUserAsync(string user_name)
@@ -72,14 +88,37 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Аккаунт {user_name} был успешно создан");
         return GetUser(u.NameID);
     }
-    public async Task<User> LogInAsync(string user_name, string password)
+    public async Task<User> LogInAsync(string user_name, string password, string? twoFactorCode = null)
     {
         _logger.LogInformation($"Пользователь запросил вход в аккаунт с именем {user_name}");
         var u = await _userRepo.TryGetAsync(user_name);
         if (u == null)
             throw new UserNotFoundException(user_name);
+        if (u.Settings.BlockedUntil >  DateTime.Now)
+            throw new UserBlockedException(user_name);
         if (u.PasswordHash != password)
-            throw new InvalidCredentialsException(user_name);
+        {
+            if (await _userRepo.TryCheckPasswordAttemptAsync(user_name, _passwordMaxAttempts, _blockSeconds))
+                throw new InvalidCredentialsException(user_name);
+            else
+                throw new UserBlockedException(user_name);
+        }
+        await _userRepo.TryResetPasswordAttemptsAsync(user_name);
+        if (u.Settings.TwoFactorEnabled)
+        {
+            if (u.Settings.TwoFactorValidUntil < DateTime.Now || u.Settings.TwoFactorCurrentCode == null)
+            {
+                var rand = new Random();
+                string code = rand.Next(10000, 99999).ToString();
+                await _userRepo.TryUpdateTwoFactorAsync(user_name, code, _twoFactorValidSeconds);
+                await _messageSenderClient.SendTwoFactorMessageAsync(user_name, code);
+                throw new WrongTwoFactorException(user_name);
+            }
+            if (u.Settings.TwoFactorCurrentCode != twoFactorCode)
+            {
+                throw new WrongTwoFactorException(user_name);
+            }
+        }
         _logger.LogInformation($"Вход в аккаунт {user_name} был успешно выполнен");
         return await GetUserAsync(u.NameID);
     }
@@ -302,26 +341,6 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Удаление привычек для пользователя {user_name} произведено успешно");
         return new Tuple<User, List<Habit>>(GetUser(user_name), []);
     }
-    public async Task<User> ChangeSettingsAsync(UserSettings settings)
-    {
-        _logger.LogInformation($"Пользователь с именем {settings.UserNameID} запросил изменение своих настроек");
-        if (await _userRepo.TryGetAsync(settings.UserNameID) == null)
-            throw new UserNotFoundException(settings.UserNameID);
-        if (!await _userRepo.TryUpdateSettingsAsync(settings))
-            throw new RepositoryOperationException("обновления", "настроек", settings.UserNameID);
-        _logger.LogInformation($"Изменение настроек для пользователя {settings.UserNameID} произведено успешно");
-        return await GetUserAsync(settings.UserNameID);
-    }
-    public User ChangeSettings(UserSettings settings)
-    {
-        _logger.LogInformation($"Пользователь с именем {settings.UserNameID} запросил изменение своих настроек");
-        if (_userRepo.TryGet(settings.UserNameID) == null)
-            throw new UserNotFoundException(settings.UserNameID);
-        if (!_userRepo.TryUpdateSettings(settings))
-            throw new RepositoryOperationException("обновления", "настроек", settings.UserNameID);
-        _logger.LogInformation($"Изменение настроек для пользователя {settings.UserNameID} произведено успешно");
-        return GetUser(settings.UserNameID);
-    }
 
     public async Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name)
     {
@@ -339,72 +358,13 @@ public class TaskTracker : ITaskTracker
         _logger.LogInformation($"Изменение настроек для пользователя {user_name} произведено успешно");
         return GetUser(user_name);
     }
-    public async Task<User> NotificationsOnAsync(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил включение уведомлений");
-        if (await _userRepo.TryGetAsync(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!await _userRepo.TryNotificationsOnAsync(user_name))
-            throw new RepositoryOperationException("включения", "уведомлений", user_name);
-        _logger.LogInformation($"Включение уведомлений для пользователя {user_name} произведено успешно");
-        return await GetUserAsync(user_name);
-    }
-    public User NotificationsOn(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил включение уведомлений");
-        if (_userRepo.TryGet(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!_userRepo.TryNotificationsOn(user_name))
-            throw new RepositoryOperationException("включения", "уведомлений", user_name);
-        _logger.LogInformation($"Включение уведомлений для пользователя {user_name} произведено успешно");
-        return GetUser(user_name);
-    }
-    public async Task<User> NotificationsOffAsync(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил выключение уведомлений");
-        if (await _userRepo.TryGetAsync(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!await _userRepo.TryNotificationsOffAsync(user_name))
-            throw new RepositoryOperationException("выключения", "уведомлений", user_name);
-        _logger.LogInformation($"Выключение уведомлений для пользователя {user_name} произведено успешно");
-        return await GetUserAsync(user_name);
-    }
-    public User NotificationsOff(string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил выключение уведомлений");
-        if (_userRepo.TryGet(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!_userRepo.TryNotificationsOff(user_name))
-            throw new RepositoryOperationException("выключения", "уведомлений", user_name);
-        _logger.LogInformation($"Выключение уведомлений для пользователя {user_name} произведено успешно");
-        return GetUser(user_name);
-    }
-    public async Task<User> UpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил обновление времени запрета уведомлений");
-        if (await _userRepo.TryGetAsync(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!await _userRepo.TryUpdateNotificationTimingsAsync(newTimings, user_name))
-            throw new RepositoryOperationException("обновления", "времени уведомлений", user_name);
-        _logger.LogInformation($"Обновление времени запрета уведомлений для пользователя {user_name} произведено успешно");
-        return await GetUserAsync(user_name);
-    }
-    public User UpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
-    {
-        _logger.LogInformation($"Пользователь с именем {user_name} запросил обновление времени запрета уведомлений");
-        if (_userRepo.TryGet(user_name) == null)
-            throw new UserNotFoundException(user_name);
-        if (!_userRepo.TryUpdateNotificationTimings(newTimings, user_name))
-            throw new RepositoryOperationException("обновления", "времени уведомлений", user_name);
-        _logger.LogInformation($"Обновление времени запрета уведомлений для пользователя {user_name} произведено успешно");
-        return GetUser(user_name);
-    }
     public async Task DeleteUserAsync(string user_name)
     {
         _logger.LogInformation($"Пользователь с именем {user_name} запросил удаление своей учетной записи");
         var ret = await _userRepo.TryDeleteAsync(user_name);
         if (!ret)
             throw new UserNotFoundException(user_name);
+        await _messageSenderClient.DeleteUserAccountAsync(user_name);
         _logger.LogInformation($"Удаление учетной записи пользователя {user_name} произведено успешно");
     }
     public void DeleteUser(string user_name)
@@ -415,6 +375,56 @@ public class TaskTracker : ITaskTracker
         {
             throw new UserNotFoundException(user_name);
         }
+        //await _messageSenderClient.DeleteUserAccountAsync(user_name);
         _logger.LogInformation($"Удаление учетной записи пользователя {user_name} произведено успешно");
+    }
+
+    public async Task ChangeTwoFactorAuthAsync(string user_name, bool state)
+    {
+        _logger.LogInformation($"Пользователь с именем {user_name} запросил изменение двухфакторной аутентификации");
+        var exists = await _messageSenderClient.CheckUserExistsAsync(user_name);
+        if (!exists)
+            throw new MessageSenderAccountNotFoundException(user_name);
+        var ret = await _userRepo.TryChangeTwoFactorAsync(user_name, state);
+        if (!ret)
+            throw new UserNotFoundException(user_name);
+        _logger.LogInformation($"Изменение двухфакторной аутентификации пользователя {user_name} произведено успешно");
+    }
+
+    public async Task ChangePasswordAsync(string user_name, string password, string new_password,
+        string? twoFactorCode = null)
+    {
+        _logger.LogInformation($"Пользователь {user_name} запросил изменение пароля");
+        var u = await _userRepo.TryGetAsync(user_name);
+        if (u == null)
+            throw new UserNotFoundException(user_name);
+        if (u.Settings.BlockedUntil > DateTime.Now)
+            throw new UserBlockedException(user_name);
+        if (u.PasswordHash != password)
+        {
+            if (await _userRepo.TryCheckPasswordAttemptAsync(user_name, _passwordMaxAttempts, _blockSeconds))
+                throw new InvalidCredentialsException(user_name);
+            else
+                throw new UserBlockedException(user_name);
+        }
+        await _userRepo.TryResetPasswordAttemptsAsync(user_name);
+        if (u.Settings.TwoFactorEnabled)
+        {
+            if (u.Settings.TwoFactorValidUntil < DateTime.Now || u.Settings.TwoFactorCurrentCode == null)
+            {
+                var rand = new Random();
+                string code = rand.Next(10000, 99999).ToString();
+                await _userRepo.TryUpdateTwoFactorAsync(user_name, code, _twoFactorValidSeconds);
+                await _messageSenderClient.SendTwoFactorMessageAsync(user_name, code);
+                throw new WrongTwoFactorException(user_name);
+            }
+            if (u.Settings.TwoFactorCurrentCode != twoFactorCode)
+            {
+                throw new WrongTwoFactorException(user_name);
+            }
+        }
+        if (!await _userRepo.TryChangePasswordAsync(user_name, new_password))
+            throw new UserNotFoundException(user_name);
+        _logger.LogInformation($"Изменение пароля для {user_name} было успешно выполнено");
     }
 }

@@ -31,8 +31,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderService", "Mes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderDomain", "MessageSenderDomain\MessageSenderDomain.csproj", "{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ApiGateway", "ApiGateway\ApiGateway.csproj", "{34F2F393-0A18-4BD8-9A60-8AA835417A2E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderTaskTrackerClient", "MessageSenderTaskTrackerClient\MessageSenderTaskTrackerClient.csproj", "{EBCAC2AB-A009-4F95-936E-040CA37DF15C}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAPI", "WebAPI\WebAPI.csproj", "{8D6B33C5-CEE1-20B5-A207-99CBB61F699C}"
@@ -44,6 +42,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleWebCLI", "ConsoleWebCLI\ConsoleWebCLI.csproj", "{EFA03DB4-76E8-4BFD-8FFB-CAA4145EE7E5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MessageSenderTelegramAdapter", "MessageSenderTelegramAdapter\MessageSenderTelegramAdapter.csproj", "{6BB863A2-13F6-4054-9A9A-D52CD12CF852}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TaskTrackerMessageSenderClient", "TaskTrackerMessageSenderClient\TaskTrackerMessageSenderClient.csproj", "{93B7E262-6E88-486E-AC5F-772B1C1EF645}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -91,10 +91,6 @@ Global
 		{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{782DF7E9-0AD2-9B07-CBCE-CDF17B53EBEB}.Release|Any CPU.Build.0 = Release|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{34F2F393-0A18-4BD8-9A60-8AA835417A2E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{EBCAC2AB-A009-4F95-936E-040CA37DF15C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{EBCAC2AB-A009-4F95-936E-040CA37DF15C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EBCAC2AB-A009-4F95-936E-040CA37DF15C}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -119,6 +115,10 @@ Global
 		{6BB863A2-13F6-4054-9A9A-D52CD12CF852}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6BB863A2-13F6-4054-9A9A-D52CD12CF852}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6BB863A2-13F6-4054-9A9A-D52CD12CF852}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93B7E262-6E88-486E-AC5F-772B1C1EF645}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

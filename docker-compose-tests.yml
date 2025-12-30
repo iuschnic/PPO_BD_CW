@@ -71,6 +71,9 @@ services:
         condition: service_healthy
     environment:
       DB_CONNECTION_STRING: "Host=postgres;Port=5432;Database=E2Edb;Username=postgres;Password=postgres"
+      DB_MESSAGE_SENDER_CONNECTION_STRING: "Host=postgres;Port=5432;Database=E2EMessageSenderdb;Username=postgres;Password=postgres"
+      ASPNETCORE_ENVIRONMENT: Docker
+      DOTNET_ENVIRONMENT: Docker
     networks:
       - my_persistent_network
     command: >

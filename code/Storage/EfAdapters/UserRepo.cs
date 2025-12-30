@@ -112,26 +112,6 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         _dbContext.SaveChanges();
         return true;
     }
-    public async Task<bool> TryUpdateUserAsync(User u)
-    {
-        var dbu = await _dbContext.Users.FindAsync(u.NameID);
-        if (dbu == null)
-            return false;
-        dbu.Number = u.Number.StringNumber;
-        dbu.PasswordHash = u.PasswordHash;
-        await _dbContext.SaveChangesAsync();
-        return true;
-    }
-    public bool TryUpdateUser(User u)
-    {
-        var dbu = _dbContext.Users.Find(u.NameID);
-        if (dbu == null)
-            return false;
-        dbu.Number = u.Number.StringNumber;
-        dbu.PasswordHash = u.PasswordHash;
-        _dbContext.SaveChanges();
-        return true;
-    }
     public async Task<bool> TryUpdateSettingsAsync(UserSettings us)
     {
         var dbs = await _dbContext.USettings.FindAsync(us.Id);
@@ -222,101 +202,6 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         _dbContext.SaveChanges();
         return true;
     }
-    public async Task<bool> TryUpdateNotificationTimingsAsync(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
-    {
-        var dbuser = await _dbContext.Users
-            .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
-            .FirstOrDefaultAsync(u => u.NameID == user_name);
-        if (dbuser == null)
-            return false;
-        if (dbuser.Settings == null)
-            return false;
-
-        List<DBSTime> times = [];
-        foreach (var time in newTimings)
-        {
-            DBSTime st = new(Guid.NewGuid(), time.Item1, time.Item2, dbuser.Settings.Id);
-            times.Add(st);
-        }
-        _dbContext.SettingsTimes.RemoveRange(dbuser.Settings.ForbiddenTimings);
-        _dbContext.SettingsTimes.AddRange(times);
-        await _dbContext.SaveChangesAsync();
-        return true;
-    }
-    public bool TryUpdateNotificationTimings(List<Tuple<TimeOnly, TimeOnly>> newTimings, string user_name)
-    {
-        var dbuser = _dbContext.Users
-            .Include(u => u.Settings).ThenInclude(s => s.ForbiddenTimings)
-            .FirstOrDefault(u => u.NameID == user_name);
-        if (dbuser == null)
-            return false;
-        if (dbuser.Settings == null)
-            return false;
-
-        List<DBSTime> times = [];
-        foreach (var time in newTimings)
-        {
-            DBSTime st = new(Guid.NewGuid(), time.Item1, time.Item2, dbuser.Settings.Id);
-            times.Add(st);
-        }
-        _dbContext.SettingsTimes.RemoveRange(dbuser.Settings.ForbiddenTimings);
-        _dbContext.SettingsTimes.AddRange(times);
-        _dbContext.SaveChanges();
-        return true;
-    }
-
-    public async Task<bool> TryNotificationsOnAsync(string user_name)
-    {
-        var dbuser = await _dbContext.Users
-            .Include(u => u.Settings)
-            .FirstOrDefaultAsync(u => u.NameID == user_name);
-        if (dbuser == null)
-            return false;
-        if (dbuser.Settings == null)
-            return false;
-        dbuser.Settings.NotifyOn = true;
-        await _dbContext.SaveChangesAsync();
-        return true;
-    }
-    public bool TryNotificationsOn(string user_name)
-    {
-        var dbuser = _dbContext.Users
-            .Include(u => u.Settings)
-            .FirstOrDefault(u => u.NameID == user_name);
-        if (dbuser == null)
-            return false;
-        if (dbuser.Settings == null)
-            return false;
-        dbuser.Settings.NotifyOn = true;
-        _dbContext.SaveChanges();
-        return true;
-    }
-    public async Task<bool> TryNotificationsOffAsync(string user_name)
-    {
-        var dbuser = await _dbContext.Users
-            .Include(u => u.Settings)
-            .FirstOrDefaultAsync(u => u.NameID == user_name);
-        if (dbuser == null)
-            return false;
-        if (dbuser.Settings == null)
-            return false;
-        dbuser.Settings.NotifyOn = false;
-        await _dbContext.SaveChangesAsync();
-        return true;
-    }
-    public bool TryNotificationsOff(string user_name)
-    {
-        var dbuser = _dbContext.Users
-            .Include(u => u.Settings)
-            .FirstOrDefault(u => u.NameID == user_name);
-        if (dbuser == null)
-            return false;
-        if (dbuser.Settings == null)
-            return false;
-        dbuser.Settings.NotifyOn = false;
-        _dbContext.SaveChanges();
-        return true;
-    }
 
     public async Task<bool> TryDeleteAsync(string user_name)
     {
@@ -360,4 +245,74 @@ public class EfUserRepo(ITaskTrackerContext dbContext) : IUserRepo
         var dbu = _dbContext.Users.Find(login);
         return dbu != null && dbu.PasswordHash == password;
     }
+    public async Task<bool> TryChangeTwoFactorAsync(string username, bool state)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.Settings.TwoFactorEnabled = state;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    //Функция проверяет, может ли пользователь получить доступ к аккаунту на n-й попытке(не заблокирован ли он)
+    public async Task<bool> TryCheckPasswordAttemptAsync(string username, int maxAttempts, int secondsBlocked)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        //Если пользователь еще заблокирован - false
+        if (dbu.Settings.BlockedUntil > DateTime.Now)
+            return false;
+        dbu.Settings.PasswordAttempts++;
+        //Если превышено количество попыток - блокируем (false)
+        if (dbu.Settings.PasswordAttempts >= maxAttempts)
+        {
+            dbu.Settings.PasswordAttempts = 0;
+            dbu.Settings.BlockedUntil = DateTime.Now.AddSeconds(secondsBlocked);
+            await _dbContext.SaveChangesAsync();
+            return false;
+        }
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+    public async Task<bool> TryResetPasswordAttemptsAsync(string username)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.Settings.PasswordAttempts = 0;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> TryUpdateTwoFactorAsync(string username, string newTwoFactorCode, int twoFactorValidSeconds)
+    {
+        var dbu = await _dbContext.Users
+            .Include(u => u.Settings)
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.Settings.TwoFactorCurrentCode = newTwoFactorCode;
+        dbu.Settings.TwoFactorValidUntil = DateTime.Now.AddSeconds(twoFactorValidSeconds);
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
+    public async Task<bool> TryChangePasswordAsync(string username, string new_password)
+    {
+        var dbu = await _dbContext.Users
+            .FirstOrDefaultAsync(u => u.NameID == username);
+        if (dbu == null)
+            return false;
+        dbu.PasswordHash = new_password;
+        await _dbContext.SaveChangesAsync();
+        return true;
+    }
+
 }

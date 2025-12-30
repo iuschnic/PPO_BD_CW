@@ -1,25 +1,24 @@
 ﻿using System;
 using System.Windows.Forms;
-using Domain;
-using Domain.InPorts;
+using PublicTaskTrackerClient;
 
 namespace HabitTrackerGUI
 {
     public partial class MainForm : Form
     {
-        private readonly ITaskTracker _taskService;
+        private readonly IPublicTaskTrackerClient _taskService;
 
-        public MainForm(ITaskTracker taskService)
+        public MainForm(IPublicTaskTrackerClient taskService)
         {
             _taskService = taskService;
             InitializeComponent();
         }
 
-        private void btnLogin_Click(object sender, EventArgs e)
+        private async void btnLogin_Click(object sender, EventArgs e)
         {
             try
             {
-                var user = _taskService.LogIn(txtUsername.Text, txtPassword.Text);
+                var user = await _taskService.LogInAsync(txtUsername.Text, txtPassword.Text);
                 if (user == null)
                 {
                     MessageBox.Show("Неверные логин или пароль", "Ошибка",

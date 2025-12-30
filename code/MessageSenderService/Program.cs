@@ -1,9 +1,10 @@
-﻿using MessageSenderDomain.OutPorts;
+﻿using MessageSenderBotAdapters;
+using MessageSenderDomain.OutPorts;
 using MessageSenderStorage.EfAdapters;
 using MessageSenderTaskTrackerClient;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 
 class Program
 {
@@ -12,25 +13,56 @@ class Program
         var configuration = new ConfigurationBuilder()
             .SetBasePath(Directory.GetCurrentDirectory())
             .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+            .AddUserSecrets<Program>()
             .Build();
-        var secretConfiguration = new ConfigurationBuilder()
-            .SetBasePath(Directory.GetCurrentDirectory())
-            .AddJsonFile("appsettings.secrets.json", optional: false, reloadOnChange: true)
-            .Build();
-        var baseUrl = Environment.GetEnvironmentVariable("BASE_URL")
-            ?? configuration.GetValue<string>("BaseUrl");
-        var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
-            ?? configuration.GetConnectionString("PostgresConnection");
-        var secretKey = secretConfiguration.GetValue<string>("SecretKey");
-        var botToken = secretConfiguration.GetValue<string>("BotToken");
-        if (baseUrl == null || connString == null || secretKey == null || botToken == null)
+
+        var services = new ServiceCollection();
+        bool parsed = bool.TryParse(Environment.GetEnvironmentVariable("USE_MOCK"), out bool useMock);
+        if (!parsed)
+            useMock = configuration.GetValue<bool>("UseMock");
+        if (!useMock)
+        {
+            var baseUrl = Environment.GetEnvironmentVariable("BASE_URL")
+                ?? configuration.GetValue<string>("BaseUrl");
+            var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+                ?? configuration.GetConnectionString("PostgresConnection");
+            var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY")
+                ?? configuration.GetValue<string>("SecretKey");
+            var botToken = Environment.GetEnvironmentVariable("BOT_TOKEN")
+                ?? configuration.GetValue<string>("BotToken");
+            if (baseUrl == null || connString == null || secretKey == null || botToken == null)
+            {
+                Console.WriteLine("Ошибка чтения конфигурации");
+                return;
+            }
+            ConfigureServices(services, baseUrl, connString, secretKey, botToken);
+        }
+        else
+        {
+            var baseUrl = Environment.GetEnvironmentVariable("BASE_URL")
+                ?? configuration.GetValue<string>("BaseUrl");
+            var mockBaseUrl = Environment.GetEnvironmentVariable("MOCK_BASE_URL")
+                ?? configuration.GetValue<string>("MockBaseUrl");
+            var connString = Environment.GetEnvironmentVariable("DB_CONNECTION_STRING")
+                ?? configuration.GetConnectionString("PostgresConnection");
+            var secretKey = Environment.GetEnvironmentVariable("SECRET_KEY")
+                ?? configuration.GetValue<string>("SecretKey");
+            var botToken = Environment.GetEnvironmentVariable("BOT_TOKEN")
+                ?? configuration.GetValue<string>("BotToken");
+            if (baseUrl == null || connString == null || secretKey == null || botToken == null)
+            {
+                Console.WriteLine("Ошибка чтения конфигурации");
+                return;
+            }
+            ConfigureServicesMock(services, baseUrl, connString, mockBaseUrl, secretKey);
+        }
+        var httpListenerBaseUrl = Environment.GetEnvironmentVariable("HTTP_LISTENER_BASE_URL")
+                ?? configuration.GetValue<string>("HttpListenerBaseUrl");
+        if (httpListenerBaseUrl == null)
         {
             Console.WriteLine("Ошибка чтения конфигурации");
             return;
         }
-        var services = new ServiceCollection();
-
-        ConfigureServices(services, baseUrl, connString, secretKey, botToken);
 
         var serviceProvider = services.BuildServiceProvider();
 
@@ -38,7 +70,8 @@ class Program
             serviceProvider.GetRequiredService<IBotClient>(),
             serviceProvider.GetRequiredService<IMessageRepo>(),
             serviceProvider.GetRequiredService<ISubscriberRepo>(),
-            serviceProvider.GetRequiredService<ISenderTaskTrackerClient>());
+            serviceProvider.GetRequiredService<ISenderTaskTrackerClient>(),
+            new MessageSenderArgs(httpListenerBaseUrl));
 
         Console.CancelKeyPress += async (sender, e) =>
         {
@@ -60,6 +93,23 @@ class Program
         services.AddSingleton<IMessageRepo, EfMessageRepo>();
         services.AddSingleton<ISubscriberRepo, EfSubscriberRepo>();
         services.AddSingleton<IBotClient, TelegramBotAdapter>();
+        services.AddDbContext<MessageSenderDBContext>(options =>
+            options.UseNpgsql(connString));
+        services.AddHttpClient<ISenderTaskTrackerClient, WebSenderTaskTrackerClient>((provider, client) =>
+        {
+            client.BaseAddress = new Uri(baseUrl);
+            client.Timeout = TimeSpan.FromSeconds(30);
+            client.DefaultRequestHeaders.Add("X-Microservice-Auth", secretKey);
+        });
+    }
+    static void ConfigureServicesMock(IServiceCollection services, string baseUrl, string connString,
+        string mockBaseUrl, string secretKey)
+    {
+        var mockArgs = new MockWebBotAdapterArgs(mockBaseUrl);
+        services.AddSingleton(mockArgs);
+        services.AddSingleton<IMessageRepo, EfMessageRepo>();
+        services.AddSingleton<ISubscriberRepo, EfSubscriberRepo>();
+        services.AddSingleton<IBotClient, MockWebBotAdapter>();
         services.AddDbContext<MessageSenderDBContext>(options =>
             options.UseNpgsql(connString));
         services.AddHttpClient<ISenderTaskTrackerClient, WebSenderTaskTrackerClient>((provider, client) =>

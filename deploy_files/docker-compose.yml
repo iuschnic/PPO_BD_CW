@@ -1,106 +1,593 @@
+networks:
+  patroni-cluster-1:
+    driver: bridge
+  patroni-cluster-2:
+    driver: bridge
+  loki:
+    driver: bridge
+  default:
+    driver: bridge
+
 services:
-  postgres:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_MULTIPLE_DATABASES: "tasktracker,messagesenderdb"
+  # ==================== LOKI & GRAFANA ====================
+  loki:
+    image: grafana/loki:3.4.1
     ports:
-      - "5432:5432"
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres"]
-      interval: 5s
-      timeout: 5s
-      retries: 5
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - loki
+
+  promtail:
+    image: grafana/promtail:latest
+    volumes:
+      - /var/log:/var/log:ro
+      - ./logs:/etc/promtail/app-logs:ro
+      - ./promtail/config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - loki
+
+  grafana:
+    environment:
+      - GF_PATHS_PROVISIONING=/etc/grafana/provisioning
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+      - GF_FEATURE_TOGGLES_ENABLE=alertingSimplifiedRouting,alertingQueryAndExpressionsStepMode
+    entrypoint:
+      - sh
+      - -euc
+      - |
+        mkdir -p /etc/grafana/provisioning/datasources
+        cat <<EOF > /etc/grafana/provisioning/datasources/ds.yaml
+        apiVersion: 1
+        datasources:
+        - name: Loki
+          type: loki
+          access: proxy 
+          orgId: 1
+          url: http://loki:3100
+          basicAuth: false
+          isDefault: true
+          version: 1
+          editable: false
+        EOF
+        /run.sh
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    networks:
+      - loki
       
+  # ==================== FIRST CLUSTER ====================
+  etcd1-1: &etcd
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    environment:
+        ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+        ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+        ETCD_INITIAL_CLUSTER: etcd1-1=http://etcd1-1:2380,etcd1-2=http://etcd1-2:2380,etcd1-3=http://etcd1-3:2380
+        ETCD_INITIAL_CLUSTER_STATE: new
+        ETCD_INITIAL_CLUSTER_TOKEN: tutorial
+        ETCD_UNSUPPORTED_ARCH: arm64
+    container_name: demo-etcd1-1
+    hostname: etcd1-1
+    command: etcd --name etcd1-1 --initial-advertise-peer-urls http://etcd1-1:2380
+
+  etcd1-2:
+    <<: *etcd
+    container_name: demo-etcd1-2
+    hostname: etcd1-2
+    command: etcd --name etcd1-2 --initial-advertise-peer-urls http://etcd1-2:2380
+
+  etcd1-3:
+    <<: *etcd
+    container_name: demo-etcd1-3
+    hostname: etcd1-3
+    command: etcd --name etcd1-3 --initial-advertise-peer-urls http://etcd1-3:2380
+
+  haproxy1:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: haproxy1
+    container_name: demo-haproxy1
+    ports:
+        - "5000:5000"
+        - "5001:5001"
+    command: haproxy
+    environment: &haproxy_env
+        ETCDCTL_ENDPOINTS: http://etcd1-1:2379,http://etcd1-2:2379,http://etcd1-3:2379
+        PATRONI_ETCD3_HOSTS: "'etcd1-1:2379','etcd1-2:2379','etcd1-3:2379'"
+        PATRONI_SCOPE: demo
+    healthcheck:
+      test: ["CMD", "haproxy", "-c", "-f", "/etc/haproxy/haproxy.cfg"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  patroni1-1:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: patroni1-1
+    container_name: demo-patroni1-1
+    environment:
+        <<: *haproxy_env
+        PATRONI_NAME: patroni1-1
+
+  patroni1-2:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: patroni1-2
+    container_name: demo-patroni1-2
+    environment:
+        <<: *haproxy_env
+        PATRONI_NAME: patroni1-2
+
+  patroni1-3:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-1 ]
+    env_file: patroni.env
+    hostname: patroni1-3
+    container_name: demo-patroni1-3
+    environment:
+        <<: *haproxy_env
+        PATRONI_NAME: patroni1-3
+  
+  
+  # ==================== SECOND CLUSTER ====================
+  
+  etcd2-1: &etcd
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    environment:
+        ETCD_LISTEN_PEER_URLS: http://0.0.0.0:2380
+        ETCD_LISTEN_CLIENT_URLS: http://0.0.0.0:2379
+        ETCD_INITIAL_CLUSTER: etcd2-1=http://etcd2-1:2380,etcd2-2=http://etcd2-2:2380,etcd2-3=http://etcd2-3:2380
+        ETCD_INITIAL_CLUSTER_STATE: new
+        ETCD_INITIAL_CLUSTER_TOKEN: tutorial
+        ETCD_UNSUPPORTED_ARCH: arm64
+    container_name: demo-etcd2-1
+    hostname: etcd2-1
+    command: etcd --name etcd2-1 --initial-advertise-peer-urls http://etcd2-1:2380
+
+  etcd2-2:
+    <<: *etcd
+    container_name: demo-etcd2-2
+    hostname: etcd2-2
+    command: etcd --name etcd2-2 --initial-advertise-peer-urls http://etcd2-2:2380
+
+  etcd2-3:
+    <<: *etcd
+    container_name: demo-etcd2-3
+    hostname: etcd2-3
+    command: etcd --name etcd2-3 --initial-advertise-peer-urls http://etcd2-3:2380
+
+  haproxy2:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: haproxy2
+    container_name: demo-haproxy2
+    ports:
+        - "5002:5000"
+        - "5003:5001"
+    command: haproxy
+    environment: &haproxy_env
+        ETCDCTL_ENDPOINTS: http://etcd2-1:2379,http://etcd2-2:2379,http://etcd2-3:2379
+        PATRONI_ETCD3_HOSTS: "'etcd2-1:2379','etcd2-2:2379','etcd2-3:2379'"
+        PATRONI_SCOPE: demo
+    healthcheck:
+      test: ["CMD", "haproxy", "-c", "-f", "/etc/haproxy/haproxy.cfg"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  patroni2-1:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: patroni2-1
+    container_name: demo-patroni2-1
+    environment:
+        <<: *haproxy_env
+        PATRONI_NAME: patroni2-1
+
+  patroni2-2:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: patroni2-2
+    container_name: demo-patroni2-2
+    environment:
+        <<: *haproxy_env
+        PATRONI_NAME: patroni2-2
+
+  patroni2-3:
+    image: ${PATRONI_TEST_IMAGE:-patroni}
+    networks: [ patroni-cluster-2 ]
+    env_file: patroni.env
+    hostname: patroni2-3
+    container_name: demo-patroni2-3
+    environment:
+        <<: *haproxy_env
+        PATRONI_NAME: patroni2-3
+
+  # ==================== SERVICE CONFIGURATION ====================
+
   pgadmin:
     image: dpage/pgadmin4
     ports:
       - "5050:80"
-    volumes:
-      - ./pgadmin/servers.json:/pgadmin4/servers.json
     environment:
       PGADMIN_DEFAULT_EMAIL: admin@tasktracker.com
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_SERVER_MODE: 'False'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
-    healthcheck:
-      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:80/"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
+    volumes:
+      - ./pgadmin/servers.json:/pgadmin4/servers.json  # Правильный путь
+    networks:
+      - patroni-cluster-1
+      - patroni-cluster-2
+      - default
 
-  webcli:
+  # Service-1 applications (используют Cluster 1 через HAProxy)
+  webcli-main-1:
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.webcli
     ports:
       - "5234:5234"
     environment:
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=tasktracker;Username=postgres;Password=postgres
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=tasktracker;Username=postgres;Password=postgres
       - ENABLE_BENCHMARK=false
       - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
-      postgres:
+      haproxy1:
         condition: service_healthy
     volumes:
-      - ./logs/webcli:/app/logs
+      - ./logs/webcli-main-1:/app/logs
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
       interval: 10s
       timeout: 5s
       retries: 10
-      
-  apigateway:
+    networks:
+      - patroni-cluster-1
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 1
+
+  webcli-reader-1-1:
     build:
       context: ../code
-      dockerfile: ../deploy_files/Dockerfile.apigateway
+      dockerfile: ../deploy_files/Dockerfile.webcli
     ports:
-      - "5000:5000"
+      - "5235:5234"
     environment:
-      - ASPNETCORE_URLS=http://+:5000
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
       - LANG=ru_RU.UTF-8
       - LC_ALL=ru_RU.UTF-8
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-      - "localhost:host-gateway"
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
     depends_on:
-      webcli:
+      haproxy1:
         condition: service_healthy
     volumes:
-      - ./logs/apigateway:/app/logs
+      - ./logs/webcli-reader-1-1:/app/logs
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/swagger/index.html"]
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - patroni-cluster-1
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+
+  webcli-reader-1-2:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5236:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-1:5002
+    depends_on:
+      haproxy1:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli-reader-1-2:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - patroni-cluster-1
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+
+  # Service-2 applications (используют Cluster 2 через HAProxy)
+  webcli-main-2:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5237:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5000;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-2:5002
+    depends_on:
+      haproxy2:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli-main-2:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - patroni-cluster-2
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 1
+
+  webcli-reader-2-1:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5238:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-2:5002
+    depends_on:
+      haproxy2:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli-reader-2-1:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - patroni-cluster-2
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+
+  webcli-reader-2-2:
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.webcli
+    ports:
+      - "5239:5234"
+    environment:
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5001;Database=tasktracker;Username=postgres;Password=postgres
+      - ENABLE_BENCHMARK=false
+      - ASPNETCORE_URLS=http://+:5234
+      - LANG=ru_RU.UTF-8
+      - LC_ALL=ru_RU.UTF-8
+      - MESSAGE_SENDER_BASE_URL=http://message-sender-2:5002
+    depends_on:
+      haproxy2:
+        condition: service_healthy
+    volumes:
+      - ./logs/webcli-reader-2-2:/app/logs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5234/swagger/index.html"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - patroni-cluster-2
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+
+  # NGINX Servers
+  nginx-internal-1:
+    image: nginx:alpine
+    ports:
+      - "8880:5000"
+    environment:
+      - SECRET=$SECRET_KEY
+      - MAIN_HOST=webcli-main-1
+      - MAIN_PORT=5234
+      - READER1_HOST=webcli-reader-1-1
+      - READER1_PORT=5234
+      - READER2_HOST=webcli-reader-1-2
+      - READER2_PORT=5234
+      - HOST=5000
+    depends_on:
+      webcli-main-1:
+        condition: service_healthy
+      webcli-reader-1-1:
+        condition: service_healthy
+      webcli-reader-1-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/nginx-internal-1:/var/log/nginx
+      - ./nginx/nginx_internal.conf.template:/etc/nginx/conf.d/nginx.conf.template
+    command: >
+      /bin/sh -c "
+      echo 'Starting envsubst...' &&
+      envsubst '$$SECRET $$MAIN_HOST $$MAIN_PORT $$READER1_HOST $$READER1_PORT $$READER2_HOST $$READER2_PORT $$HOST' 
+      < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
+      echo 'Configuration generated. Testing nginx config...' &&
+      nginx -t &&
+      echo 'Starting nginx...' &&
+      nginx -g 'daemon off;'"
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-1
+
+  nginx-internal-2:
+    image: nginx:alpine
+    ports:
+      - "8881:5000"
+    environment:
+      - SECRET=$SECRET_KEY
+      - MAIN_HOST=webcli-main-2
+      - MAIN_PORT=5234
+      - READER1_HOST=webcli-reader-2-1
+      - READER1_PORT=5234
+      - READER2_HOST=webcli-reader-2-2
+      - READER2_PORT=5234
+      - HOST=5000
+    depends_on:
+      webcli-main-2:
+        condition: service_healthy
+      webcli-reader-2-1:
+        condition: service_healthy
+      webcli-reader-2-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/nginx-internal-2:/var/log/nginx
+      - ./nginx/nginx_internal.conf.template:/etc/nginx/conf.d/nginx.conf.template
+    command: >
+      /bin/sh -c "
+      echo 'Starting envsubst...' &&
+      envsubst '$$SECRET $$MAIN_HOST $$MAIN_PORT $$READER1_HOST $$READER1_PORT $$READER2_HOST $$READER2_PORT $$HOST' 
+      < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
+      echo 'Configuration generated. Testing nginx config...' &&
+      nginx -t &&
+      echo 'Starting nginx...' &&
+      nginx -g 'daemon off;'"
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-2
       
-  message_sender:
+  message-sender-1:
+    ports:
+      - "5010:5002"
     build:
       context: ../code
       dockerfile: ../deploy_files/Dockerfile.messagesender
     environment:
-      - BASE_URL=http://apigateway:5000
-      - DB_CONNECTION_STRING=Host=postgres;Port=5432;Database=messagesenderdb;Username=postgres;Password=postgres
+      - BASE_URL=http://nginx-internal-1:5000
+      - MOCK_BASE_URL=http://localhost:5000/
+      - USE_MOCK=false
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
+      - SECRET_KEY=$SECRET_KEY
+      - BOT_TOKEN=$BOT_TOKEN1
+      - HTTP_LISTENER_BASE_URL=http://+:5002
     depends_on:
-      apigateway:
+      nginx-internal-1:
         condition: service_healthy
     volumes:
-      - ./logs/message_sender:/app/logs
-      
-  nginx:
-    image: nginx:alpine
+      - ./logs/message_sender-1:/app/logs
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-1
+  
+  message-sender-2:
+    ports:
+      - "5011:5002"
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.messagesender
     environment:
-      - LANG=ru_RU.UTF-8
-      - LC_ALL=ru_RU.UTF-8
+      - BASE_URL=http://nginx-internal-2:5000
+      - MOCK_BASE_URL=http://localhost:5000/
+      - USE_MOCK=false
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
+      - SECRET_KEY=$SECRET_KEY
+      - BOT_TOKEN=$BOT_TOKEN2
+      - HTTP_LISTENER_BASE_URL=http://+:5002
+    depends_on:
+      nginx-internal-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/message_sender-2:/app/logs
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-2
+
+  nginx-external:
     ports:
       - "8888:80"
+    build:
+      context: .
+      dockerfile: ./Dockerfile.external.nginx
+    environment:
+      - SERVICE1_HOST=nginx-internal-1
+      - SERVICE1_PORT=5000
+      - SERVICE2_HOST=nginx-internal-2
+      - SERVICE2_PORT=5000
+      - PGADMIN_HOST=pgadmin
+      - PGADMIN_PORT=80
+      - GRAFANA_HOST=grafana
+      - GRAFANA_PORT=3000
+      - HOST=80
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/static:/usr/share/nginx/static:ro
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+      - ./logs/nginx-external:/app/logs
+      - ./nginx/nginx_external.conf.template:/etc/nginx/conf.d/nginx.conf.template
+    command: >
+      /bin/sh -c "
+      echo 'Starting envsubst...' &&
+      envsubst '$$SERVICE1_HOST $$SERVICE1_PORT $$SERVICE2_HOST $$SERVICE2_PORT $$PGADMIN_HOST $$PGADMIN_PORT $$GRAFANA_HOST $$GRAFANA_PORT $$HOST' 
+      < /etc/nginx/conf.d/nginx.conf.template > /etc/nginx/nginx.conf &&
+      echo 'Configuration generated. Testing nginx config...' &&
+      nginx -t &&
+      echo 'Starting nginx...' &&
+      nginx -g 'daemon off;'"
     depends_on:
-      apigateway:
+      nginx-internal-1:
         condition: service_healthy
+      nginx-internal-2:
+        condition: service_healthy
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-1
+      - patroni-cluster-2
+      - default
+      - loki

@@ -237,6 +237,7 @@ _Pvt_Extensions
 allure-report/
 *.bkp
 appsettings.*.json
+secret*.json
 benchmark_results/
 benchmark_aggregate_results/final_results/
 benchmark_aggregate_results/libs/
@@ -244,3 +245,6 @@ benchmark_aggregate_results/libs/
 deploy_files/logs
 deploy_files/nginx/static/legacy
 deploy_files/nginx/.htpasswd
+deploy_files/.env
+deploy_files/patroni.env
+patroni/

@@ -1,7 +1,14 @@
 ﻿using MessageSenderDomain.Models;
 using MessageSenderDomain.OutPorts;
+using System.Net;
+using System.Text;
 
 using DomainMessage = MessageSenderDomain.Models.Message;
+
+public class MessageSenderArgs(string baseUrl)
+{
+    public string BaseUrl { get; set; } = baseUrl;
+}
 
 public class MessageSender
 {
@@ -10,6 +17,8 @@ public class MessageSender
     private readonly ISubscriberRepo _subscribersRepo;
     private readonly ISenderTaskTrackerClient _taskTrackerClient;
     private readonly CancellationTokenSource _cts = new();
+    private readonly HttpListener _httpListener;
+    private readonly MessageSenderArgs _args;
 
     private enum RegistrationState
     {
@@ -30,12 +39,16 @@ public class MessageSender
     private const int timeout_err = 1;
 
     public MessageSender(IBotClient botClient, IMessageRepo messageRepo,
-        ISubscriberRepo subscriberRepo, ISenderTaskTrackerClient taskTrackerClient)
+        ISubscriberRepo subscriberRepo, ISenderTaskTrackerClient taskTrackerClient,
+        MessageSenderArgs args)
     {
         _botClient = botClient;
         _messageRepo = messageRepo;
         _subscribersRepo = subscriberRepo;
         _taskTrackerClient = taskTrackerClient;
+        _args = args;
+        _httpListener = new HttpListener();
+        _httpListener.Prefixes.Add($"{args.BaseUrl}/");
     }
 
     public async Task StartAsync()
@@ -44,9 +57,224 @@ public class MessageSender
 
         _ = Task.Run(StartBroadcasting, _cts.Token);
         _ = Task.Run(StartCreatingMessages, _cts.Token);
+        _ = Task.Run(StartHttpListener, _cts.Token);
 
-        Console.WriteLine("Бот запущен. Нажмите Ctrl+C для остановки.");
+        Console.WriteLine("The bot is on. Press Ctrl+C to stop it.");
         await Task.Delay(-1, _cts.Token);
+    }
+
+    private async Task StartHttpListener()
+    {
+        try
+        {
+            _httpListener.Start();
+            Console.WriteLine($"HTTP Listener started on {_args.BaseUrl}");
+
+            while (!_cts.IsCancellationRequested && _httpListener.IsListening)
+            {
+                try
+                {
+                    var context = await _httpListener.GetContextAsync();
+                    _ = Task.Run(() => ProcessHttpRequest(context), _cts.Token);
+                }
+                catch (HttpListenerException) when (_cts.IsCancellationRequested)
+                {
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Error in HTTP listener: {ex.Message}");
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Failed to start HTTP listener: {ex.Message}");
+        }
+        finally
+        {
+            _httpListener.Stop();
+        }
+    }
+
+    private async Task ProcessHttpRequest(HttpListenerContext context)
+    {
+        var request = context.Request;
+        var response = context.Response;
+
+        try
+        {
+            if (request.HttpMethod == "DELETE" && request.Url.AbsolutePath.Contains("/delete_account"))
+            {
+                await HandleDeleteAccountRequest(request, response);
+            }
+            else if (request.HttpMethod == "POST" && request.Url.AbsolutePath == "/send_two_factor")
+            {
+                await HandleSendTwoFactorRequest(request, response);
+            }
+            else if (request.HttpMethod == "GET" && request.Url.AbsolutePath == "/check_exists")
+            {
+                await HandleCheckExistsRequest(request, response);
+            }
+            else
+            {
+                response.StatusCode = 404;
+                await SendResponse(response, "Not Found");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error processing HTTP request: {ex.Message}");
+            response.StatusCode = 500;
+            await SendResponse(response, "Internal Server Error");
+        }
+        finally
+        {
+            response.Close();
+        }
+    }
+
+    private async Task HandleDeleteAccountRequest(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        var pathSegments = request.Url.Segments;
+        var taskTrackerLogin = pathSegments.Last().Trim('/');
+
+        if (string.IsNullOrEmpty(taskTrackerLogin))
+        {
+            response.StatusCode = 400;
+            await SendResponse(response, "Task tracker login is required");
+            return;
+        }
+
+        Console.WriteLine($"Обработка запроса DELETE /accounts для пользователя: {taskTrackerLogin}");
+        await HandleDeleteAccount(taskTrackerLogin);
+        response.StatusCode = 200;
+        await SendResponse(response, "Account deleted successfully");
+    }
+
+    private async Task HandleCheckExistsRequest(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        string taskTrackerLogin = request.QueryString["login"];
+
+        if (string.IsNullOrEmpty(taskTrackerLogin))
+        {
+            response.StatusCode = 400;
+            await SendResponse(response, "Query parameter 'login' is required");
+            return;
+        }
+
+        Console.WriteLine($"Обработка запроса GET /check_exists для пользователя: {taskTrackerLogin}");
+        bool exists = _subscribersRepo.IfAnyTaskTrackerLogin(taskTrackerLogin);
+        response.StatusCode = 200;
+        await SendResponse(response, exists.ToString().ToLower());
+    }
+
+    private async Task HandleSendTwoFactorRequest(HttpListenerRequest request, HttpListenerResponse response)
+    {
+        string requestBody = await GetRequestBody(request);
+
+        if (string.IsNullOrEmpty(requestBody))
+        {
+            response.StatusCode = 400;
+            await SendResponse(response, "Request body is required");
+            return;
+        }
+
+        try
+        {
+            var data = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(requestBody);
+
+            if (data == null || !data.ContainsKey("login") || !data.ContainsKey("message"))
+            {
+                response.StatusCode = 400;
+                await SendResponse(response, "JSON with 'login' and 'message' fields is required");
+                return;
+            }
+
+            string taskTrackerLogin = data["login"];
+            string message = "Ваш код двухфакторной аутентификации: " + data["message"];
+
+            Console.WriteLine($"Обработка запроса POST /send_two_factor для пользователя: {taskTrackerLogin}");
+
+            var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(taskTrackerLogin);
+            if (subscriber != null)
+            {
+                await _botClient.SendMessageAsync(
+                    chatId: subscriber.Id,
+                    text: message
+                );
+                response.StatusCode = 200;
+                await SendResponse(response, "Message sent");
+                Console.WriteLine($"Two-factor message sent to user {taskTrackerLogin}: {message}");
+            }
+            else
+            {
+                response.StatusCode = 404;
+                await SendResponse(response, "User not found");
+                Console.WriteLine($"User with login {taskTrackerLogin} not found for two-factor message");
+            }
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            response.StatusCode = 400;
+            await SendResponse(response, "Invalid JSON format");
+        }
+    }
+
+    private async Task<string> GetRequestBody(HttpListenerRequest request)
+    {
+        if (request.HasEntityBody)
+        {
+            using var reader = new StreamReader(request.InputStream, request.ContentEncoding);
+            return await reader.ReadToEndAsync();
+        }
+        return string.Empty;
+    }
+
+    private async Task HandleDeleteAccount(string taskTrackerLogin)
+    {
+        try
+        {
+            var subscriber = _subscribersRepo.TryGetByTaskTrackerLogin(taskTrackerLogin);
+            if (subscriber != null)
+            {
+                if (!_subscribersRepo.TryRemoveByChatID(subscriber.Id))
+                {
+                    Console.WriteLine($"Ошибка при удалении пользователя: {taskTrackerLogin}");
+                    return;
+                }
+
+                await _botClient.SendMessageAsync(
+                    chatId: subscriber.Id,
+                    text: GoodbyeMessage
+                );
+
+                Console.WriteLine($"User unsubscribed via HTTP: {subscriber.Username}, " +
+                    $"Логин: {subscriber.TaskTrackerLogin}");
+            }
+            else
+            {
+                Console.WriteLine($"Пользователь с логином {taskTrackerLogin} не найден для удаления");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error in HandleDeleteAccount for {taskTrackerLogin}: {ex.Message}");
+        }
+    }
+
+    private async Task SendResponse(HttpListenerResponse response, string message)
+    {
+        try
+        {
+            var buffer = Encoding.UTF8.GetBytes(message);
+            response.ContentLength64 = buffer.Length;
+            await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error sending HTTP response: {ex.Message}");
+        }
     }
 
     private async Task StartBroadcasting()
@@ -70,12 +298,12 @@ public class MessageSender
                         send.TimeOutdated, send.WasSent, send.TaskTrackerLogin, send.SubscriberID));
                 }
                 _messageRepo.MarkMessagesSent(sentMessages);
-                Console.WriteLine($"{DateTime.Now}: Отправлено {cnt} сообщений");
+                Console.WriteLine($"{DateTime.Now}: Sent {cnt} messages");
                 await Task.Delay(TimeSpan.FromMinutes(timeout_send), _cts.Token);
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Ошибка при рассылке: {ex.Message}");
+                Console.WriteLine($"Error broadcasting: {ex.Message}");
                 await Task.Delay(TimeSpan.FromMinutes(timeout_err), _cts.Token);
             }
         }
@@ -106,7 +334,7 @@ public class MessageSender
                             false, userHabit.UserName, subscriber.Id));
                     }
                 }
-                Console.WriteLine($"{DateTime.Now}: Создано {messages.Count} сообщений");
+                Console.WriteLine($"{DateTime.Now}: Generated {messages.Count} messages");
                 _messageRepo.TryCreateMessages(messages);
                 await Task.Delay(TimeSpan.FromMinutes(timeout_generate), _cts.Token);
             }
@@ -154,7 +382,7 @@ public class MessageSender
                         _registrationStates.Remove(chatId);
                         _tempLogins.Remove(chatId);
 
-                        Console.WriteLine($"Пользователь подписался: {subscriber.Username}, Логин: {subscriber.TaskTrackerLogin}");
+                        Console.WriteLine($"Пользователь с chatId {chatId} подписался: {subscriber.Username}, Логин: {subscriber.TaskTrackerLogin}");
 
                         await _botClient.SendMessageAsync(chatId, RegistrationCompleteMessage);
                     }
@@ -163,7 +391,7 @@ public class MessageSender
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Ошибка обработки сообщения: {ex.Message}");
+            Console.WriteLine($"Error serving message: {ex.Message}");
         }
     }
 
@@ -189,6 +417,8 @@ public class MessageSender
         var subscriber = _subscribersRepo.TryGetByChatID(chatId);
         if (subscriber != null)
         {
+            var ans = await _taskTrackerClient.TryUnableTwoFactor(subscriber.TaskTrackerLogin);
+
             if (!_subscribersRepo.TryRemoveByChatID(chatId))
                 throw new Exception("Ошибка, пользователь не существует");
 
@@ -197,7 +427,7 @@ public class MessageSender
                 text: GoodbyeMessage
             );
 
-            Console.WriteLine($"Пользователь отписался: {subscriber.Username}, " +
+            Console.WriteLine($"User unsubscribed: {subscriber.Username}, " +
                 $"Логин: {subscriber.TaskTrackerLogin}");
         }
         else
@@ -212,6 +442,7 @@ public class MessageSender
     public async Task StopAsync()
     {
         _cts?.Cancel();
-        Console.WriteLine("Бот остановлен.");
+        _httpListener?.Stop();
+        Console.WriteLine("The bot is offline.");
     }
 }

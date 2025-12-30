@@ -14,6 +14,21 @@ public class LoginRequestDto
 {
     public string UserName { get; set; } = string.Empty;
     public string Password { get; set; } = string.Empty;
+    public string? TwoFactorCode { get; set; } = string.Empty;
+}
+
+public class CheckLoginRequestDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+}
+
+public class ChangePasswordRequestDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public string Password { get; set; } = string.Empty;
+    public string NewPassword { get; set; } = string.Empty;
+    public string? TwoFactorCode { get; set; } = string.Empty;
 }
 
 public class PhoneNumberDto
@@ -340,9 +355,9 @@ public static class DtoMapper
     {
         return new UserSettings(
             id: dto.Id,
-            notify_on: dto.NotifyOn,
-            user_name: dto.UserNameID,
-            settings_times: dto.SettingsTimes.Select(MapToDomain).ToList()
+            notifyOn: dto.NotifyOn,
+            userName: dto.UserNameID,
+            settingsTimes: dto.SettingsTimes.Select(MapToDomain).ToList()
         );
     }
 
@@ -460,4 +475,25 @@ public static class TimeExtensions
     {
         return new TimeOnly(timeSpan.Hours, timeSpan.Minutes, timeSpan.Seconds);
     }
+}
+
+public class ChangeTwoFactorRequestDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; }
+}
+
+public class ChangeTwoFactorResponseDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public bool IsEnabled { get; set; }
+    public string Message { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
+}
+
+public class ChangePasswordResponseDto
+{
+    public string UserName { get; set; } = string.Empty;
+    public string Message { get; set; } = string.Empty;
+    public DateTime Timestamp { get; set; }
 }

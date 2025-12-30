@@ -8,4 +8,5 @@ public interface ISubscriberRepo
     bool IfAnyChatID(long chat_id);
     bool TryAdd(Subscriber subscriber);
     bool TryRemoveByChatID(long chat_id);
+    bool IfAnyTaskTrackerLogin(string task_tracker_login);
 }

@@ -196,9 +196,9 @@ public class HabitDistributor : IHabitDistributor
         freeIntervals[DayOfWeek.Sunday] = [new TimeInterval(new TimeOnly(0, 0, 0), new TimeOnly(23, 59, 59))];
         return freeIntervals;
     }
-    public List<Habit> DistributeHabits(List<Habit> habitsToDistribute, List<Event> events)
+    public List<Habit> DistributeHabits(List<Habit> habitsForDistribution, List<Event> events)
     {
-        foreach (var h in habitsToDistribute)
+        foreach (var h in habitsForDistribution)
             h.ActualTimings.Clear();
         //Получение словаря интервалов занятости из расписания для каждого дня
         Dictionary<DayOfWeek, List<TimeInterval>> eventsIntervals = EventsToTimeIntervals(events);
@@ -211,7 +211,7 @@ public class HabitDistributor : IHabitDistributor
         List<Habit> undistributed = [];
         //Формирование словаря привычек по приоритету - фиксированное время, предпочитаемое время, безразличное время
         Dictionary<TimeOption, List<Habit>> habitsByPriority = [];
-        foreach (var h in habitsToDistribute)
+        foreach (var h in habitsForDistribution)
         {
             if (!habitsByPriority.ContainsKey(h.Option))
                 habitsByPriority[h.Option] = [];
@@ -231,5 +231,53 @@ public class HabitDistributor : IHabitDistributor
         if (habitsByPriority.ContainsKey(TimeOption.NoMatter))
             undistributed.AddRange(DistributeWithNoMatterTime(habitsByPriority[TimeOption.NoMatter], freeIntervals));
         return undistributed;
+    }
+
+    public class ComplexityTest
+    {
+        // Этот метод должен вызвать CA1502 ошибку
+        public void HighComplexityMethod(int input)
+        {
+            if (input > 0)
+            {
+                if (input < 10)
+                {
+                    if (input != 5)
+                    {
+                        if (input % 2 == 0)
+                        {
+                            if (input > 3)
+                            {
+                                if (input < 8)
+                                {
+                                    if (input < 6)
+                                    {
+                                        if (input < 5)
+                                        {
+                                            if (input < 5)
+                                            {
+                                                if (input < 4)
+                                                {
+                                                    if (input < 3)
+                                                    {
+                                                        if (input < 2)
+                                                        {
+                                                            if (input < 1)
+                                                            {
+                                                                Console.WriteLine("High complexity!");
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }

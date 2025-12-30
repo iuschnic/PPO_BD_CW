@@ -24,6 +24,7 @@
     <ProjectReference Include="..\ShedLoadAdapter\ShedLoadAdapter.csproj" />
     <ProjectReference Include="..\Storage\Storage.csproj" />
     <ProjectReference Include="..\TaskTrackerDtoModels\TaskTrackerDtoModels.csproj" />
+    <ProjectReference Include="..\TaskTrackerMessageSenderClient\TaskTrackerMessageSenderClient.csproj" />
   </ItemGroup>
 
   <ItemGroup>

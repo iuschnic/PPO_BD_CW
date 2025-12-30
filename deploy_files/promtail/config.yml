@@ -1,0 +1,133 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: system
+          __path__: /var/log/*log
+
+  # WebCLI Main 1
+  - job_name: webcli-main-1
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: webcli
+          app_type: main
+          instance: main-1
+          __path__: /etc/promtail/app-logs/webcli-main-1/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}) \[(?P<level>\w+)\] (?P<logger>[\w.]+): (?P<message>.*)'
+      - labels:
+          level:
+
+  # WebCLI Reader 1-1
+  - job_name: webcli-reader-1-1
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: webcli
+          app_type: reader
+          instance: reader-1-1
+          __path__: /etc/promtail/app-logs/webcli-reader-1-1/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}) \[(?P<level>\w+)\] (?P<logger>[\w.]+): (?P<message>.*)'
+      - labels:
+          level:
+
+  # WebCLI Reader 1-2
+  - job_name: webcli-reader-1-2
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: webcli
+          app_type: reader
+          instance: reader-1-2
+          __path__: /etc/promtail/app-logs/webcli-reader-1-2/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}) \[(?P<level>\w+)\] (?P<logger>[\w.]+): (?P<message>.*)'
+      - labels:
+          level:
+
+  # WebCLI Main 2
+  - job_name: webcli-main-2
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: webcli
+          app_type: main
+          instance: main-2
+          __path__: /etc/promtail/app-logs/webcli-main-2/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}) \[(?P<level>\w+)\] (?P<logger>[\w.]+): (?P<message>.*)'
+      - labels:
+          level:
+
+  # WebCLI Reader 2-1
+  - job_name: webcli-reader-2-1
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: webcli
+          app_type: reader
+          instance: reader-2-1
+          __path__: /etc/promtail/app-logs/webcli-reader-2-1/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}) \[(?P<level>\w+)\] (?P<logger>[\w.]+): (?P<message>.*)'
+      - labels:
+          level:
+
+  # WebCLI Reader 2-2
+  - job_name: webcli-reader-2-2
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: webcli
+          app_type: reader
+          instance: reader-2-2
+          __path__: /etc/promtail/app-logs/webcli-reader-2-2/*.log
+    pipeline_stages:
+      - regex:
+          expression: '^(?P<timestamp>\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}.\d{3}) \[(?P<level>\w+)\] (?P<logger>[\w.]+): (?P<message>.*)'
+      - labels:
+          level:
+
+  # Nginx logs
+  - job_name: nginx
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: nginx
+          __path__: /etc/promtail/app-logs/nginx-*/*.log
+
+  # Message Sender logs
+  - job_name: message-sender-1
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: message_sender
+          instance: sender-1
+          __path__: /etc/promtail/app-logs/message_sender-1/*.log

@@ -4,18 +4,20 @@ using System.Text;
 using System.Text.Json;
 using TaskTrackerDtoModels;
 using Types;
-namespace MessageSenderTaskTrackerClient;
+namespace PublicTaskTrackerClient;
 
 public interface IPublicTaskTrackerClient
 {
-    Task<User> CreateUserAsync(string username, PhoneNumber phone_number, string password);
-    Task<User> LogInAsync(string username, string password);
-    Task<Tuple<User, List<Habit>>> ImportNewScheduleAsync(string user_name, Stream stream, string extension);
+    Task<User> CreateUserAsync(string userName, PhoneNumber phoneNumber, string password);
+    Task<User> LogInAsync(string userName, string password, string? twoFactorCode = null);
+    Task ChangeTwoFactorAuthAsync(string userName, bool isEnabled);
+    Task ChangePasswordAsync(string userName, string password, string newPassword, string? twoFactorCode = null);
+    Task<Tuple<User, List<Habit>>> ImportNewScheduleAsync(string userName, Stream stream, string extension);
     Task<Tuple<User, List<Habit>>> AddHabitAsync(Habit habit);
-    Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string user_name, string name);
+    Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string userName, string name);
     Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string name);
-    Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string user_name);
-    Task DeleteUserAsync(string username);
+    Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings, bool? notifyOn, string userName);
+    Task DeleteUserAsync(string userName);
 }
 
 public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
@@ -26,12 +28,12 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
     {
         _httpClient = httpClient;
     }
-    public async Task<User> CreateUserAsync(string username, PhoneNumber phone_number, string password)
+    public async Task<User> CreateUserAsync(string userName, PhoneNumber phoneNumber, string password)
     {
         var request = new RegisterRequestDto
         {
-            UserName = username,
-            PhoneNumber = phone_number.StringNumber,
+            UserName = userName,
+            PhoneNumber = phoneNumber.StringNumber,
             Password = password
         };
 
@@ -41,21 +43,22 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         var response = await _httpClient.PostAsync("/api/v1/auth/register", content);
 
         if (!response.IsSuccessStatusCode)
-            throw new Exception("Ошибка создания пользорвателя");
+            throw new Exception($"Ошибка создания пользователя");
 
         var userDto = await response.Content.ReadFromJsonAsync<UserDto>(
             new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
         if (userDto == null)
-            throw new Exception("Ошибка создания пользорвателя");
+            throw new Exception("Ошибка создания пользователя");
         return DtoMapper.MapToDomain(userDto);
     }
 
-    public async Task<User> LogInAsync(string username, string password)
+    public async Task<User> LogInAsync(string userName, string password, string? twoFactorCode = null)
     {
         var request = new LoginRequestDto
         {
-            UserName = username,
-            Password = password
+            UserName = userName,
+            Password = password,
+            TwoFactorCode = twoFactorCode
         };
 
         var jsonContent = JsonSerializer.Serialize(request);
@@ -73,6 +76,58 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
             if (userDto == null)
                 throw new Exception("Ошибка входа");
             return DtoMapper.MapToDomain(userDto);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
+
+    public async Task ChangeTwoFactorAuthAsync(string userName, bool isEnabled)
+    {
+        var request = new ChangeTwoFactorRequestDto
+        {
+            UserName = userName,
+            IsEnabled = isEnabled
+        };
+
+        var jsonContent = JsonSerializer.Serialize(request);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var response = await _httpClient.PatchAsync("/api/v1/auth/two-factor", content, cts.Token);
+            if (!response.IsSuccessStatusCode)
+                throw new Exception("Ошибка изменения состояния двухфакторной аутентификации");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+            throw;
+        }
+    }
+    public async Task ChangePasswordAsync(string userName, string password, 
+        string newPassword, string? twoFactorCode = null)
+    {
+        var request = new ChangePasswordRequestDto
+        {
+            UserName = userName,
+            Password = password,
+            NewPassword = newPassword,
+            TwoFactorCode = twoFactorCode
+        };
+
+        var jsonContent = JsonSerializer.Serialize(request);
+        var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
+
+        try
+        {
+            using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var response = await _httpClient.PatchAsync("/api/v1/auth/change-password", content, cts.Token);
+            if (!response.IsSuccessStatusCode)
+                throw new Exception("Ошибка изменения пароля");
         }
         catch (Exception ex)
         {
@@ -106,9 +161,9 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         return new Tuple<User, List<Habit>>(user, habits);
     }
 
-    public async Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string user_name, string name)
+    public async Task<Tuple<User, List<Habit>>> DeleteHabitAsync(string userName, string name)
     {
-        var response = await _httpClient.DeleteAsync($"/api/v1/users/{user_name}/habits/{name}");
+        var response = await _httpClient.DeleteAsync($"/api/v1/users/{userName}/habits/{name}");
 
         if (!response.IsSuccessStatusCode)
             throw new Exception("Ошибка удаления привычки");
@@ -125,9 +180,9 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         return new Tuple<User, List<Habit>>(user, habits);
     }
 
-    public async Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string user_name)
+    public async Task<Tuple<User, List<Habit>>> DeleteHabitsAsync(string userName)
     {
-        var response = await _httpClient.DeleteAsync($"/api/v1/users/{user_name}/habits");
+        var response = await _httpClient.DeleteAsync($"/api/v1/users/{userName}/habits");
 
         if (!response.IsSuccessStatusCode)
             throw new Exception("Ошибка удаления привычек");
@@ -145,7 +200,7 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
     }
 
     public async Task<User> ChangeSettingsAsync(List<Tuple<TimeOnly, TimeOnly>>? newTimings,
-        bool? notifyOn, string username)
+        bool? notifyOn, string userName)
     { 
         var notificationSettings = new NotificationSettingsDto
         {
@@ -160,7 +215,7 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         var jsonContent = JsonSerializer.Serialize(notificationSettings);
         var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
 
-        var response = await _httpClient.PatchAsync($"/api/v1/users/{username}/notifications/change-settings", content);
+        var response = await _httpClient.PatchAsync($"/api/v1/users/{userName}/notifications/change-settings", content);
 
         if (!response.IsSuccessStatusCode)
             throw new Exception("Ошибка обновления настроек");
@@ -173,14 +228,14 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         return DtoMapper.MapToDomain(userDto);
     }
 
-    public async Task<Tuple<User, List<Habit>>> ImportNewScheduleAsync(string user_name, Stream stream, string extension)
+    public async Task<Tuple<User, List<Habit>>> ImportNewScheduleAsync(string userName, Stream stream, string extension)
     {
         var formData = new MultipartFormDataContent
         {
             { new StreamContent(stream), "file", $"schedule{extension}" }
         };
 
-        var response = await _httpClient.PostAsync($"/api/v1/users/{user_name}/schedule/import", formData);
+        var response = await _httpClient.PostAsync($"/api/v1/users/{userName}/schedule/import", formData);
 
         if (!response.IsSuccessStatusCode)
             throw new Exception("Ошибка импорта расписания");
@@ -197,9 +252,9 @@ public class WebPublicTaskTrackerClient : IPublicTaskTrackerClient
         return new Tuple<User, List<Habit>>(user, habits);
     }
 
-    public async Task DeleteUserAsync(string username)
+    public async Task DeleteUserAsync(string userName)
     {
-        var response = await _httpClient.DeleteAsync($"/api/v1/users/{username}");
+        var response = await _httpClient.DeleteAsync($"/api/v1/users/{userName}");
         if (!response.IsSuccessStatusCode)
             throw new Exception("Ошибка удаления пользователя");
     }
