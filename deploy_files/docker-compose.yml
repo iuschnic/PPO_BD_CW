@@ -9,7 +9,7 @@ networks:
     driver: bridge
 
 services:
-  # ==================== LOKI & GRAFANA ====================
+  # Loki & Grafana
   loki:
     image: grafana/loki:3.4.1
     ports:
@@ -59,7 +59,7 @@ services:
     networks:
       - loki
       
-  # ==================== FIRST CLUSTER ====================
+  # First Postgres Cluster
   etcd1-1: &etcd
     image: ${PATRONI_TEST_IMAGE:-patroni}
     networks: [ patroni-cluster-1 ]
@@ -138,7 +138,7 @@ services:
         PATRONI_NAME: patroni1-3
   
   
-  # ==================== SECOND CLUSTER ====================
+  # Second Postgres Cluster
   
   etcd2-1: &etcd
     image: ${PATRONI_TEST_IMAGE:-patroni}
@@ -217,7 +217,7 @@ services:
         <<: *haproxy_env
         PATRONI_NAME: patroni2-3
 
-  # ==================== SERVICE CONFIGURATION ====================
+  # PgAdmin
 
   pgadmin:
     image: dpage/pgadmin4
@@ -229,13 +229,13 @@ services:
       PGADMIN_CONFIG_SERVER_MODE: 'False'
       PGADMIN_CONFIG_MASTER_PASSWORD_REQUIRED: 'False'
     volumes:
-      - ./pgadmin/servers.json:/pgadmin4/servers.json  # Правильный путь
+      - ./pgadmin/servers.json:/pgadmin4/servers.json
     networks:
       - patroni-cluster-1
       - patroni-cluster-2
       - default
 
-  # Service-1 applications (используют Cluster 1 через HAProxy)
+  # Service-1 (используют Cluster 1 через HAProxy)
   webcli-main-1:
     build:
       context: ../code
@@ -322,8 +322,33 @@ services:
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
+    
+  message-sender-1:
+    ports:
+      - "5010:5002"
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.messagesender
+    environment:
+      - BASE_URL=http://nginx-internal-1:5000
+      - MOCK_BASE_URL=http://localhost:5000/
+      - USE_MOCK=false
+      - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
+      - SECRET_KEY=$SECRET_KEY
+      - BOT_TOKEN=$BOT_TOKEN1
+      - HTTP_LISTENER_BASE_URL=http://+:5002
+    depends_on:
+      nginx-internal-1:
+        condition: service_healthy
+    volumes:
+      - ./logs/message_sender-1:/app/logs
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-1
 
-  # Service-2 applications (используют Cluster 2 через HAProxy)
+  # Service-2 (используют Cluster 2 через HAProxy)
   webcli-main-2:
     build:
       context: ../code
@@ -410,6 +435,31 @@ services:
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
+    
+  message-sender-2:
+    ports:
+      - "5011:5002"
+    build:
+      context: ../code
+      dockerfile: ../deploy_files/Dockerfile.messagesender
+    environment:
+      - BASE_URL=http://nginx-internal-2:5000
+      - MOCK_BASE_URL=http://localhost:5000/
+      - USE_MOCK=false
+      - DB_CONNECTION_STRING=Host=haproxy2;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
+      - SECRET_KEY=$SECRET_KEY
+      - BOT_TOKEN=$BOT_TOKEN2
+      - HTTP_LISTENER_BASE_URL=http://+:5002
+    depends_on:
+      nginx-internal-2:
+        condition: service_healthy
+    volumes:
+      - ./logs/message_sender-2:/app/logs
+    mem_limit: 256M
+    mem_reservation: 128M
+    cpus: 0.5
+    networks:
+      - patroni-cluster-2
 
   # NGINX Servers
   nginx-internal-1:
@@ -492,56 +542,6 @@ services:
       interval: 10s
       timeout: 5s
       retries: 3
-    mem_limit: 256M
-    mem_reservation: 128M
-    cpus: 0.5
-    networks:
-      - patroni-cluster-2
-      
-  message-sender-1:
-    ports:
-      - "5010:5002"
-    build:
-      context: ../code
-      dockerfile: ../deploy_files/Dockerfile.messagesender
-    environment:
-      - BASE_URL=http://nginx-internal-1:5000
-      - MOCK_BASE_URL=http://localhost:5000/
-      - USE_MOCK=false
-      - DB_CONNECTION_STRING=Host=haproxy1;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
-      - SECRET_KEY=$SECRET_KEY
-      - BOT_TOKEN=$BOT_TOKEN1
-      - HTTP_LISTENER_BASE_URL=http://+:5002
-    depends_on:
-      nginx-internal-1:
-        condition: service_healthy
-    volumes:
-      - ./logs/message_sender-1:/app/logs
-    mem_limit: 256M
-    mem_reservation: 128M
-    cpus: 0.5
-    networks:
-      - patroni-cluster-1
-  
-  message-sender-2:
-    ports:
-      - "5011:5002"
-    build:
-      context: ../code
-      dockerfile: ../deploy_files/Dockerfile.messagesender
-    environment:
-      - BASE_URL=http://nginx-internal-2:5000
-      - MOCK_BASE_URL=http://localhost:5000/
-      - USE_MOCK=false
-      - DB_CONNECTION_STRING=Host=haproxy2;Port=5000;Database=messagesenderdb;Username=postgres;Password=postgres
-      - SECRET_KEY=$SECRET_KEY
-      - BOT_TOKEN=$BOT_TOKEN2
-      - HTTP_LISTENER_BASE_URL=http://+:5002
-    depends_on:
-      nginx-internal-2:
-        condition: service_healthy
-    volumes:
-      - ./logs/message_sender-2:/app/logs
     mem_limit: 256M
     mem_reservation: 128M
     cpus: 0.5
