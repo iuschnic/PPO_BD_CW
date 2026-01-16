@@ -19,7 +19,7 @@
 
 ### Технологический стек бекенда:
 * Язык **C#**
-* **Entity Framewor**k для компонента доступа к данным
+* **Entity Framework** для компонента доступа к данным
 * **Serilog** для логирования
 * **Grafana** и **Loki** для просмотра логов
 * **Telegram.Bot** для отправки сообщений
@@ -39,11 +39,11 @@
 ![SVG Image](./docs/bpmn.svg)
 ### ER диаграмма сущностей:
 ![SVG Image](./docs/ER.svg)
-### Диаграмма компонентов:
-![SVG Image](./docs/Components.svg)
+### Диаграмма C4 второго уровня:
+![SVG Image](./docs/c4_level2.svg)
 ### Диаграмма БД:
 ![SVG Image](./docs/DB.svg)
-### Черновые варианты интерфейса
+### Desktop интерфейс
 ![PNG Image](./docs/auth.png)
 ![PNG Image](./docs/add_habit.png)
 ![PNG Image](./docs/main_window.png)

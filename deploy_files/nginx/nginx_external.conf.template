@@ -245,16 +245,81 @@ http {
         
         # ==================== MONITORING ROUTES ====================
 
-        location /monitoring/ {
-            add_header Server $app_name;
-            return 302 http://localhost:3000;
-        }
+        #location /monitoring/ {
+        #    add_header Server $app_name;
+        #    return 302 http://localhost:3000;
+        #}
 
-        location = /monitoring {
-            add_header Server $app_name;
-            return 302 http://localhost:3000;
-        }
-
+        #location = /monitoring {
+        #    add_header Server $app_name;
+        #    return 302 http://localhost:3000;
+        #}
+		
+		location /monitoring/ {
+			auth_basic "Monitoring Dashboard";
+			auth_basic_user_file /etc/nginx/.htpasswd;
+			
+			proxy_pass http://grafana/;
+			
+			# Подменяем заголовки Server в ответах от Grafana
+			proxy_hide_header Server;
+			proxy_hide_header X-Powered-By;
+			proxy_hide_header X-Grafana;  # Скрываем Grafana-specific заголовки
+			add_header Server $app_name;
+			add_header X-Powered-By $app_name;
+			
+			# Базовые заголовки прокси
+			proxy_set_header Host $host;
+			proxy_set_header X-Real-IP $remote_addr;
+			proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+			proxy_set_header X-Forwarded-Proto $scheme;
+			proxy_set_header X-Forwarded-Host $host;
+			proxy_set_header X-Forwarded-Port $server_port;
+			
+			# WebSocket поддержка
+			proxy_http_version 1.1;
+			proxy_set_header Upgrade $http_upgrade;
+			proxy_set_header Connection $http_connection;
+			proxy_set_header X-WebSocket-Protocol $http_upgrade;
+			
+			# Убираем префикс /monitoring из пути
+			rewrite ^/monitoring/(.*)$ /$1 break;
+			
+			# Таймауты
+			proxy_connect_timeout 30s;
+			proxy_send_timeout 30s;
+			proxy_read_timeout 30s;
+			
+			# Отключаем буферизацию для live dashboards
+			proxy_buffering off;
+			
+			# Отключаем кэширование для мониторинга
+			proxy_no_cache 1;
+			proxy_cache_bypass 1;
+			expires -1;
+			
+			# Дополнительные настройки безопасности для Grafana
+			proxy_hide_header X-Frame-Options;  # Графана ставит DENY, мешает iframe
+			add_header X-Frame-Options "SAMEORIGIN" always;  # Разрешаем встраивание
+			
+			# CORS для API Grafana
+			add_header Access-Control-Allow-Origin "$http_origin" always;
+			add_header Access-Control-Allow-Credentials "true" always;
+			add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS" always;
+			add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept" always;
+			
+			# Обработка OPTIONS для CORS
+			if ($request_method = 'OPTIONS') {
+				add_header Access-Control-Allow-Origin "$http_origin";
+				add_header Access-Control-Allow-Credentials "true";
+				add_header Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS";
+				add_header Access-Control-Allow-Headers "Authorization, Content-Type, Accept";
+				add_header Content-Type "text/plain charset=UTF-8";
+				add_header Content-Length 0;
+				return 204;
+			}
+		}
+		
         # ==================== MIRROR ROUTES ====================
 
         location = /mirror/api/v1/ {
