@@ -34,6 +34,7 @@ http {
         server $READER2_HOST:$READER2_PORT;
     }
 	
+	# по заданию балансировка на чтения 2:1:1
 	upstream backend-readers {
         server $MAIN_HOST:$MAIN_PORT weight=2;
         server $READER1_HOST:$READER1_PORT weight=1;
